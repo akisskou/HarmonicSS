@@ -8,9 +8,11 @@ import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
+import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 import javax.xml.parsers.DocumentBuilderFactory;
 import javax.xml.parsers.DocumentBuilder;
+
 
 
 
@@ -52,6 +54,8 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	static ArrayList<String> crit_names_excl = new ArrayList<String>();
 	static ArrayList<String> cohort_names = new ArrayList<String>();
 	static String requestID = "";
+	private static PatientsSelectionRequest patientsSelectionRequest;
+	private static File responseXML = new File("Resp01.xml");
 	
     /**
      * @see HttpServlet#HttpServlet()
@@ -76,14 +80,15 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
   	  		File fXmlFile = new File(requestID+".xml");
   	  		jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
   	  		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-         
-  	  		PatientsSelectionRequest patientsSelectionRequest = ((JAXBElement<PatientsSelectionRequest>) jaxbUnmarshaller.unmarshal(fXmlFile)).getValue();
+  	  		patientsSelectionRequest = ((JAXBElement<PatientsSelectionRequest>) jaxbUnmarshaller.unmarshal(fXmlFile)).getValue();
+
   	  		System.out.println(patientsSelectionRequest.getSessionID());
   	  		System.out.println(patientsSelectionRequest.getRequestDate());
   	  		System.out.println(patientsSelectionRequest.getUserID());
   	  		System.out.println(patientsSelectionRequest.getCohortID());
   	  		System.out.println(patientsSelectionRequest.getRequestTitle());
   	  		System.out.println(patientsSelectionRequest.getRequestID());
+  	  		
   	  		
   	  		//File fXmlFile = new File("/WEB-INF/Req01.xml");
   	  		/*DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
@@ -160,6 +165,24 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
   	   }    
     }
     
+    public void writeXMLResponse(){
+    	try{
+    		
+    		JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
+    		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
+    		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+    		PatientsSelectionResponse patientsSelectionResponse = new PatientsSelectionResponse();
+    		//jaxbMarshaller.marshal(patientsSelectionResponse, responseXML);
+    		//patientsSelectionResponse.setUserID(patientsSelectionRequest.getUserID());
+    		ObjectFactory objectFactory = new ObjectFactory();
+    		JAXBElement<PatientsSelectionResponse> je =  objectFactory.createPatientsSelectionResponse(patientsSelectionResponse);
+    		jaxbMarshaller.marshal(je, responseXML);
+    	}
+    	catch(Exception e){
+    		e.printStackTrace();
+    	}
+    }
+    
     public String[] getCohortsAccessByRequestID(String requestID){
     	String[] cohortAccess = new String[cohort_names.size()];
     	for(int i=0; i<cohort_names.size(); i++){
@@ -186,6 +209,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		requestID = request.getParameter("requestID");
 		if(requestID!=null){
 			readXMLbyRequestID(requestID);
+			writeXMLResponse();
 			/*System.out.println("The ids of the included criterions are: "+crit_names_incl);
 			System.out.println("The ids of the excluded criterions are: "+crit_names_excl);
 			String[] cohortAccess = getCohortsAccessByRequestID(requestID);
