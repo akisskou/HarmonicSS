@@ -1,0 +1,61 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<iccs:PatientsSelectionRequest sessionID="101010203920" requestDate="2019-10-16" xsi:schemaLocation="http://www.ntua.org/criteria PatientsSelection-EligibilityCriteria-Schema-v.1.3.xsd" xmlns:iccs="http://www.ntua.org/criteria" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserID>HARM-USER-15</UserID>
+	
+	<CohortID>COHORT-ID-01</CohortID>
+	<CohortID>COHORT-ID-17</CohortID>
+	
+	<RequestTitle>Patient Selection request for clinical study XYZ</RequestTitle>
+	
+	<RequestID>ELIGIBLE_PATIENTS_NUMBER</RequestID>	
+	
+	<EligibilityCriteria>
+	
+		<InclusionCriteria>
+			<!-- Demographics Criterion -->
+			<Criterion UID="CRIT-ID-01" Name="-">
+				<Description>Female Subjects</Description>
+				<FormalExpression Language="JSON" ID="CRIT-ID-01-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+					<BooleanExpression>
+						+++++++++++++++++ JSON +++++++++++++++++
+					</BooleanExpression>
+				</FormalExpression>
+			</Criterion>
+			<!-- Disease Criterion -->
+			<Criterion UID="CRIT-ID-02" Name="-">
+				<Description>Diagnosed with: Digestive System Disease OR Circulatory System Disease</Description>
+				<FormalExpression Language="JSON" ID="CRIT-ID-02-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+					<BooleanExpression>
+						+++++++++++++++++ JSON +++++++++++++++++
+					</BooleanExpression>
+				</FormalExpression>
+			</Criterion>
+		</InclusionCriteria>
+		
+		<ExclusionCriteria>
+			<!-- Blood Test Criterion -->
+			<Criterion UID="CRIT-ID-03" Name="-">
+				<Description>Hemoglobin greater than 10 g/dL</Description>
+				<FormalExpression Language="JSON" ID="CRIT-ID-03-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+					<BooleanExpression>
+						+++++++++++++++++ JSON +++++++++++++++++
+					</BooleanExpression>
+				</FormalExpression>
+			</Criterion>
+			<!-- Medication Criterion -->
+			<Criterion UID="CRIT-ID-04" Name="-">
+				<Description>Administered: Glucocorticoids OR Hydroxychloroquine, the last 2 years</Description>
+				<FormalExpression Language="JSON" ID="CRIT-ID-04-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+					<BooleanExpression>
+						+++++++++++++++++ JSON +++++++++++++++++
+					</BooleanExpression>
+				</FormalExpression>
+			</Criterion>
+		</ExclusionCriteria>
+		
+	</EligibilityCriteria>
+
+</iccs:PatientsSelectionRequest>
+
+
+

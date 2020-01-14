@@ -25,6 +25,7 @@ import javax.xml.parsers.DocumentBuilder;
 
 
 
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ntua.criteria.*;
@@ -173,7 +174,32 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
     		PatientsSelectionResponse patientsSelectionResponse = new PatientsSelectionResponse();
     		//jaxbMarshaller.marshal(patientsSelectionResponse, responseXML);
-    		//patientsSelectionResponse.setUserID(patientsSelectionRequest.getUserID());
+    		patientsSelectionResponse.setUserID(patientsSelectionRequest.getUserID());
+    		patientsSelectionResponse.setSessionID(patientsSelectionRequest.getSessionID());
+    		patientsSelectionResponse.setResponseDate(patientsSelectionRequest.getRequestDate());
+    		for(String cohortID: patientsSelectionRequest.getCohortID()){
+    			CohortResponse cohortResponse = new CohortResponse();
+    			cohortResponse.setCohortID(cohortID);
+    			cohortResponse.setQueryDate(patientsSelectionRequest.getRequestDate());
+    			cohortResponse.setEligiblePatientsNumber(14);
+    			EligibilityCriteriaUsed inclAndExclCriteriaUsed = new EligibilityCriteriaUsed();
+    			for(Criterion inclCriterion: patientsSelectionRequest.getEligibilityCriteria().getInclusionCriteria().getCriterion()){
+    				CriterionUsage inclCriterionUsage = new CriterionUsage();
+    				inclCriterionUsage.setCriterionID(inclCriterion.getUID());
+    				inclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.USED);
+    				inclCriterionUsage.setNotesHTML("+++ Additional terms (if any) +++");
+    				inclAndExclCriteriaUsed.getCriterionUsage().add(inclCriterionUsage);
+    			}
+    			for(Criterion exclCriterion: patientsSelectionRequest.getEligibilityCriteria().getExclusionCriteria().getCriterion()){
+    				CriterionUsage exclCriterionUsage = new CriterionUsage();
+    				exclCriterionUsage.setCriterionID(exclCriterion.getUID());
+    				exclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.NOT_USED);
+    				exclCriterionUsage.setNotesHTML("+++ The Reason for not using this criterion +++");
+    				inclAndExclCriteriaUsed.getCriterionUsage().add(exclCriterionUsage);
+    			}
+    			cohortResponse.setEligibilityCriteriaUsed(inclAndExclCriteriaUsed);
+    			patientsSelectionResponse.getCohortResponse().add(cohortResponse);
+    		}
     		ObjectFactory objectFactory = new ObjectFactory();
     		JAXBElement<PatientsSelectionResponse> je =  objectFactory.createPatientsSelectionResponse(patientsSelectionResponse);
     		jaxbMarshaller.marshal(je, responseXML);
@@ -256,4 +282,21 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		// TODO Auto-generated method stub
 	}
 
+	public static void main(String[] args) throws Exception {
+		// TODO Auto-generated method stub
+
+		System.out.println("Begin");
+		
+		final String requestID = "Req01";
+
+		PatientSelectionImpl testObj = new PatientSelectionImpl();
+		
+		testObj.readXMLbyRequestID(requestID);
+		testObj.writeXMLResponse();
+		
+		System.out.println("End");
+		
+	}
+
+	
 }

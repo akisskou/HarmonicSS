@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="UTF-8" standalone="yes"?>
+<ns2:PatientsSelectionResponse xmlns:ns2="http://www.ntua.org/criteria" sessionID="101010203920" userID="HARM-USER-15" responseDate="2019-10-16">
+    <CohortResponse cohortID="COHORT-ID-01" queryDate="2019-10-16">
+        <EligiblePatientsNumber>14</EligiblePatientsNumber>
+        <EligibilityCriteriaUsed>
+            <CriterionUsage criterionID="CRIT-ID-01" criterionUsageStatus="USED">
+                <NotesHTML>+++ Additional terms (if any) +++</NotesHTML>
+            </CriterionUsage>
+            <CriterionUsage criterionID="CRIT-ID-02" criterionUsageStatus="USED">
+                <NotesHTML>+++ Additional terms (if any) +++</NotesHTML>
+            </CriterionUsage>
+            <CriterionUsage criterionID="CRIT-ID-03" criterionUsageStatus="NOT-USED">
+                <NotesHTML>+++ The Reason for not using this criterion +++</NotesHTML>
+            </CriterionUsage>
+            <CriterionUsage criterionID="CRIT-ID-04" criterionUsageStatus="NOT-USED">
+                <NotesHTML>+++ The Reason for not using this criterion +++</NotesHTML>
+            </CriterionUsage>
+        </EligibilityCriteriaUsed>
+    </CohortResponse>
+    <CohortResponse cohortID="COHORT-ID-17" queryDate="2019-10-16">
+        <EligiblePatientsNumber>14</EligiblePatientsNumber>
+        <EligibilityCriteriaUsed>
+            <CriterionUsage criterionID="CRIT-ID-01" criterionUsageStatus="USED">
+                <NotesHTML>+++ Additional terms (if any) +++</NotesHTML>
+            </CriterionUsage>
+            <CriterionUsage criterionID="CRIT-ID-02" criterionUsageStatus="USED">
+                <NotesHTML>+++ Additional terms (if any) +++</NotesHTML>
+            </CriterionUsage>
+            <CriterionUsage criterionID="CRIT-ID-03" criterionUsageStatus="NOT-USED">
+                <NotesHTML>+++ The Reason for not using this criterion +++</NotesHTML>
+            </CriterionUsage>
+            <CriterionUsage criterionID="CRIT-ID-04" criterionUsageStatus="NOT-USED">
+                <NotesHTML>+++ The Reason for not using this criterion +++</NotesHTML>
+            </CriterionUsage>
+        </EligibilityCriteriaUsed>
+    </CohortResponse>
+</ns2:PatientsSelectionResponse>
