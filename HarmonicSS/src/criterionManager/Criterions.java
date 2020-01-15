@@ -1,7 +1,5 @@
 package criterionManager;
-import java.util.ArrayList; // import the ArrayList class
-//import java.util.Arrays;
-//import java.io.File;
+
 import java.io.IOException;
 //import java.util.List;
 //import java.util.Set;
@@ -18,7 +16,8 @@ import org.codehaus.jackson.map.SerializationConfig.Feature;
 //import java.io.File;
 //import java.nio.file.Path;
 //import java.nio.file.Paths;
-import criterions.Criterion;
+
+//import org.codehaus.jackson.type.TypeReference;
 
 public class Criterions {
 

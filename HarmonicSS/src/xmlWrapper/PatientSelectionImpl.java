@@ -26,10 +26,19 @@ import javax.xml.parsers.DocumentBuilder;
 
 
 
+
+
+
+
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ntua.criteria.*;
+
 import jsonProcess.*;
+import criterionManager.*;
+import criterionManager.Criterion;
+
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -37,6 +46,8 @@ import org.w3c.dom.NodeList;
 
 import org.w3c.dom.Node;
 import org.w3c.dom.Element;
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
 
 import java.io.BufferedReader;
 import java.io.File;
@@ -45,6 +56,8 @@ import java.io.FileReader;
 import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 /**
  * Servlet implementation class PatientSelectionImpl
  */
@@ -91,11 +104,11 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
   	  		System.out.println(patientsSelectionRequest.getRequestTitle());
   	  		System.out.println(patientsSelectionRequest.getRequestID());
   	  		
-  	  		for(Criterion inclCriterion: patientsSelectionRequest.getEligibilityCriteria().getInclusionCriteria().getCriterion()){
+  	  		for(org.ntua.criteria.Criterion inclCriterion: patientsSelectionRequest.getEligibilityCriteria().getInclusionCriteria().getCriterion()){
   	  			System.out.println(inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim());
   	  			result_incl+=inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim();
   	  		}
-  	  		for(Criterion exclCriterion: patientsSelectionRequest.getEligibilityCriteria().getExclusionCriteria().getCriterion()){
+  	  		for(org.ntua.criteria.Criterion exclCriterion: patientsSelectionRequest.getEligibilityCriteria().getExclusionCriteria().getCriterion()){
 	  			System.out.println(exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim());
 	  			result_incl+=exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim();
 	  		}
@@ -144,14 +157,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     			cohortResponse.setQueryDate(patientsSelectionRequest.getRequestDate());
     			cohortResponse.setEligiblePatientsNumber(14);
     			EligibilityCriteriaUsed inclAndExclCriteriaUsed = new EligibilityCriteriaUsed();
-    			for(Criterion inclCriterion: patientsSelectionRequest.getEligibilityCriteria().getInclusionCriteria().getCriterion()){
+    			for(org.ntua.criteria.Criterion inclCriterion: patientsSelectionRequest.getEligibilityCriteria().getInclusionCriteria().getCriterion()){
     				CriterionUsage inclCriterionUsage = new CriterionUsage();
     				inclCriterionUsage.setCriterionID(inclCriterion.getUID());
     				inclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.USED);
     				inclCriterionUsage.setNotesHTML("+++ Additional terms (if any) +++");
     				inclAndExclCriteriaUsed.getCriterionUsage().add(inclCriterionUsage);
     			}
-    			for(Criterion exclCriterion: patientsSelectionRequest.getEligibilityCriteria().getExclusionCriteria().getCriterion()){
+    			for(org.ntua.criteria.Criterion exclCriterion: patientsSelectionRequest.getEligibilityCriteria().getExclusionCriteria().getCriterion()){
     				CriterionUsage exclCriterionUsage = new CriterionUsage();
     				exclCriterionUsage.setCriterionID(exclCriterion.getUID());
     				exclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.NOT_USED);
@@ -245,7 +258,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 
 	public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
-
+		//Logger LOGGER = Initialize_logger("LogFile.log");
 		System.out.println("Begin");
 		
 		final String requestID = "Req01";
@@ -256,6 +269,25 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		String[] crit_incl_excl=crit_incl_excl_in.split("XXX");
 		String criteria = Intermediate_Layer.preProcess_JSON(crit_incl_excl[0]);
 		System.out.println("After Criteria preprocessed:\n"+criteria);
+		ArrayList<Criterion> list_of_criterions=null;
+		try {
+			list_of_criterions = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+		} catch (JsonParseException e1) {
+			/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
+			flush_handler();*/
+			e1.printStackTrace();
+			//return "JsonParseException Bad JSON format.";
+		} catch (JsonMappingException e1) {
+			/*LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
+			flush_handler();*/
+			e1.printStackTrace();
+			//return "JsonParseException Bad JSON format.";
+		} catch (IOException e1) {
+			/*LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
+			flush_handler();*/
+			e1.printStackTrace();
+			//return "JsonParseException Bad JSON format.";
+		}
 		testObj.writeXMLResponse();
 		
 		System.out.println("End");
