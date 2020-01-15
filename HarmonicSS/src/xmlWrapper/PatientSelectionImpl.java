@@ -29,6 +29,7 @@ import javax.xml.parsers.DocumentBuilder;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ntua.criteria.*;
+import jsonProcess.*;
 import org.w3c.dom.Document;
 import org.w3c.dom.NodeList;
 
@@ -67,15 +68,15 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     }
 
     @SuppressWarnings("unchecked")
-	public void readXMLbyRequestID(String requestID){
+	public String readXMLbyRequestID(String requestID){
     	criterion_incl.clear();
   	  	criterion_excl.clear();
   	  	crit_names_incl.clear();
   	  	crit_names_excl.clear();
   	  	cohort_names.clear();
-  	  	/*String result_incl = "";
+  	  	String result_incl = "";
   	  	String result_excl = "";
-  	  	String result="";*/
+  	  	
   	  	try {
   	  		JAXBContext jaxbContext;
   	  		File fXmlFile = new File(requestID+".xml");
@@ -90,80 +91,40 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
   	  		System.out.println(patientsSelectionRequest.getRequestTitle());
   	  		System.out.println(patientsSelectionRequest.getRequestID());
   	  		
-  	  		
-  	  		//File fXmlFile = new File("/WEB-INF/Req01.xml");
-  	  		/*DocumentBuilderFactory dbFactory = DocumentBuilderFactory.newInstance();
-  	  		DocumentBuilder dBuilder = dbFactory.newDocumentBuilder();
-  	  		Document doc = dBuilder.parse(fXmlFile);
-  				
-  	  		//optional, but recommended
-  	  		//read this - http://stackoverflow.com/questions/13786607/normalization-in-dom-parsing-with-java-how-does-it-work
-  		
-  	  		doc.getDocumentElement().normalize();
-  	  		
-  	  		NodeList ListIncl_ch =  doc.getElementsByTagName("CohortID"); //ListIncl = doc.getElementsByTagName("Criterion");
-  	  		//System.out.println("The length of cohorts is: "+ ListIncl_ch.getLength());
-  	  		System.out.println("The cohorts that we are looking for :" );
-  	  		for (int temp = 0; temp < ListIncl_ch.getLength(); temp++) {
-  	  			Node nNode = ListIncl_ch.item(temp);
-  	  			System.out.println("Cohort :" + nNode.getTextContent());
-  	  			cohort_names.add(nNode.getTextContent());
+  	  		for(Criterion inclCriterion: patientsSelectionRequest.getEligibilityCriteria().getInclusionCriteria().getCriterion()){
+  	  			System.out.println(inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim());
+  	  			result_incl+=inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim();
   	  		}
-  	  		
-  	  		NodeList ListIncl2 = doc.getElementsByTagName("InclusionCriteria");
-  	  		Node nNode2 = ListIncl2.item(0);
-  	  		Element eElement2 = (Element) nNode2;
-  	  		//eElement2.getElementsByTagName("Criterion");
-  		
-  		
-  	  		NodeList ListIncl =  eElement2.getElementsByTagName("Criterion"); //ListIncl = doc.getElementsByTagName("Criterion");
-  	  		//System.out.println("The length of ListIncl is: "+ ListIncl.getLength());
-  	  		for (int temp = 0; temp < ListIncl.getLength(); temp++) {
-  	  			Node nNode = ListIncl.item(temp);
-  	  			crit_names_incl.add(nNode.getAttributes().item(1).toString().replace("UID=", "").replace("\"", ""));
-  	        
-  	  			//crit_names_incl += nNode.getAttributes().item(1);
-  	  			System.out.println("Criterion Name:" +nNode.getAttributes().item(1));
-  	  			//System.out.println("\nCurrent Element :" + nNode.getNodeName());
-  	  			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-  	  				Element eElement = (Element) nNode;*/
-  	  				/*            System.out.println("InclusionCriteria : " 
-  	               	+ eElement.getAttribute("Criterion"));*/
-  	  				/*criterion_incl.add(eElement.getElementsByTagName("BooleanExpression").item(0).getTextContent().toString());
-  	  				//result_incl+=eElement.getElementsByTagName("BooleanExpression").item(0).getTextContent();
-  	  				System.out.println("Inclusive Criterion-"+temp+": " + eElement.getElementsByTagName("BooleanExpression").item(0).getTextContent());
-  	  			}       
-  	  		}
+  	  		for(Criterion exclCriterion: patientsSelectionRequest.getEligibilityCriteria().getExclusionCriteria().getCriterion()){
+	  			System.out.println(exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim());
+	  			result_incl+=exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim();
+	  		}
+  	  		result_incl ="{\"list_of_criterions\":\n" + 
+  	  			"  [\n" + 
+  	  			""
+  	  			+result_incl
+  	  			+"  ]\n" + 
+  	  			"}\n" + 
+  	  			"";
 
-  		
-  	  		ListIncl2 = doc.getElementsByTagName("ExclusionCriteria");
-  	  		nNode2 = ListIncl2.item(0);
-  	  		eElement2 = (Element) nNode2;
-  	  		//eElement2.getElementsByTagName("Criterion");
-  		
-  		
-  	  		ListIncl =  eElement2.getElementsByTagName("Criterion"); //ListIncl = doc.getElementsByTagName("Criterion");
-  	  		//System.out.println("The length of ListIncl is: "+ ListIncl.getLength());
-  	  		for (int temp = 0; temp < ListIncl.getLength(); temp++) {
-  	  			Node nNode = ListIncl.item(temp);
-  	  			crit_names_excl.add(nNode.getAttributes().item(1).toString().replace("UID=", "").replace("\"", ""));
-  	  			//crit_names_excl+=nNode.getAttributes().item(1)+","; //new
-  	        
-  	  			System.out.println("Criterion Name:" +nNode.getAttributes().item(1));
-  	  			//System.out.println("\nCurrent Element :" + nNode.getNodeName());
-  	  			if (nNode.getNodeType() == Node.ELEMENT_NODE) {
-  	  				Element eElement = (Element) nNode;*/
-  	  				/*            System.out.println("InclusionCriteria : " 
-  	               + eElement.getAttribute("Criterion"));*/
-  	  				/*criterion_excl.add(eElement.getElementsByTagName("BooleanExpression").item(0).getTextContent().toString());
-  	  				//result_excl+=eElement.getElementsByTagName("BooleanExpression").item(0).getTextContent();
-  	  				System.out.println("Exclusive Criterion-"+temp+": " + eElement.getElementsByTagName("BooleanExpression").item(0).getTextContent());
-  	  			}       
-  	  		}*/
+  	  		result_excl ="{\"list_of_criterions\":\n" + 
+  	  			"  [\n" + 
+  	  			""
+  	  			+result_excl
+  	  			+"  ]\n" + 
+  	  			"}\n" + 
+  	  			"";
+
+
+  	  		System.out.println("The ids of the included criterions are: "+crit_names_incl);
+  	  		System.out.println("The ids of the excluded criterions are: "+crit_names_excl);
+  	      
+  	  
   		
   	   } catch (Exception e) {
   	      e.printStackTrace();
-  	   }    
+  	   }
+  	   return result_incl+"XXX"+result_excl;
     }
     
     public void writeXMLResponse(){
@@ -291,7 +252,10 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 
 		PatientSelectionImpl testObj = new PatientSelectionImpl();
 		
-		testObj.readXMLbyRequestID(requestID);
+		String crit_incl_excl_in = testObj.readXMLbyRequestID(requestID);
+		String[] crit_incl_excl=crit_incl_excl_in.split("XXX");
+		String criteria = Intermediate_Layer.preProcess_JSON(crit_incl_excl[0]);
+		System.out.println("After Criteria preprocessed:\n"+criteria);
 		testObj.writeXMLResponse();
 		
 		System.out.println("End");

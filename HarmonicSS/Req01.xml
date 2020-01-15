@@ -14,19 +14,19 @@
 		<InclusionCriteria>
 			<!-- Demographics Criterion -->
 			<Criterion UID="CRIT-ID-01" Name="-">
-				<Description>Female Subjects</Description>
+				<Description>Female patients</Description>
 				<FormalExpression Language="JSON" ID="CRIT-ID-01-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
 					<BooleanExpression>
-						+++++++++++++++++ JSON +++++++++++++++++
+						{"criterion":"demographics_gender","gender":"SEX-02"}
 					</BooleanExpression>
 				</FormalExpression>
 			</Criterion>
 			<!-- Disease Criterion -->
 			<Criterion UID="CRIT-ID-02" Name="-">
-				<Description>Diagnosed with: Digestive System Disease OR Circulatory System Disease</Description>
+				<Description>Diagnosed with cancer</Description>
 				<FormalExpression Language="JSON" ID="CRIT-ID-02-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
 					<BooleanExpression>
-						+++++++++++++++++ JSON +++++++++++++++++
+						{"criterion":"condition_diagnosis","condition":"COND-140000","statement":"CONFIRM-01"}
 					</BooleanExpression>
 				</FormalExpression>
 			</Criterion>
@@ -35,19 +35,19 @@
 		<ExclusionCriteria>
 			<!-- Blood Test Criterion -->
 			<Criterion UID="CRIT-ID-03" Name="-">
-				<Description>Hemoglobin greater than 10 g/dL</Description>
+				<Description>There was an abortion</Description>
 				<FormalExpression Language="JSON" ID="CRIT-ID-03-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
 					<BooleanExpression>
-						+++++++++++++++++ JSON +++++++++++++++++
+						{"criterion":"demographics_pregnancy","outcome_coded_value":"PREG-OUT-300","statement":"CONFIRM-01"}
 					</BooleanExpression>
 				</FormalExpression>
 			</Criterion>
 			<!-- Medication Criterion -->
 			<Criterion UID="CRIT-ID-04" Name="-">
-				<Description>Administered: Glucocorticoids OR Hydroxychloroquine, the last 2 years</Description>
+				<Description>Anti-Ro/SSA was true (normal)</Description>
 				<FormalExpression Language="JSON" ID="CRIT-ID-04-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
 					<BooleanExpression>
-						+++++++++++++++++ JSON +++++++++++++++++
+						{"criterion":"examination_lab_test","test_id":"BLOOD-530","outcome_assessment":"ASSESS-10"}
 					</BooleanExpression>
 				</FormalExpression>
 			</Criterion>
