@@ -30,6 +30,7 @@ import javax.xml.bind.Unmarshaller;
 
 
 
+
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ntua.criteria.*;
@@ -98,7 +99,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
   	  		}
   	  		for(org.ntua.criteria.Criterion exclCriterion: patientsSelectionRequest.getEligibilityCriteria().getExclusionCriteria().getCriterion()){
 	  			System.out.println(exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim());
-	  			result_incl+=exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim();
+	  			result_excl+=exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim();
 	  		}
   	  		result_incl ="{\"list_of_criterions\":\n" + 
   	  			"  [\n" + 
@@ -115,11 +116,6 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
   	  			+"  ]\n" + 
   	  			"}\n" + 
   	  			"";
-
-
-  	  		System.out.println("The ids of the included criterions are: "+crit_names_incl);
-  	  		System.out.println("The ids of the excluded criterions are: "+crit_names_excl);
-  	      
   	  
   		
   	   } catch (Exception e) {
@@ -169,6 +165,85 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     	catch(Exception e){
     		e.printStackTrace();
     	}
+    }
+    
+    public static void findCriterion(Criterion myCrit){
+    	switch(myCrit.getCriterion()) 
+		{ 
+	    case "demographics_pregnancy": 
+	        {//System.out.println("demographics_pregnancy");
+	        demographics_pregnancy aCrit = (demographics_pregnancy)myCrit;
+	    	System.out.println("Pregnancy outcome code: "+aCrit.getOutcome_coded_value());}
+	    break; 
+	    case "lifestyle_smoking": 
+	    	{//System.out.println("lifestyle_smoking"); 
+	    	lifestyle_smoking aCrit = (lifestyle_smoking)myCrit;
+	    	System.out.println("Smoking amount unit: "+aCrit.getDt_amount_voc_unit_CODE());}
+	    break; 
+	    case "condition_symptom": 
+	    	{System.out.println("condition_symptom"); 
+	    	myCrit = (condition_symptom)myCrit;}
+	    break; 
+	    case "condition_diagnosis": 
+	    	{System.out.println("condition_diagnosis");  
+	    	myCrit = (condition_diagnosis)myCrit;}
+	    break; 
+	    case "intervention_medication": 
+	    	{System.out.println("intervention_medication"); 
+	    	myCrit = (intervention_medication)myCrit;}
+	    break; 
+	    case "intervention_chemotherapy": 
+	        {System.out.println("intervention_chemotherapy"); //condition_diagnosis
+	        myCrit = (intervention_chemotherapy)myCrit;}
+	    break; 
+	    case "intervention_surgery": 
+	        {System.out.println("intervention_surgery"); //condition_diagnosis
+	        myCrit = (intervention_surgery)myCrit;}
+	    break;  
+	    case "examination_lab_test": 
+        	{System.out.println("examination_lab_test"); //condition_diagnosis
+        	examination_lab_test myfirst = (examination_lab_test)myCrit;
+	    	System.out.println(myfirst.getTest_id());}
+        break; //
+	    case "examination_biopsy": 
+    		{System.out.println("examination_biopsy"); //condition_diagnosis
+    		myCrit = (examination_biopsy)myCrit;}
+    	break; 
+	    case "examination_medical_imaging_test": 
+			{System.out.println("examination_medical_imaging_test"); 
+			myCrit = (examination_medical_imaging_test)myCrit;}
+		break; 
+	    case "examination_questionnaire_score": 
+			{System.out.println("examination_questionnaire_score"); 
+			myCrit = (examination_questionnaire_score)myCrit;}
+		break; 
+	    case "examination_essdai_domain": 
+			{System.out.println("examination_essdai_domain"); 
+			myCrit = (examination_essdai_domain)myCrit;}
+		break; 
+	    case "examination_caci_condition": 
+			{System.out.println("examination_caci_condition"); 
+			myCrit = (examination_caci_condition)myCrit;}
+		break; //other_healthcare_visit
+	    case "other_healthcare_visit": 
+			{System.out.println("other_healthcare_visit"); 
+			myCrit = (other_healthcare_visit)myCrit;}
+		break; //other_healthcare_visit
+	    case "other_family_history": 
+			{System.out.println("other_family_history"); 
+			myCrit = (other_family_history)myCrit;}
+		break; 
+	    case "other_clinical_trials": 
+			{System.out.println("other_clinical_trials"); 
+			myCrit = (other_clinical_trials)myCrit;}
+		break; 
+	    case "patient": 
+			{System.out.println("patient"); 
+			myCrit = (patient)myCrit;}
+		break; //patient*/
+	    default: 
+	        System.out.println("no match"); 
+		}
     }
     
     public String[] getCohortsAccessByRequestID(String requestID){
@@ -254,87 +329,40 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		PatientSelectionImpl testObj = new PatientSelectionImpl();
 		
 		String crit_incl_excl_in = testObj.readXMLbyRequestID(requestID);
+		System.out.println(crit_incl_excl_in);
 		String[] crit_incl_excl=crit_incl_excl_in.split("XXX");
 		String criteria = Intermediate_Layer.preProcess_JSON(crit_incl_excl[0]);
 		System.out.println("After Criteria preprocessed:\n"+criteria);
-		ArrayList<Criterion> list_of_criterions=null;
+		ArrayList<Criterion> list_of_inclusive_criterions=null;
 		try {
-			list_of_criterions = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
-			Criterion first = (Criterion)list_of_criterions.get(3);
-			switch(first.getCriterion()) 
-			{ 
-		    case "demographics_pregnancy": 
-		        {System.out.println("demographics_pregnancy");
-		        first = (demographics_pregnancy)first;}
-		        break; 
-		    case "lifestyle_smoking": 
-		    	{System.out.println("lifestyle_smoking"); 
-		    	first = (lifestyle_smoking)first;}
-		    	break; 
-		    case "condition_symptom": 
-		    	{System.out.println("condition_symptom"); 
-		    	first = (condition_symptom)first;}
-		        break; 
-		    case "condition_diagnosis": 
-		    	{System.out.println("condition_diagnosis");  
-		    	first = (condition_diagnosis)first;}
-		        break; 
-		    case "intervention_medication": 
-		    	{System.out.println("intervention_medication"); 
-		    	first = (intervention_medication)first;}
-		        break; 
-		    case "intervention_chemotherapy": 
-		        {System.out.println("intervention_chemotherapy"); //condition_diagnosis
-		    	first = (intervention_chemotherapy)first;}
-		        break; 
-		    case "intervention_surgery": 
-		        {System.out.println("intervention_surgery"); //condition_diagnosis
-		    	first = (intervention_surgery)first;}
-		        break;  
-		    case "examination_lab_test": 
-	        	{System.out.println("examination_lab_test"); //condition_diagnosis
-	        	examination_lab_test myfirst = (examination_lab_test)first;
-		    	System.out.println(myfirst.getTest_id());}
-	        	break; //
-		    case "examination_biopsy": 
-        		{System.out.println("examination_biopsy"); //condition_diagnosis
-		    	first = (examination_biopsy)first;}
-        		break; 
-		    case "examination_medical_imaging_test": 
-    			{System.out.println("examination_medical_imaging_test"); 
-		    	first = (examination_medical_imaging_test)first;}
-    			break; 
-		    case "examination_questionnaire_score": 
-				{System.out.println("examination_questionnaire_score"); 
-		    	first = (examination_questionnaire_score)first;}
-			break; 
-		    case "examination_essdai_domain": 
-				{System.out.println("examination_essdai_domain"); 
-		    	first = (examination_essdai_domain)first;}
-				break; 
-		    case "examination_caci_condition": 
-				{System.out.println("examination_caci_condition"); 
-		    	first = (examination_caci_condition)first;}
-			break; //other_healthcare_visit
-		    case "other_healthcare_visit": 
-				{System.out.println("other_healthcare_visit"); 
-		    	first = (other_healthcare_visit)first;}
-			break; //other_healthcare_visit
-		    case "other_family_history": 
-				{System.out.println("other_family_history"); 
-		    	first = (other_family_history)first;}
-			break; 
-		    case "other_clinical_trials": 
-				{System.out.println("other_clinical_trials"); 
-		    	first = (other_clinical_trials)first;}
-			break; 
-		    case "patient": 
-				{System.out.println("patient"); 
-		    	first = (patient)first;}
-			break; //patient*/
-			}
+			list_of_inclusive_criterions = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+			findCriterion((Criterion)list_of_inclusive_criterions.get(0));
+			System.out.println(list_of_inclusive_criterions);
 			
-			
+		} catch (JsonParseException e1) {
+			/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
+			flush_handler();*/
+			e1.printStackTrace();
+			//return "JsonParseException Bad JSON format.";
+		} catch (JsonMappingException e1) {
+			/*LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
+			flush_handler();*/
+			e1.printStackTrace();
+			//return "JsonParseException Bad JSON format.";
+		} catch (IOException e1) {
+			/*LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
+			flush_handler();*/
+			e1.printStackTrace();
+			//return "JsonParseException Bad JSON format.";
+		}
+		criteria = Intermediate_Layer.preProcess_JSON(crit_incl_excl[1]);
+		System.out.println("After Criteria preprocessed:\n"+criteria);
+		ArrayList<Criterion> list_of_exclusive_criterions=null;
+		try {
+			list_of_exclusive_criterions = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+			findCriterion((Criterion)list_of_exclusive_criterions.get(0));
+			System.out.println(list_of_exclusive_criterions);
+				
 		} catch (JsonParseException e1) {
 			/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
 			flush_handler();*/

@@ -76,7 +76,7 @@ public class Criterions {
 		mapper.enableDefaultTyping();
 		
 		try {
-		System.out.println("SOS Look: "+inputJSON);
+		//System.out.println("SOS Look: "+inputJSON);
 			Container_of_Criterions obj = mapper.readValue(inputJSON, Container_of_Criterions.class);
 			results=obj;
 		} catch (JsonParseException e1) {
