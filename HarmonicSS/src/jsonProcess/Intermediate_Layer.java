@@ -23,7 +23,7 @@ public class Intermediate_Layer {
 			criterion_name=criterion_name.replace("\"criterion\":\"","");
 			System.out.println("The name is: "+criterion_name);
 			System.out.println("lala1: "+current_criterion);
-			current_criterion=current_criterion.replace("{\"criterion\"", "\"criterions."+criterion_name+"\", {\"criterion\"");
+			current_criterion=current_criterion.replace("{\"criterion\"", "\"criterionManager."+criterion_name+"\", {\"criterion\"");
 			//System.out.println("A§"+current_criterion+"B§");
 			
 			switch(criterion_name) 
@@ -56,9 +56,9 @@ public class Intermediate_Layer {
 			        {System.out.println("intervention_surgery"); //condition_diagnosis
 			        current_criterion=auto_fill_JSON_elements_intervention_surgery(current_criterion);}			        
 			        break;  
-			    case "exam_lab": 
-		        	{System.out.println("exam_lab"); //condition_diagnosis
-		        	current_criterion=auto_fill_JSON_elements_exam_lab(current_criterion);}			        
+			    case "examination_lab_test": 
+		        	{System.out.println("examination_lab_test"); //condition_diagnosis
+		        	current_criterion=auto_fill_JSON_elements_examination_lab_test(current_criterion);}			        
 		        	break; //
 			    case "examination_biopsy": 
 	        		{System.out.println("examination_biopsy"); //condition_diagnosis
@@ -115,7 +115,7 @@ public class Intermediate_Layer {
 		String outputJSON = inputJSON.replace("[", "[[").replaceFirst("]", "]]");
 		String criterion_name = inputJSON.substring(inputJSON.indexOf("\"criterion\":\""), inputJSON.indexOf("\","));
 		criterion_name=criterion_name.replace("\"criterion\":\"","");
-		outputJSON=outputJSON.replace("{\"criterion\"", "\"criterions."+criterion_name+"\", {\"criterion\"");
+		outputJSON=outputJSON.replace("{\"criterion\"", "\"criterionManager."+criterion_name+"\", {\"criterion\"");
 		return outputJSON;
 	}
 	
@@ -124,7 +124,7 @@ public class Intermediate_Layer {
 		String outputJSON = inputJSON.replace("[", "[[").replaceFirst("]", "]]");
 		String criterion_name = inputJSON.substring(inputJSON.indexOf("\"criterion\":\""), inputJSON.indexOf("\","));
 		criterion_name=criterion_name.replace("\"criterion\":\"","");
-		outputJSON=outputJSON.replace("{\"criterion\"", "\"criterions."+criterion_name+"\", {\"criterion\"");
+		outputJSON=outputJSON.replace("{\"criterion\"", "\"criterionManager."+criterion_name+"\", {\"criterion\"");
 		switch(criterion_name) 
 	    { 
 	        case "demographics_pregnancy": 
@@ -353,7 +353,7 @@ public class Intermediate_Layer {
 		return result.replaceAll(",}", "}");
 	}
 	
-	private static String auto_fill_JSON_elements_exam_lab(String input_JSON) {
+	private static String auto_fill_JSON_elements_examination_lab_test(String input_JSON) {
 		String added_elements="";
 		
 		if(!input_JSON.contains("\"sample_period_of_time_exact_year\":")) added_elements+="\"sample_period_of_time_exact_year\":\"\",";

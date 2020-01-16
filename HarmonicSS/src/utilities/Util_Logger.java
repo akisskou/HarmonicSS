@@ -1,4 +1,4 @@
-package utilities;
+/*package utilities;
 
 import java.io.IOException;
 import java.util.logging.FileHandler;
@@ -35,4 +35,4 @@ public class Util_Logger {
 	//LOGGER.info("Logger Name: "+LOGGER.getName());
 	//LOGGER.config("index is set to "+150);  
     //LOGGER.warning("Can cause ArrayIndexOutOfBoundsException");
-}
+}*/

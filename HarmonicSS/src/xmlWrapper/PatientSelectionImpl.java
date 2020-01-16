@@ -10,8 +10,7 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
-import javax.xml.parsers.DocumentBuilderFactory;
-import javax.xml.parsers.DocumentBuilder;
+
 
 
 
@@ -39,21 +38,10 @@ import jsonProcess.*;
 import criterionManager.*;
 import criterionManager.Criterion;
 
-import org.w3c.dom.Document;
-import org.w3c.dom.NodeList;
-
-
-
-import org.w3c.dom.Node;
-import org.w3c.dom.Element;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 
-import java.io.BufferedReader;
 import java.io.File;
-import java.io.FileNotFoundException;
-import java.io.FileReader;
-import java.io.IOException;
 import java.io.PrintWriter;
 import java.util.ArrayList;
 import java.util.logging.Level;
@@ -272,6 +260,81 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		ArrayList<Criterion> list_of_criterions=null;
 		try {
 			list_of_criterions = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+			Criterion first = (Criterion)list_of_criterions.get(3);
+			switch(first.getCriterion()) 
+			{ 
+		    case "demographics_pregnancy": 
+		        {System.out.println("demographics_pregnancy");
+		        first = (demographics_pregnancy)first;}
+		        break; 
+		    case "lifestyle_smoking": 
+		    	{System.out.println("lifestyle_smoking"); 
+		    	first = (lifestyle_smoking)first;}
+		    	break; 
+		    case "condition_symptom": 
+		    	{System.out.println("condition_symptom"); 
+		    	first = (condition_symptom)first;}
+		        break; 
+		    case "condition_diagnosis": 
+		    	{System.out.println("condition_diagnosis");  
+		    	first = (condition_diagnosis)first;}
+		        break; 
+		    case "intervention_medication": 
+		    	{System.out.println("intervention_medication"); 
+		    	first = (intervention_medication)first;}
+		        break; 
+		    case "intervention_chemotherapy": 
+		        {System.out.println("intervention_chemotherapy"); //condition_diagnosis
+		    	first = (intervention_chemotherapy)first;}
+		        break; 
+		    case "intervention_surgery": 
+		        {System.out.println("intervention_surgery"); //condition_diagnosis
+		    	first = (intervention_surgery)first;}
+		        break;  
+		    case "examination_lab_test": 
+	        	{System.out.println("examination_lab_test"); //condition_diagnosis
+	        	examination_lab_test myfirst = (examination_lab_test)first;
+		    	System.out.println(myfirst.getTest_id());}
+	        	break; //
+		    case "examination_biopsy": 
+        		{System.out.println("examination_biopsy"); //condition_diagnosis
+		    	first = (examination_biopsy)first;}
+        		break; 
+		    case "examination_medical_imaging_test": 
+    			{System.out.println("examination_medical_imaging_test"); 
+		    	first = (examination_medical_imaging_test)first;}
+    			break; 
+		    case "examination_questionnaire_score": 
+				{System.out.println("examination_questionnaire_score"); 
+		    	first = (examination_questionnaire_score)first;}
+			break; 
+		    case "examination_essdai_domain": 
+				{System.out.println("examination_essdai_domain"); 
+		    	first = (examination_essdai_domain)first;}
+				break; 
+		    case "examination_caci_condition": 
+				{System.out.println("examination_caci_condition"); 
+		    	first = (examination_caci_condition)first;}
+			break; //other_healthcare_visit
+		    case "other_healthcare_visit": 
+				{System.out.println("other_healthcare_visit"); 
+		    	first = (other_healthcare_visit)first;}
+			break; //other_healthcare_visit
+		    case "other_family_history": 
+				{System.out.println("other_family_history"); 
+		    	first = (other_family_history)first;}
+			break; 
+		    case "other_clinical_trials": 
+				{System.out.println("other_clinical_trials"); 
+		    	first = (other_clinical_trials)first;}
+			break; 
+		    case "patient": 
+				{System.out.println("patient"); 
+		    	first = (patient)first;}
+			break; //patient*/
+			}
+			
+			
 		} catch (JsonParseException e1) {
 			/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
 			flush_handler();*/
