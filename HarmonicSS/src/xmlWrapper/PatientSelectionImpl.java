@@ -271,39 +271,64 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		JSONObject all = new JSONObject();
 		requestID = request.getParameter("requestID");
 		if(requestID!=null){
-			readXMLbyRequestID(requestID);
-			writeXMLResponse();
-			/*System.out.println("The ids of the included criterions are: "+crit_names_incl);
-			System.out.println("The ids of the excluded criterions are: "+crit_names_excl);
-			String[] cohortAccess = getCohortsAccessByRequestID(requestID);
-			for(int i=0; i<cohortAccess.length; i++){
-				if(cohortAccess[i].equals("Accepted"))
-					System.out.println("Cohort with accepted access: "+cohort_names.get(i));
-			}
-			for(int i=0; i<crit_names_incl.size(); i++){
-				if(canUseCriterion(1)){
-				
-					System.out.println("Inclusive Criterion "+crit_names_incl.get(i)+" can be used");
-					System.out.println("Patients satisfying this criterion: "+findPatientsIds(crit_names_incl.get(i)));
-				}
-			}
-			for(int i=0; i<crit_names_excl.size(); i++){
-				if(canUseCriterion(1)){
-					System.out.println("Exclusive Criterion "+crit_names_incl.get(i)+" can be used");
-					System.out.println("Patients satisfying this criterion: "+findPatientsIds(crit_names_excl.get(i)));
-				}
-		
-			}
-		
+			String crit_incl_excl_in = readXMLbyRequestID(requestID);
+			System.out.println(crit_incl_excl_in);
+			String[] crit_incl_excl=crit_incl_excl_in.split("XXX");
+			String criteria = Intermediate_Layer.preProcess_JSON(crit_incl_excl[0]);
+			System.out.println("After Criteria preprocessed:\n"+criteria);
+			ArrayList<Criterion> list_of_inclusive_criterions=null;
 			try {
-				all.put("requestID", requestID);
-				all.put("incl_ids", crit_names_incl.size());
-				all.put("excl_ids", crit_names_excl.size());
-				all.put("cohorts_accepted", cohort_names.size());
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}*/
+				list_of_inclusive_criterions = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+				findCriterion((Criterion)list_of_inclusive_criterions.get(0));
+				System.out.println(list_of_inclusive_criterions);
+				
+			} catch (JsonParseException e1) {
+				/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
+				flush_handler();*/
+				e1.printStackTrace();
+				//return "JsonParseException Bad JSON format.";
+			} catch (JsonMappingException e1) {
+				/*LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
+				flush_handler();*/
+				e1.printStackTrace();
+				//return "JsonParseException Bad JSON format.";
+			} catch (IOException e1) {
+				/*LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
+				flush_handler();*/
+				e1.printStackTrace();
+				//return "JsonParseException Bad JSON format.";
+			}
+			criteria = Intermediate_Layer.preProcess_JSON(crit_incl_excl[1]);
+			System.out.println("After Criteria preprocessed:\n"+criteria);
+			ArrayList<Criterion> list_of_exclusive_criterions=null;
+			try {
+				list_of_exclusive_criterions = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+				findCriterion((Criterion)list_of_exclusive_criterions.get(0));
+				System.out.println(list_of_exclusive_criterions);
+					
+			} catch (JsonParseException e1) {
+				/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
+				flush_handler();*/
+				e1.printStackTrace();
+				//return "JsonParseException Bad JSON format.";
+			} catch (JsonMappingException e1) {
+				/*LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
+				flush_handler();*/
+				e1.printStackTrace();
+				//return "JsonParseException Bad JSON format.";
+			} catch (IOException e1) {
+				/*LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
+				flush_handler();*/
+				e1.printStackTrace();
+				//return "JsonParseException Bad JSON format.";
+			}
+	    	ConfigureFile obj = new ConfigureFile("jdbc:mysql://localhost:3306/harmonicssdb?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC","root","");
+	    	if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
+	    	else System.out.println("everything's gooooooood");
+			writeXMLResponse();			
+			System.out.println("End");
+			
+			
 		}
 		response.setContentType("text/html; charset=UTF-8");
 		response.setCharacterEncoding("UTF-8");
@@ -319,7 +344,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		// TODO Auto-generated method stub
 	}
 
-	public static void main(String[] args) throws Exception {
+	/*public static void main(String[] args) throws Exception {
 		// TODO Auto-generated method stub
 		//Logger LOGGER = Initialize_logger("LogFile.log");
 		System.out.println("Begin");
@@ -342,19 +367,19 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		} catch (JsonParseException e1) {
 			/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
 			flush_handler();*/
-			e1.printStackTrace();
+			//e1.printStackTrace();
 			//return "JsonParseException Bad JSON format.";
-		} catch (JsonMappingException e1) {
+		//} catch (JsonMappingException e1) {
 			/*LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
 			flush_handler();*/
-			e1.printStackTrace();
+			//e1.printStackTrace();
 			//return "JsonParseException Bad JSON format.";
-		} catch (IOException e1) {
+		//} catch (IOException e1) {
 			/*LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
 			flush_handler();*/
-			e1.printStackTrace();
+			//e1.printStackTrace();
 			//return "JsonParseException Bad JSON format.";
-		}
+		/*}
 		criteria = Intermediate_Layer.preProcess_JSON(crit_incl_excl[1]);
 		System.out.println("After Criteria preprocessed:\n"+criteria);
 		ArrayList<Criterion> list_of_exclusive_criterions=null;
@@ -366,24 +391,24 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		} catch (JsonParseException e1) {
 			/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
 			flush_handler();*/
-			e1.printStackTrace();
+			//e1.printStackTrace();
 			//return "JsonParseException Bad JSON format.";
-		} catch (JsonMappingException e1) {
+		//} catch (JsonMappingException e1) {
 			/*LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
 			flush_handler();*/
-			e1.printStackTrace();
+			//e1.printStackTrace();
 			//return "JsonParseException Bad JSON format.";
-		} catch (IOException e1) {
+		//} catch (IOException e1) {
 			/*LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
 			flush_handler();*/
-			e1.printStackTrace();
+			//e1.printStackTrace();
 			//return "JsonParseException Bad JSON format.";
-		}
+		/*}
 		testObj.writeXMLResponse();
 		
 		System.out.println("End");
 		
-	}
+	}*/
 
 	
 }
