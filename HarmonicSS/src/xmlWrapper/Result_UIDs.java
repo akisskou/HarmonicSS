@@ -1,6 +1,7 @@
 package xmlWrapper;
 
 import java.io.IOException;
+
 /*import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.JsonGenerationException;
 import org.codehaus.jackson.annotate.JsonAutoDetect.Visibility;
@@ -12,6 +13,7 @@ import org.codehaus.jackson.annotate.JsonMethod;
 import org.codehaus.jackson.map.JsonMappingException;
 
 import com.fasterxml.jackson.annotation.JsonAutoDetect.Visibility;
+import com.fasterxml.jackson.core.JsonGenerationException;
 import com.fasterxml.jackson.databind.ObjectMapper;
 
 
@@ -45,26 +47,26 @@ public class Result_UIDs {
 		}
 		
 	}
-	/*public  String Output_JSON_UIDs() {
+	public  String Output_JSON_UIDs() {
 		String result ="";
 		ObjectMapper mapper = new ObjectMapper();
 		mapper.enableDefaultTyping();
-		mapper.setVisibility(JsonMethod.FIELD, Visibility.ANY);
-		mapper.disable(Feature.FAIL_ON_EMPTY_BEANS);
+		//mapper.setVisibility(JsonMethod.FIELD, Visibility.ANY);
+		//mapper.disable(Feature.FAIL_ON_EMPTY_BEANS);
 		try {
 			 result=mapper.writeValueAsString(this);
 		} catch (JsonGenerationException e) {
 			result ="JsonGenerationException Failed to construct the output JSON file.";
 			e.printStackTrace();
-		} catch (JsonMappingException e) {
+		/*} catch (JsonMappingException e) {
 			result ="JsonMappingException Failed to construct the output JSON file.";
-			e.printStackTrace();
+			e.printStackTrace();*/
 		} catch (IOException e) {
 			result ="IOException Failed to construct the output JSON file.";
 			e.printStackTrace();
 		}
 		return result;
-	}*/
+	}
 	/*public String[] getUIDs_defined_ALL_elements() {
 		return UIDs_defined_ALL_elements;
 	}
