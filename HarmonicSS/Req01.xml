@@ -13,20 +13,29 @@
 	
 		<InclusionCriteria>
 			<!-- Demographics Criterion -->
-			<Criterion UID="CRIT-ID-01" Name="-">
+			<!--Criterion UID="CRIT-ID-01" Name="-">
 				<Description>Female patients</Description>
 				<FormalExpression Language="JSON" ID="CRIT-ID-01-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+					<BooleanExpression>
+						{"criterion":"lifestyle_smoking","status_coded_value":"SMOK-STAT-01","amount_unit":"UNITEXP-18","amount_range_min_value":"200","statement":"CONFIRM-01"}
+					</BooleanExpression>
+				</FormalExpression>
+			</Criterion-->
+			<!-- Disease Criterion -->
+			<Criterion UID="CRIT-ID-02" Name="-">
+				<Description>Female patients</Description>
+				<FormalExpression Language="JSON" ID="CRIT-ID-02-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
 					<BooleanExpression>
 						{"criterion":"demographics_gender","gender":"SEX-02"}
 					</BooleanExpression>
 				</FormalExpression>
 			</Criterion>
-			<!-- Disease Criterion -->
-			<Criterion UID="CRIT-ID-02" Name="-">
+			<!-- Age criterion -->
+			<Criterion UID="CRIT-ID-03" Name="-">
 				<Description>Diagnosed with cancer</Description>
-				<FormalExpression Language="JSON" ID="CRIT-ID-02-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+				<FormalExpression Language="JSON" ID="CRIT-ID-03-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
 					<BooleanExpression>
-						{"criterion":"condition_diagnosis","condition":"COND-140000","statement":"CONFIRM-01"}
+						{"criterion":"condition_diagnosis","condition":"COND-052522","statement":"CONFIRM-01"}
 					</BooleanExpression>
 				</FormalExpression>
 			</Criterion>

@@ -3,10 +3,10 @@
     <CohortResponse cohortID="COHORT-ID-01" queryDate="2019-10-16">
         <EligiblePatientsNumber>14</EligiblePatientsNumber>
         <EligibilityCriteriaUsed>
-            <CriterionUsage criterionID="CRIT-ID-01" criterionUsageStatus="USED">
+            <CriterionUsage criterionID="CRIT-ID-02" criterionUsageStatus="USED">
                 <NotesHTML>+++ Additional terms (if any) +++</NotesHTML>
             </CriterionUsage>
-            <CriterionUsage criterionID="CRIT-ID-02" criterionUsageStatus="USED">
+            <CriterionUsage criterionID="CRIT-ID-03" criterionUsageStatus="USED">
                 <NotesHTML>+++ Additional terms (if any) +++</NotesHTML>
             </CriterionUsage>
             <CriterionUsage criterionID="CRIT-ID-03" criterionUsageStatus="NOT-USED">
@@ -20,10 +20,10 @@
     <CohortResponse cohortID="COHORT-ID-17" queryDate="2019-10-16">
         <EligiblePatientsNumber>14</EligiblePatientsNumber>
         <EligibilityCriteriaUsed>
-            <CriterionUsage criterionID="CRIT-ID-01" criterionUsageStatus="USED">
+            <CriterionUsage criterionID="CRIT-ID-02" criterionUsageStatus="USED">
                 <NotesHTML>+++ Additional terms (if any) +++</NotesHTML>
             </CriterionUsage>
-            <CriterionUsage criterionID="CRIT-ID-02" criterionUsageStatus="USED">
+            <CriterionUsage criterionID="CRIT-ID-03" criterionUsageStatus="USED">
                 <NotesHTML>+++ Additional terms (if any) +++</NotesHTML>
             </CriterionUsage>
             <CriterionUsage criterionID="CRIT-ID-03" criterionUsageStatus="NOT-USED">
