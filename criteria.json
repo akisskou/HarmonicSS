@@ -1,0 +1,109 @@
+Description: Patients over 55 years old
+{
+	"criterion":"patient", 
+	"birth_period_of_time_until_year":"1964"
+}
+
+Description: Female patients
+{
+	"criterion":"demographics_gender", 
+	"gender":"SEX-02"
+}
+
+Description: Diagnosed with cancer
+{
+	"criterion":"condition_diagnosis",
+	"condition":"COND-140000",
+	"statement":"CONFIRM-01"
+}
+
+Description: Diagnosed with cancer before 2015
+{
+	"criterion":"condition_diagnosis",
+	"condition":"COND-140000",
+	"date_until_year":"2014",
+	"statement":"CONFIRM-01"
+}
+
+Description: Received Glucocorticoids
+{
+	"criterion":"intervention_medication",
+	"pharmacological_drug":"CHEM-10000",
+	"statement":"CONFIRM-01"
+}
+
+Description: Received Glucocorticoids in the past (before now)
+{
+	"criterion":"intervention_medication",
+	"pharmacological_drug":"CHEM-10000",
+	"period_of_time_until_year":"2019",
+	"statement":"CONFIRM-01"
+}
+
+Description: There was an abortion
+{
+	"criterion":"demographics_pregnancy",
+	"outcome_coded_value":"PREG-OUT-300",
+	"statement":"CONFIRM-01"
+}
+
+Description: Active Smoker with more than 200 cigarettes each year
+{
+	"criterion":"lifestyle_smoking",
+	"status_coded_value":"SMOK-STAT-01",
+	"amount_unit":"UNITEXP-18",
+	"amount_range_min_value":"200",
+	"statement":"CONFIRM-01"
+}
+
+Description: Anti-Ro/SSA was true (normal)
+{
+	"criterion":"examination_lab_test",
+	"test_id":"BLOOD-530",
+	"outcome_assessment":"ASSESS-10"
+}
+
+Description: Schrimer’s Test value was Abnormal
+{
+	"criterion":"examination_lab_test",
+	"test_id":"OCULAR-01",
+	"outcome_assessment":"ASSESS-20"
+}
+
+Description: Leukocytes was less than 3000 mm3 before 2015
+{
+	"criterion":"examination_lab_test",
+	"test_id":"BLOOD-120",
+	"outcome_amount_range_max_value":"3000",
+	"outcome_amount_unit":"UNITEXP-01",
+	"sample_period_of_time_until_year":"2015"
+}
+
+Description: ANA pattern was Nucleolar
+{
+	"criterion":"examination_lab_test",
+	"test_id":"BLOOD-523",
+	"outcome_term":"ANA-PAT-03"
+}
+
+Description: Minor Salivary Gland Greenspan Focus Score > 5
+{
+	"criterion":"examination_biopsy",
+	"biopsy_type":"SAL-BIO-20",
+	"test_id":"BIOPSY-21",
+	"outcome_amount_range_min_value":"5"
+}
+
+Description: ESSDAI score > 22
+{
+	"criterion":"examination_questionnaire_score",
+	"score":"QUEST-010",
+	"value":"22"
+}
+
+Description: Constitutional ESSDAI domain activity level HIGH before 2014
+{	"criterion":"examination_essdai_domain",
+	"domain":"ESSDAI-01",
+	"activity_level":"ACTLVL-03",
+	"questionnaire_period_of_time_until_year":"2014"
+}
