@@ -411,21 +411,21 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  }
 				  
 				  if(!(crit_interv_medication_obj.getMedication_exact_date_year()).isEmpty()) {	
-					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2";
+					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
 					  where_clause += " AND " + Make_begin_end_period_query (mode,"interv_medication.PERIOD_ID", "dt_date1", "dt_date2", crit_interv_medication_obj.getMedication_exact_date_year(), 
 					  			crit_interv_medication_obj.getMedication_exact_date_month(), crit_interv_medication_obj.getMedication_exact_date_day(),
 					  			crit_interv_medication_obj.getMedication_exact_date_year(), crit_interv_medication_obj.getMedication_exact_date_month(),
 					  			crit_interv_medication_obj.getMedication_exact_date_day());
 							  
 				  } else if(!(crit_interv_medication_obj.getMedication_period_end_year()).isEmpty()) {
-					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2";
+					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
 					  where_clause += " AND " + Make_begin_end_period_query (mode,"interv_medication.PERIOD_ID", "dt_date1", "dt_date2", crit_interv_medication_obj.getMedication_period_begin_year(), 
 								crit_interv_medication_obj.getMedication_period_begin_month(), crit_interv_medication_obj.getMedication_period_begin_day(),
 								crit_interv_medication_obj.getMedication_period_end_year(), crit_interv_medication_obj.getMedication_period_end_month(),
 								crit_interv_medication_obj.getMedication_period_end_day()); 												
 				  
 				  } else if(!(crit_interv_medication_obj.getMedication_until_date_year()).isEmpty()) {
-					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2";
+					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
 					  where_clause += " AND " + Make_begin_end_period_query (mode,"interv_medication.PERIOD_ID", "dt_date1", "dt_date2", "1800", 
 							  "1", "1",crit_interv_medication_obj.getMedication_until_date_year(), crit_interv_medication_obj.getMedication_until_date_month(),
 							  crit_interv_medication_obj.getMedication_until_date_day()); 							
@@ -444,14 +444,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  
 				  String tables = "patient, interv_chemotherapy, voc_confirmation AS conf_1";
 				  String where_clause = "patient.ID = interv_chemotherapy.PATIENT_ID AND interv_chemotherapy.DUE_TO_PSS_ID = conf_1.ID AND " + Make_OR_of_CODES("conf_1.CODE", crit_interv_chemotherapy_obj.getReason());
-				  query = "SELECT DISTINCT patient.UID " +
-						  "FROM patient, interv_chemotherapy, voc_confirmation AS conf_1, voc_confirmation AS conf_2, dt_period_of_time, dt_date AS dt_date1, dt_date AS dt_date2, voc_direction " +
-						  "WHERE patient.ID = interv_chemotherapy.PATIENT_ID " +
-						  "AND interv_chemotherapy.DUE_TO_PSS_ID = conf_1.ID " +
-						  //"AND voc_confirmation.CODE = '"+crit_interv_chemotherapy_obj.getVoc_confirmation_CODE() +"' ";
-						  "AND " + Make_OR_of_CODES("conf_1.CODE", crit_interv_chemotherapy_obj.getReason());
-				  		  //TODO the voc_confirmation do not need multiple CODES, do they?
-				  
+				 
 				  
 				  if(!(crit_interv_chemotherapy_obj.getChem_exact_date_year()).isEmpty()) {	
 					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2";

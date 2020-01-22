@@ -50,7 +50,7 @@ public class SQL_aux_functions {
 				  //" AND dt_period_of_time.END_DATE_ID = "+dt_date2+".ID)";
 		if(mode) { //UNdefined some Elements.
 			
-			query+=" AND ("+Make_null_or_empty_values(mode,obj_name_Period_ID,"") +
+			query+="("+Make_null_or_empty_values(mode,obj_name_Period_ID,"") +
 				   " OR ("+obj_name_Period_ID+" = dt_period_of_time.ID AND "+Make_null_or_empty_values(mode,"dt_period_of_time.START_DATE_ID","")+" AND "+Make_null_or_empty_values(mode,"dt_period_of_time.END_DATE_ID","")+")" +
 				   " OR ("+" dt_period_of_time.START_DATE_ID = "+dt_date1+".ID" +" AND dt_period_of_time.END_DATE_ID = "+dt_date2+".ID) AND"
 				   + "(";
@@ -92,11 +92,11 @@ public class SQL_aux_functions {
 		}
 		else { //Defined all elements 
 			
-			query+= " AND ("+obj_name_Period_ID+" = dt_period_of_time.ID" +
+			query+= "("+obj_name_Period_ID+" = dt_period_of_time.ID" +
 					  " AND dt_period_of_time.START_DATE_ID = "+dt_date1+".ID" + 
 					  " AND dt_period_of_time.END_DATE_ID = "+dt_date2+".ID)";
 			
-		query+=" AND (("+begin_year+" < dt_date1.YEAR AND dt_date1.YEAR < "+end_year+")" + 		
+		query+="(("+begin_year+" < dt_date1.YEAR AND dt_date1.YEAR < "+end_year+")" + 		
 				" OR ("+begin_year+" > dt_date1.YEAR  AND dt_date2.YEAR > "+end_year+")" + 				
 				" OR ("+begin_year+" < dt_date2.YEAR AND dt_date2.YEAR < "+end_year+")"  + 				 
 				" OR ("+begin_year+" < dt_date1.YEAR AND dt_date2.YEAR < "+end_year+")";
@@ -129,7 +129,7 @@ public class SQL_aux_functions {
 			String end_day) { 
 		String query="";
 		if(mode) { //UNdefined some Elements.
-			query += " AND (("+obj_name_DATE_ID+" IS NULL) OR " +
+			query += "(("+obj_name_DATE_ID+" IS NULL) OR " +
 		"("+obj_name_DATE_ID+" = "+dt_date+".ID " + 
 		"AND (" + 
 			"("+dt_date+".YEAR ='' OR "+dt_date+".YEAR IS NULL) OR  "+
@@ -158,7 +158,7 @@ public class SQL_aux_functions {
 		
 		else { //ALLdefined 
 			//System.out.println("");
-			query += " AND "+obj_name_DATE_ID+" = "+dt_date+".ID AND "+obj_name_DATE_ID+"  IS NOT NULL AND ((" +
+			query += obj_name_DATE_ID+" = "+dt_date+".ID AND "+obj_name_DATE_ID+"  IS NOT NULL AND ((" +
 					begin_year + "< "+dt_date+".YEAR AND "+dt_date+".YEAR < " + end_year+")";
 			if(!begin_month.isEmpty()) query += " OR ("+dt_date+".YEAR = " + begin_year + " AND "+dt_date+".MONTH > " + begin_month +")"; 
 				else{ query += " OR "+dt_date+".YEAR = " + begin_year;}
