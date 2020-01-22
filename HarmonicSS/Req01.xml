@@ -22,20 +22,28 @@
 				</FormalExpression>
 			</Criterion-->
 			<!-- Disease Criterion -->
-			<Criterion UID="CRIT-ID-02" Name="-">
+			<!--Criterion UID="CRIT-ID-02" Name="-">
 				<Description>Female patients</Description>
 				<FormalExpression Language="JSON" ID="CRIT-ID-02-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
 					<BooleanExpression>
 						{"criterion":"demographics_gender","gender":"SEX-02"}
 					</BooleanExpression>
 				</FormalExpression>
-			</Criterion>
+			</Criterion-->
 			<!-- Age criterion -->
-			<Criterion UID="CRIT-ID-03" Name="-">
+			<!--Criterion UID="CRIT-ID-03" Name="-">
 				<Description>Diagnosed with cancer</Description>
 				<FormalExpression Language="JSON" ID="CRIT-ID-03-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
 					<BooleanExpression>
 						{"criterion":"condition_diagnosis","condition":"COND-052522","statement":"CONFIRM-01"}
+					</BooleanExpression>
+				</FormalExpression>
+			</Criterion-->
+			<Criterion UID="CRIT-ID-04" Name="-">
+				<Description>Diagnosed with cancer</Description>
+				<FormalExpression Language="JSON" ID="CRIT-ID-04-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+					<BooleanExpression>
+						{"criterion":"examination_lab_test","test_id":"BLOOD-120","outcome_amount_range_min_value":"3000","outcome_amount_unit":"UNITEXP-01","sample_period_of_time_until_year":"2015"}
 					</BooleanExpression>
 				</FormalExpression>
 			</Criterion>
