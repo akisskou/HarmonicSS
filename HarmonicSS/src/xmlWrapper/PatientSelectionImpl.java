@@ -205,120 +205,114 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				    
 			  case "demographics_pregnancy": { //Check if user provided the info of all the fields 
 				  demographics_pregnancy crit_demo_pregnancy_obj =  (demographics_pregnancy)current_Criterion;
-				  query = "SELECT DISTINCT patient.UID " + 
-						  "FROM patient, demo_pregnancy_data, voc_pregnancy_outcome, voc_confirmation AS conf_1, voc_confirmation AS conf_2, voc_direction, dt_date as dt_date1, dt_date as dt_date2 " + 
-						  "WHERE patient.ID=demo_pregnancy_data.PATIENT_ID " + 
-						  "AND demo_pregnancy_data.OUTCOME_ID=voc_pregnancy_outcome.ID " + 
-						  "AND " + Make_OR_of_CODES("voc_pregnancy_outcome.CODE", crit_demo_pregnancy_obj.outcome_coded_value) +" ";
+				  
+				  String tables = "patient, demo_pregnancy_data, voc_pregnancy_outcome";
+				  String where_clause = "patient.ID = demo_pregnancy_data.PATIENT_ID AND demo_pregnancy_data.OUTCOME_ID=voc_pregnancy_outcome.ID AND " + Make_OR_of_CODES("voc_pregnancy_outcome.CODE", crit_demo_pregnancy_obj.outcome_coded_value);
 				  
 				  if(!(crit_demo_pregnancy_obj.conception_exact_year + crit_demo_pregnancy_obj.conception_exact_month + 
 				  	crit_demo_pregnancy_obj.conception_exact_day ).isEmpty()) {
-					  query += Make_specific_date_query(mode, "demo_pregnancy_data.CONCEPTION_DATE_ID","dt_date1",crit_demo_pregnancy_obj.getCONCEPTION_DATE_YEAR(),
+					  tables += ", dt_date as dt_date1";
+					  where_clause += " AND " + Make_specific_date_query(mode, "demo_pregnancy_data.CONCEPTION_DATE_ID","dt_date1",crit_demo_pregnancy_obj.getCONCEPTION_DATE_YEAR(),
 							  crit_demo_pregnancy_obj.getCONCEPTION_DATE_MONTH(),crit_demo_pregnancy_obj.getCONCEPTION_DATE_DAY());					  		
+				  
 				  } else if(!(crit_demo_pregnancy_obj.getCONCEPTION_period_begin_year() + crit_demo_pregnancy_obj.getCONCEPTION_period_begin_month() + crit_demo_pregnancy_obj.getCONCEPTION_period_begin_day()).isEmpty()) {
-					  query += Make_begin_end_date_query (mode,"demo_pregnancy_data.CONCEPTION_DATE_ID", "dt_date1",crit_demo_pregnancy_obj.getCONCEPTION_period_begin_year(), crit_demo_pregnancy_obj.getCONCEPTION_period_begin_month(), crit_demo_pregnancy_obj.getCONCEPTION_period_begin_day(), crit_demo_pregnancy_obj.getCONCEPTION_period_end_year(), crit_demo_pregnancy_obj.getCONCEPTION_period_end_month(),
-							  crit_demo_pregnancy_obj.getCONCEPTION_period_end_day()); 			  
+					  tables += ", dt_date as dt_date1";
+					  where_clause += " AND " + Make_begin_end_date_query (mode,"demo_pregnancy_data.CONCEPTION_DATE_ID", "dt_date1",crit_demo_pregnancy_obj.getCONCEPTION_period_begin_year(), crit_demo_pregnancy_obj.getCONCEPTION_period_begin_month(), crit_demo_pregnancy_obj.getCONCEPTION_period_begin_day(), crit_demo_pregnancy_obj.getCONCEPTION_period_end_year(), crit_demo_pregnancy_obj.getCONCEPTION_period_end_month(),
+							  crit_demo_pregnancy_obj.getCONCEPTION_period_end_day());			  
+				  
 				  } else if(!(crit_demo_pregnancy_obj.getCONCEPTION_until_date_year() + crit_demo_pregnancy_obj.getCONCEPTION_until_date_month() + crit_demo_pregnancy_obj.getCONCEPTION_until_date_day()).isEmpty()) {
-					  query += Make_begin_end_date_query (mode,"demo_pregnancy_data.CONCEPTION_DATE_ID","dt_date1", "1800", "1", "1", crit_demo_pregnancy_obj.getCONCEPTION_until_date_year(), 
+					  tables += ", dt_date as dt_date1";
+					  where_clause += " AND " + Make_begin_end_date_query (mode,"demo_pregnancy_data.CONCEPTION_DATE_ID","dt_date1", "1800", "1", "1", crit_demo_pregnancy_obj.getCONCEPTION_until_date_year(), 
 							  crit_demo_pregnancy_obj.getCONCEPTION_until_date_month(), crit_demo_pregnancy_obj.getCONCEPTION_until_date_day()); 
 				  }
 				  
 				  if(!(crit_demo_pregnancy_obj.outcome_exact_year + crit_demo_pregnancy_obj.outcome_exact_month + 
 				  	crit_demo_pregnancy_obj.outcome_exact_day).isEmpty()) {
-					  query += Make_specific_date_query(mode, "demo_pregnancy_data.OUTCOME_DATE_ID","dt_date2", crit_demo_pregnancy_obj.getOUTCOME_DATE_YEAR(),
+					  tables += ", dt_date as dt_date2";
+					  where_clause += " AND " + Make_specific_date_query(mode, "demo_pregnancy_data.OUTCOME_DATE_ID","dt_date2", crit_demo_pregnancy_obj.getOUTCOME_DATE_YEAR(),
 							  crit_demo_pregnancy_obj.getOUTCOME_DATE_MONTH(),crit_demo_pregnancy_obj.getOUTCOME_DATE_DAY());	
+					 
 				  	} else if(!(crit_demo_pregnancy_obj.getOUTCOME_period_begin_year() + crit_demo_pregnancy_obj.getOUTCOME_period_begin_month() + crit_demo_pregnancy_obj.getOUTCOME_period_begin_day()).isEmpty()) {
-						  query += Make_begin_end_date_query (mode,"demo_pregnancy_data.OUTCOME_DATE_ID", "dt_date2", crit_demo_pregnancy_obj.getOUTCOME_period_begin_year(), crit_demo_pregnancy_obj.getOUTCOME_period_begin_month(), crit_demo_pregnancy_obj.getOUTCOME_period_begin_day(), crit_demo_pregnancy_obj.getOUTCOME_period_end_year(), crit_demo_pregnancy_obj.getOUTCOME_period_end_month(),
+				  		tables += ", dt_date as dt_date2"; 
+				  		where_clause += " AND " + Make_begin_end_date_query (mode,"demo_pregnancy_data.OUTCOME_DATE_ID", "dt_date2", crit_demo_pregnancy_obj.getOUTCOME_period_begin_year(), crit_demo_pregnancy_obj.getOUTCOME_period_begin_month(), crit_demo_pregnancy_obj.getOUTCOME_period_begin_day(), crit_demo_pregnancy_obj.getOUTCOME_period_end_year(), crit_demo_pregnancy_obj.getOUTCOME_period_end_month(),
 								  crit_demo_pregnancy_obj.getOUTCOME_period_end_day()); 			  
-					} else if(!(crit_demo_pregnancy_obj.getOUTCOME_until_date_year() + crit_demo_pregnancy_obj.getOUTCOME_until_date_month() + crit_demo_pregnancy_obj.getOUTCOME_until_date_day()).isEmpty()) {
-						  query += Make_begin_end_date_query (mode,"demo_pregnancy_data.OUTCOME_DATE_ID", "dt_date2", "1800", "1", "1", crit_demo_pregnancy_obj.getOUTCOME_until_date_year(), 
+					
+				  	} else if(!(crit_demo_pregnancy_obj.getOUTCOME_until_date_year() + crit_demo_pregnancy_obj.getOUTCOME_until_date_month() + crit_demo_pregnancy_obj.getOUTCOME_until_date_day()).isEmpty()) {
+				  		tables += ", dt_date as dt_date2";  
+				  		where_clause += " AND " + Make_begin_end_date_query (mode,"demo_pregnancy_data.OUTCOME_DATE_ID", "dt_date2", "1800", "1", "1", crit_demo_pregnancy_obj.getOUTCOME_until_date_year(), 
 								  crit_demo_pregnancy_obj.getOUTCOME_until_date_month(), crit_demo_pregnancy_obj.getOUTCOME_until_date_day()); 
 					}
 					  
 
 				  	// sos we have mode 
-				  	if(!crit_demo_pregnancy_obj.outcome_ss_related.isEmpty()&&!mode) 
-				  		query += "AND demo_pregnancy_data.SS_CONCORDANT_ID=conf_1.ID " +
-				  				 "AND conf_1.CODE='"+crit_demo_pregnancy_obj.outcome_ss_related + "'";
-				  	else if(!crit_demo_pregnancy_obj.outcome_ss_related.isEmpty()&&mode) 
-				  		query += "AND demo_pregnancy_data.SS_CONCORDANT_ID IS NULL "; 
-				  				
-				  	
-				  	
-				  	if(!crit_demo_pregnancy_obj.getStatement().isEmpty()) 
-				  		query += "AND demo_pregnancy_data.STMT_ID=conf_2.ID " +
+				  	if(!crit_demo_pregnancy_obj.outcome_ss_related.isEmpty()&&!mode) {
+				  		tables += ", voc_confirmation AS conf_1"; 
+				  		where_clause += " AND demo_pregnancy_data.SS_CONCORDANT_ID=conf_1.ID AND conf_1.CODE='" + crit_demo_pregnancy_obj.outcome_ss_related + "'";
+				  	}
+				  	else if(!crit_demo_pregnancy_obj.outcome_ss_related.isEmpty()&&mode) {
+				  		where_clause += " AND demo_pregnancy_data.SS_CONCORDANT_ID IS NULL"; 
+				  	}
+				  		
+				  	if(!crit_demo_pregnancy_obj.getStatement().isEmpty()) {
+				  		tables += ", voc_confirmation AS conf_2";
+				  		where_clause += " AND demo_pregnancy_data.STMT_ID=conf_2.ID " +
 				  				 "AND conf_2.CODE='"+crit_demo_pregnancy_obj.getStatement() + "'";
-
+				  	}
+				  	
+				  	query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  	
 			  } break;
 			  
 			  case "lifestyle_smoking": { //Check if user provided the info of all the fields 
 				  lifestyle_smoking crit_lifestyle_smoking_obj =  (lifestyle_smoking)current_Criterion;
 				  
-				  /*String tables = "patient, lifestyle_smoking, voc_smoking_status";
+				  String tables = "patient, lifestyle_smoking, voc_smoking_status";
 				  String where_clause = "patient.ID = lifestyle_smoking.PATIENT_ID AND lifestyle_smoking.STATUS_ID = voc_smoking_status.ID AND " + Make_OR_of_CODES("voc_smoking_status.CODE", crit_lifestyle_smoking_obj.getVoc_smoking_status_CODE());
-				  */
-				  query = "SELECT DISTINCT patient.UID " + 
-						  "FROM patient, lifestyle_smoking, voc_smoking_status, voc_unit, dt_amount, voc_confirmation " +//, dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time " + //patient, lifestyle_smoking, voc_smoking_status, voc_direction, voc_confirmation, dt_date AS dt_date1, dt_date AS dt_date2
-						  "WHERE patient.ID = lifestyle_smoking.PATIENT_ID " + 
-						  "AND lifestyle_smoking.STATUS_ID = voc_smoking_status.ID " + 
-						  "AND " + Make_OR_of_CODES("voc_smoking_status.CODE", crit_lifestyle_smoking_obj.getVoc_smoking_status_CODE());
-						  			  
+				  
 
 				  if(!(crit_lifestyle_smoking_obj.getSmoking_exact_date_year()).isEmpty()) {
-					  /*tables += ", dt_date AS dt_date1, dt_date AS dt_date2";
+					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2";
 					  where_clause += " AND " + Make_begin_end_period_query (mode,"lifestyle_smoking.PERIOD_ID", "dt_date1", "dt_date2", crit_lifestyle_smoking_obj.getSmoking_exact_date_year(), 
 							  crit_lifestyle_smoking_obj.getSmoking_exact_date_month(), crit_lifestyle_smoking_obj.getSmoking_exact_date_day(),
 							  crit_lifestyle_smoking_obj.getSmoking_exact_date_year(), crit_lifestyle_smoking_obj.getSmoking_exact_date_month(),
-							  crit_lifestyle_smoking_obj.getSmoking_exact_date_day()); */
-					  	query += Make_begin_end_period_query (mode,"lifestyle_smoking.PERIOD_ID", "dt_date1", "dt_date2", crit_lifestyle_smoking_obj.getSmoking_exact_date_year(), 
-							  crit_lifestyle_smoking_obj.getSmoking_exact_date_month(), crit_lifestyle_smoking_obj.getSmoking_exact_date_day(),
-							  crit_lifestyle_smoking_obj.getSmoking_exact_date_year(), crit_lifestyle_smoking_obj.getSmoking_exact_date_month(),
-							  crit_lifestyle_smoking_obj.getSmoking_exact_date_day()); 							  
+							  crit_lifestyle_smoking_obj.getSmoking_exact_date_day()); 
+					  							  
 					} else if(!(crit_lifestyle_smoking_obj.getSmoking_period_end_year()).isEmpty()) {
-						/*tables += ", dt_date AS dt_date1, dt_date AS dt_date2";
+						tables += ", dt_date AS dt_date1, dt_date AS dt_date2";
 						where_clause += " AND " + Make_begin_end_period_query (mode,"lifestyle_smoking.PERIOD_ID", "dt_date1", "dt_date2", crit_lifestyle_smoking_obj.getSmoking_period_begin_year(), 
 								  crit_lifestyle_smoking_obj.getSmoking_period_begin_month(), crit_lifestyle_smoking_obj.getSmoking_period_begin_day(),
 								  crit_lifestyle_smoking_obj.getSmoking_period_end_year(), crit_lifestyle_smoking_obj.getSmokimg_period_end_month(),
-								  crit_lifestyle_smoking_obj.getSmoking_period_end_day()); */
-						query += Make_begin_end_period_query (mode,"lifestyle_smoking.PERIOD_ID", "dt_date1", "dt_date2", crit_lifestyle_smoking_obj.getSmoking_period_begin_year(), 
-							  crit_lifestyle_smoking_obj.getSmoking_period_begin_month(), crit_lifestyle_smoking_obj.getSmoking_period_begin_day(),
-							  crit_lifestyle_smoking_obj.getSmoking_period_end_year(), crit_lifestyle_smoking_obj.getSmokimg_period_end_month(),
-							  crit_lifestyle_smoking_obj.getSmoking_period_end_day()); 												
+								  crit_lifestyle_smoking_obj.getSmoking_period_end_day());
+																		
 					} else if(!(crit_lifestyle_smoking_obj.getSmoking_until_date_year()).isEmpty()) {
-						/*tables += ", dt_date AS dt_date1, dt_date AS dt_date2";
+						tables += ", dt_date AS dt_date1, dt_date AS dt_date2";
 						where_clause += " AND " + Make_begin_end_period_query (mode,"lifestyle_smoking.PERIOD_ID", "dt_date1", "dt_date2", "1800", 
 								  "1", "1",crit_lifestyle_smoking_obj.getSmoking_until_date_year(), crit_lifestyle_smoking_obj.getSmoking_until_date_month(),
-								  crit_lifestyle_smoking_obj.getSmoking_until_date_day());*/
-						query += Make_begin_end_period_query (mode,"lifestyle_smoking.PERIOD_ID", "dt_date1", "dt_date2", "1800", 
-								  "1", "1",crit_lifestyle_smoking_obj.getSmoking_until_date_year(), crit_lifestyle_smoking_obj.getSmoking_until_date_month(),
-								  crit_lifestyle_smoking_obj.getSmoking_until_date_day()); 								
+								  crit_lifestyle_smoking_obj.getSmoking_until_date_day());
+												
 					}  
 				   
 				  if(!crit_lifestyle_smoking_obj.getAmount_exact_value().isEmpty()){
-					 /* tables += ", dt_amount, voc_unit";
+					 tables += ", dt_amount, voc_unit";
 					  where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND dt_amount.value='" + crit_lifestyle_smoking_obj.getAmount_exact_value() + "' AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE() + "' ";
-					  */
-					  query += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND dt_amount.value='"+crit_lifestyle_smoking_obj.getAmount_exact_value()+"' " +
-				 		"AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE = '"+crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE()+"' ";
+					  
+					  
 				  }
 				  
 				  if(!crit_lifestyle_smoking_obj.getAmount_range_min_value().isEmpty()){
-					  /*tables += ", dt_amount, voc_unit";
+					  tables += ", dt_amount, voc_unit";
 					  where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND dt_amount.value>=" + crit_lifestyle_smoking_obj.getAmount_range_min_value() + " AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE() + "'";
-					  */
-					  query += "AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND dt_amount.value>="+crit_lifestyle_smoking_obj.getAmount_range_min_value()+" " +
-				 		"AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE = '"+crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE()+"'"; 
+					  
+					 
 				  }
 				  
 				  if(!crit_lifestyle_smoking_obj.getStatement().isEmpty()){
-					 /* tables += ", voc_confirmation";
+					  tables += ", voc_confirmation";
 					  where_clause += " AND lifestyle_smoking.STMT_ID=voc_confirmation.ID AND voc_confirmation.CODE='" + crit_lifestyle_smoking_obj.getStatement() + "'";	
-					 */
-					  query += "AND lifestyle_smoking.STMT_ID=voc_confirmation.ID " +
-				  				 "AND voc_confirmation.CODE='"+crit_lifestyle_smoking_obj.getStatement() + "'";
+					 
 				  }
 					  
-				  //query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;		
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;		
 				  
 				  //TODO 	will voc_unit.CODE take one value or more than one I also think that voc_direction_CODE() will take one value?
 				  
@@ -333,11 +327,6 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  String tables = "patient, cond_symptom, voc_symptom_sign";
 				  String where_clause = "patient.ID = cond_symptom.PATIENT_ID AND cond_symptom.CONDITION_ID = voc_symptom_sign.ID AND " + Make_OR_of_CODES("voc_symptom_sign.CODE", crit_cond_symptom_obj.getVoc_symptom_sign_CODE());
 				  
-				  /*query = "SELECT DISTINCT patient.UID " + 
-						  "FROM patient, cond_symptom, voc_symptom_sign, dt_date, voc_direction, voc_confirmation " + 
-						  "WHERE patient.ID = cond_symptom.PATIENT_ID " + 
-						  "AND cond_symptom.CONDITION_ID = voc_symptom_sign.ID " +
-						  "AND " + Make_OR_of_CODES("voc_symptom_sign.CODE", crit_cond_symptom_obj.getVoc_symptom_sign_CODE());*/
 				  
 				  if(!(crit_cond_symptom_obj.getObserve_exact_date_YEAR()).isEmpty()) {
 					  tables += ", dt_date";
@@ -366,105 +355,95 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			  case "condition_diagnosis": { //Check if user provided the info of all the fields 
 				  condition_diagnosis condition_diagnosis_obj =  (condition_diagnosis)current_Criterion;
 				  
-				  //String tables = "patient, cond_diagnosis, voc_medical_condition";
-				  //String where_clause = "patient.ID = cond_diagnosis.PATIENT_ID AND cond_diagnosis.CONDITION_ID = voc_medical_condition.ID AND " + Make_OR_of_CODES("voc_medical_condition.CODE", condition_diagnosis_obj.getCondition());
-				  
-				  query = "SELECT DISTINCT patient.UID " + 
-						  "FROM patient, cond_diagnosis, voc_medical_condition, voc_confirmation " + //, dt_date, voc_lymphoma_stage, voc_performance_status, cond_diagnosis_organs, voc_lymphoma_organ, voc_direction " + 
-						  "WHERE patient.ID = cond_diagnosis.PATIENT_ID " + 
-						  "AND cond_diagnosis.CONDITION_ID = voc_medical_condition.ID " +
-						  "AND " + Make_OR_of_CODES("voc_medical_condition.CODE", condition_diagnosis_obj.getCondition());
-				  System.out.println("year in condition_diagnosis: "+condition_diagnosis_obj.getDate_interval_start_year());
+				  String tables = "patient, cond_diagnosis, voc_medical_condition";
+				  String where_clause = "patient.ID = cond_diagnosis.PATIENT_ID AND cond_diagnosis.CONDITION_ID = voc_medical_condition.ID AND " + Make_OR_of_CODES("voc_medical_condition.CODE", condition_diagnosis_obj.getCondition());
+				 
 				  
 				  if(!condition_diagnosis_obj.getStage().isEmpty()) {  // [OUTCOME_ASSESSMENT]
-					  /*tables += ", voc_lymphoma_stage";
+					  tables += ", voc_lymphoma_stage";
 					  where_clause += " AND cond_diagnosis.STAGE_ID = voc_lymphoma_stage.ID AND " + Make_OR_of_CODES("voc_lymphoma_stage.CODE", condition_diagnosis_obj.getStage());
-					  */
-					  	query += "AND cond_diagnosis.STAGE_ID = voc_lymphoma_stage.ID " + 
-					  	//"AND voc_assessment.CODE ='"+crit_exam_lab_test_obj.OUTCOME_ASSESSMENT_ID_voc_assessment_CODE+"' ";
-					  	"AND " + Make_OR_of_CODES("voc_lymphoma_stage.CODE", condition_diagnosis_obj.getStage());
+					  
+					  	
 				  }
 				  
 				  if(!condition_diagnosis_obj.getPerformance_status().isEmpty()) {  // [OUTCOME_ASSESSMENT]
-					  /*tables += ", voc_performance_status";
+					  tables += ", voc_performance_status";
 					  where_clause += " AND cond_diagnosis.PERFORMANCE_STATUS_ID = voc_performance_status.ID AND " + Make_OR_of_CODES("voc_performance_status.CODE", condition_diagnosis_obj.getPerformance_status());
-					  */
-					  query += "AND cond_diagnosis.PERFORMANCE_STATUS_ID = voc_performance_status.ID " + 
-					  	//"AND voc_assessment.CODE ='"+crit_exam_lab_test_obj.OUTCOME_ASSESSMENT_ID_voc_assessment_CODE+"' ";
-					  	"AND " + Make_OR_of_CODES("voc_performance_status.CODE", condition_diagnosis_obj.getPerformance_status());
+					  
 				  }
 				  
 				  if(!(condition_diagnosis_obj.getDate_exact_year()).isEmpty()) {
-					 /* tables += ", dt_date";
+					  tables += ", dt_date";
 					  where_clause += " AND " + Make_specific_date_query(mode, "cond_diagnosis.DIAGNOSIS_DATE_ID","dt_date",condition_diagnosis_obj.getDate_exact_year(),
 							  condition_diagnosis_obj.getDate_exact_month(),condition_diagnosis_obj.getDate_exact_day());
-					 */
-					  query += Make_specific_date_query(mode, "cond_diagnosis.DIAGNOSIS_DATE_ID","dt_date",condition_diagnosis_obj.getDate_exact_year(),
-							  condition_diagnosis_obj.getDate_exact_month(),condition_diagnosis_obj.getDate_exact_day());					  		
+					 			  		
 				  } else if(!(condition_diagnosis_obj.getDate_interval_start_year()).isEmpty()) {
-					 /* tables += ", dt_date";
+					 tables += ", dt_date";
 					  where_clause += " AND " + Make_begin_end_date_query (mode,"cond_diagnosis.DIAGNOSIS_DATE_ID", "dt_date",condition_diagnosis_obj.getDate_interval_start_year(), condition_diagnosis_obj.getDate_interval_start_month(), condition_diagnosis_obj.getDate_interval_start_day(), condition_diagnosis_obj.getDate_interval_end_year(), condition_diagnosis_obj.getDate_interval_end_month(),
-							  condition_diagnosis_obj.getDate_interval_end_day());*/
-					  query += Make_begin_end_date_query (mode,"cond_diagnosis.DIAGNOSIS_DATE_ID", "dt_date",condition_diagnosis_obj.getDate_interval_start_year(), condition_diagnosis_obj.getDate_interval_start_month(), condition_diagnosis_obj.getDate_interval_start_day(), condition_diagnosis_obj.getDate_interval_end_year(), condition_diagnosis_obj.getDate_interval_end_month(),
-							  condition_diagnosis_obj.getDate_interval_end_day()); 			  
+							  condition_diagnosis_obj.getDate_interval_end_day());  
 				  } else if(!(condition_diagnosis_obj.getDate_until_year() ).isEmpty()) {
-					  /*tables += ", dt_date";
+					  tables += ", dt_date";
 					  where_clause += " AND " + Make_begin_end_date_query (mode,"cond_diagnosis.DIAGNOSIS_DATE_ID","dt_date", "1800", "1", "1", condition_diagnosis_obj.getDate_until_year(), 
-							  condition_diagnosis_obj.getDate_until_month(), condition_diagnosis_obj.getDate_until_day()); 
-					  */
-					  query += Make_begin_end_date_query (mode,"cond_diagnosis.DIAGNOSIS_DATE_ID","dt_date", "1800", "1", "1", condition_diagnosis_obj.getDate_until_year(), 
 							  condition_diagnosis_obj.getDate_until_month(), condition_diagnosis_obj.getDate_until_day()); 
 				  }
 				  
 				  if(!condition_diagnosis_obj.getStatement().isEmpty()){ 
-					  //tables += ", voc_confirmation";
-					  //where_clause += " AND cond_diagnosis.STMT_ID=voc_confirmation.ID AND voc_confirmation.CODE='"+condition_diagnosis_obj.getStatement() + "'";
+					  tables += ", voc_confirmation";
+					  where_clause += " AND cond_diagnosis.STMT_ID=voc_confirmation.ID AND voc_confirmation.CODE='"+condition_diagnosis_obj.getStatement() + "'";
 				  		query += " AND cond_diagnosis.STMT_ID=voc_confirmation.ID " +
 				  				 "AND voc_confirmation.CODE='"+condition_diagnosis_obj.getStatement() + "'";
 				  }
-				  //query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 			  } break;
 			  
 			  case "intervention_medication": { //Check if user provided the info of all the fields 
 				  intervention_medication  crit_interv_medication_obj =  (intervention_medication )current_Criterion;
-				  query = "SELECT DISTINCT patient.UID " +
-						  "FROM patient, interv_medication, voc_pharm_drug, dt_amount, dt_period_of_time, dt_date AS dt_date1, dt_date AS dt_date2, voc_confirmation " + //, , dt_period_of_time, voc_unit, , voc_direction, voc_confirmation
-						  "WHERE patient.ID = interv_medication.PATIENT_ID "+
-						  "AND interv_medication.MEDICATION_ID = voc_pharm_drug.ID " + 
-						//"AND voc_pharm_drug.CODE = '"+crit_interv_medication_obj.getVoc_pharm_drug_CODE()+"' "; //CHEM-21000
-						  "AND " + Make_OR_of_CODES("voc_pharm_drug.CODE", crit_interv_medication_obj.getVoc_pharm_drug_CODE());
+				  
+				  String tables = "patient, interv_medication, voc_pharm_drug";
+				  String where_clause = "patient.ID = interv_medication.PATIENT_ID AND interv_medication.MEDICATION_ID = voc_pharm_drug.ID AND " + Make_OR_of_CODES("voc_pharm_drug.CODE", crit_interv_medication_obj.getVoc_pharm_drug_CODE());
+				  
+				  
 				  //if(!crit_interv_medication_obj.getVoc_pharm_drug_BROADER_TERM_ID().isEmpty()) query += "AND voc_pharm_drug.BROADER_TERM_ID = '"+crit_interv_medication_obj.getVoc_pharm_drug_BROADER_TERM_ID()+"' "; //Do we need the Broader_Term_ID? (`BROADER_TERM_ID`) REFERENCES `voc_pharm_drug` (`ID`)
 					  
-				  if(!crit_interv_medication_obj.getDosage_amount_exact_value().isEmpty()) 
-					  	query += "AND interv_medication.DOSSAGE_ID = dt_amount.ID AND " +
-					  	"dt_amount.VALUE ='" +crit_interv_medication_obj.getDosage_amount_exact_value()+"' ";
+				  if(!crit_interv_medication_obj.getDosage_amount_exact_value().isEmpty()) {
+					  tables += ", dt_amount";
+					  where_clause += " AND interv_medication.DOSSAGE_ID = dt_amount.ID AND dt_amount.VALUE ='" +crit_interv_medication_obj.getDosage_amount_exact_value()+"'";
+				  }
 				  
-				  if(!(crit_interv_medication_obj.getMedication_exact_date_year()).isEmpty()) {						  
-					  	query += Make_begin_end_period_query (mode,"interv_medication.PERIOD_ID", "dt_date1", "dt_date2", crit_interv_medication_obj.getMedication_exact_date_year(), 
+				  if(!(crit_interv_medication_obj.getMedication_exact_date_year()).isEmpty()) {	
+					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2";
+					  where_clause += " AND " + Make_begin_end_period_query (mode,"interv_medication.PERIOD_ID", "dt_date1", "dt_date2", crit_interv_medication_obj.getMedication_exact_date_year(), 
 					  			crit_interv_medication_obj.getMedication_exact_date_month(), crit_interv_medication_obj.getMedication_exact_date_day(),
 					  			crit_interv_medication_obj.getMedication_exact_date_year(), crit_interv_medication_obj.getMedication_exact_date_month(),
-					  			crit_interv_medication_obj.getMedication_exact_date_day()); 							  
-					} else if(!(crit_interv_medication_obj.getMedication_period_end_year()).isEmpty()) {						  
-						query += Make_begin_end_period_query (mode,"interv_medication.PERIOD_ID", "dt_date1", "dt_date2", crit_interv_medication_obj.getMedication_period_begin_year(), 
+					  			crit_interv_medication_obj.getMedication_exact_date_day());
+							  
+				  } else if(!(crit_interv_medication_obj.getMedication_period_end_year()).isEmpty()) {
+					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2";
+					  where_clause += " AND " + Make_begin_end_period_query (mode,"interv_medication.PERIOD_ID", "dt_date1", "dt_date2", crit_interv_medication_obj.getMedication_period_begin_year(), 
 								crit_interv_medication_obj.getMedication_period_begin_month(), crit_interv_medication_obj.getMedication_period_begin_day(),
 								crit_interv_medication_obj.getMedication_period_end_year(), crit_interv_medication_obj.getMedication_period_end_month(),
 								crit_interv_medication_obj.getMedication_period_end_day()); 												
-					} else if(!(crit_interv_medication_obj.getMedication_until_date_year()).isEmpty()) {						  
-						query += Make_begin_end_period_query (mode,"interv_medication.PERIOD_ID", "dt_date1", "dt_date2", "1800", 
-								  "1", "1",crit_interv_medication_obj.getMedication_until_date_year(), crit_interv_medication_obj.getMedication_until_date_month(),
-								  crit_interv_medication_obj.getMedication_until_date_day()); 								
-					} 
 				  
-				  if(!crit_interv_medication_obj.getStatement().isEmpty()) 
-				  		query += "AND interv_medication.STMT_ID=voc_confirmation.ID " +
-				  				 "AND voc_confirmation.CODE='"+crit_interv_medication_obj.getStatement() + "'";
+				  } else if(!(crit_interv_medication_obj.getMedication_until_date_year()).isEmpty()) {
+					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2";
+					  where_clause += " AND " + Make_begin_end_period_query (mode,"interv_medication.PERIOD_ID", "dt_date1", "dt_date2", "1800", 
+							  "1", "1",crit_interv_medication_obj.getMedication_until_date_year(), crit_interv_medication_obj.getMedication_until_date_month(),
+							  crit_interv_medication_obj.getMedication_until_date_day()); 							
+				  } 
 				  
-					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
-					System.out.println("We executed the Query: "+query); 
+				  if(!crit_interv_medication_obj.getStatement().isEmpty()) {
+					  tables += ", voc_confirmation";
+					  where_clause += "AND interv_medication.STMT_ID=voc_confirmation.ID AND voc_confirmation.CODE='"+crit_interv_medication_obj.getStatement() + "'";
+				  }
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+					
 			  } break;
 			  
 			  case "intervention_chemotherapy": { //Check if user provided the info of all the fields 
 				  intervention_chemotherapy  crit_interv_chemotherapy_obj =  (intervention_chemotherapy)current_Criterion;
+				  
+				  String tables = "patient, interv_chemotherapy, voc_confirmation AS conf_1";
+				  String where_clause = "patient.ID = interv_chemotherapy.PATIENT_ID AND interv_chemotherapy.DUE_TO_PSS_ID = conf_1.ID AND " + Make_OR_of_CODES("conf_1.CODE", crit_interv_chemotherapy_obj.getReason());
 				  query = "SELECT DISTINCT patient.UID " +
 						  "FROM patient, interv_chemotherapy, voc_confirmation AS conf_1, voc_confirmation AS conf_2, dt_period_of_time, dt_date AS dt_date1, dt_date AS dt_date2, voc_direction " +
 						  "WHERE patient.ID = interv_chemotherapy.PATIENT_ID " +
@@ -474,55 +453,62 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  		  //TODO the voc_confirmation do not need multiple CODES, do they?
 				  
 				  
-				  if(!(crit_interv_chemotherapy_obj.getChem_exact_date_year()).isEmpty()) {						  
-					  	query += Make_begin_end_period_query (mode,"interv_chemotherapy.PERIOD_ID", "dt_date1", "dt_date2", crit_interv_chemotherapy_obj.getChem_exact_date_year(), 
+				  if(!(crit_interv_chemotherapy_obj.getChem_exact_date_year()).isEmpty()) {	
+					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2";
+					  where_clause += " AND " + Make_begin_end_period_query (mode,"interv_chemotherapy.PERIOD_ID", "dt_date1", "dt_date2", crit_interv_chemotherapy_obj.getChem_exact_date_year(), 
 					  			crit_interv_chemotherapy_obj.getChem_exact_date_month(), crit_interv_chemotherapy_obj.getChem_exact_date_day(),
 					  			crit_interv_chemotherapy_obj.getChem_exact_date_year(), crit_interv_chemotherapy_obj.getChem_exact_date_month(),
-					  			crit_interv_chemotherapy_obj.getChem_exact_date_day()); 							  
-					} else if(!(crit_interv_chemotherapy_obj.getChem_period_end_year()).isEmpty()) {						  
-						query += Make_begin_end_period_query (mode,"interv_chemotherapy.PERIOD_ID", "dt_date1", "dt_date2", crit_interv_chemotherapy_obj.getChem_period_begin_year(), 
+					  			crit_interv_chemotherapy_obj.getChem_exact_date_day()); 						  
+					} else if(!(crit_interv_chemotherapy_obj.getChem_period_end_year()).isEmpty()) {
+						tables += ", dt_date AS dt_date1, dt_date AS dt_date2";
+						where_clause += " AND " + Make_begin_end_period_query (mode,"interv_chemotherapy.PERIOD_ID", "dt_date1", "dt_date2", crit_interv_chemotherapy_obj.getChem_period_begin_year(), 
 								crit_interv_chemotherapy_obj.getChem_period_begin_month(), crit_interv_chemotherapy_obj.getChem_period_begin_day(),
 								crit_interv_chemotherapy_obj.getChem_period_end_year(), crit_interv_chemotherapy_obj.getChem_period_end_month(),
 								crit_interv_chemotherapy_obj.getChem_period_end_day()); 												
-					} else if(!(crit_interv_chemotherapy_obj.getChem_until_date_year()).isEmpty()) {						  
-						query += Make_begin_end_period_query (mode,"interv_chemotherapy.PERIOD_ID", "dt_date1", "dt_date2", "1800", 
+					} else if(!(crit_interv_chemotherapy_obj.getChem_until_date_year()).isEmpty()) {
+						tables += ", dt_date AS dt_date1, dt_date AS dt_date2";
+						where_clause += " AND " + Make_begin_end_period_query (mode,"interv_chemotherapy.PERIOD_ID", "dt_date1", "dt_date2", "1800", 
 								  "1", "1",crit_interv_chemotherapy_obj.getChem_until_date_year(), crit_interv_chemotherapy_obj.getChem_until_date_month(),
 								  crit_interv_chemotherapy_obj.getChem_until_date_day()); 								
 					}
 				  
-				  if(!crit_interv_chemotherapy_obj.getStatement().isEmpty()) 
-				  		query += "AND interv_chemotherapy.STMT_ID=conf_2.ID " +
-				  				 "AND conf_2.CODE='"+crit_interv_chemotherapy_obj.getStatement() + "'";
-
+				  if(!crit_interv_chemotherapy_obj.getStatement().isEmpty()) {
+					  tables += ", voc_confirmation AS conf_2";
+					  where_clause += " AND interv_chemotherapy.STMT_ID=conf_2.ID AND conf_2.CODE='"+crit_interv_chemotherapy_obj.getStatement() + "'";
+				  }
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
 					//System.out.println("We executed: "+crit_interv_chemotherapy_obj.criterion_name+"\nThe Query is: "+query); 
 			  } break;
 			  
 			  case "intervention_surgery": { //Check if user provided the info of all the fields 
 				  intervention_surgery  crit_interv_surgery_obj =  (intervention_surgery)current_Criterion;
-				  query = "SELECT DISTINCT patient.UID " +
-						  "FROM patient, interv_Surgery, dt_date, voc_direction, voc_confirmation AS conf_1,voc_confirmation AS conf_2 " +
-						  "WHERE patient.ID = interv_Surgery.PATIENT_ID AND " +
-						  "interv_Surgery.DUE_TO_PSS_ID = conf_1.ID AND " +
-						  "conf_1.CODE= '"+crit_interv_surgery_obj.getReason()+"' ";
+				  
+				  String tables = "patient, interv_Surgery, voc_confirmation AS conf_1";
+				  String where_clause = "patient.ID = interv_Surgery.PATIENT_ID AND interv_Surgery.DUE_TO_PSS_ID = conf_1.ID AND conf_1.CODE= '"+crit_interv_surgery_obj.getReason()+"'";
 				  
 				  if(!(crit_interv_surgery_obj.getSurgery_exact_date_year()).isEmpty()) {
-					  query += Make_specific_date_query(mode, "interv_surgery.SURGERY_DATE_ID","dt_date",crit_interv_surgery_obj.getSurgery_exact_date_year(), //check cond_symptom.OBSERVE_DATE_ID
-							  crit_interv_surgery_obj.getSurgery_exact_date_month(), crit_interv_surgery_obj.getSurgery_exact_date_day());		
+					  tables += ", dt_date";
+					  where_clause += " AND " + Make_specific_date_query(mode, "interv_surgery.SURGERY_DATE_ID","dt_date",crit_interv_surgery_obj.getSurgery_exact_date_year(), //check cond_symptom.OBSERVE_DATE_ID
+							  crit_interv_surgery_obj.getSurgery_exact_date_month(), crit_interv_surgery_obj.getSurgery_exact_date_day());
 					  
 				  } else if(!(crit_interv_surgery_obj.getSurgery_period_end_year()).isEmpty()) {
-					  query += Make_begin_end_date_query (mode,"interv_surgery.SURGERY_DATE_ID", "dt_date",crit_interv_surgery_obj.getSurgery_period_begin_year(),
+					  tables += ", dt_date";
+					  where_clause += " AND " + Make_begin_end_date_query (mode,"interv_surgery.SURGERY_DATE_ID", "dt_date",crit_interv_surgery_obj.getSurgery_period_begin_year(),
 							  crit_interv_surgery_obj.getSurgery_period_begin_month(), crit_interv_surgery_obj.getSurgery_period_begin_day(), crit_interv_surgery_obj.getSurgery_period_end_year() , 
 							  crit_interv_surgery_obj.getSurgery_period_end_month(), crit_interv_surgery_obj.getSurgery_period_end_day()); 
 					  
 				  } else if(!(crit_interv_surgery_obj.getSurgery_until_date_year()).isEmpty()) {
-					  query += Make_begin_end_date_query (mode,"interv_surgery.SURGERY_DATE_ID","dt_date", "1800", "1", "1", crit_interv_surgery_obj.getSurgery_until_date_year(), 
+					  tables += ", dt_date";
+					  where_clause += " AND " + Make_begin_end_date_query (mode,"interv_surgery.SURGERY_DATE_ID","dt_date", "1800", "1", "1", crit_interv_surgery_obj.getSurgery_until_date_year(), 
 							  crit_interv_surgery_obj.getSurgery_until_date_month(), crit_interv_surgery_obj.getSurgery_until_date_day()); 
 				  }
 				  
-				  if(!crit_interv_surgery_obj.getStatement().isEmpty()) 
-				  		query += "AND interv_surgery.STMT_ID=conf_2.ID " +
-				  				 "AND conf_2.CODE='"+crit_interv_surgery_obj.getStatement() + "'";
+				  if(!crit_interv_surgery_obj.getStatement().isEmpty()) {
+					  tables += ", voc_confirmation AS conf_2";
+					  where_clause += " AND interv_surgery.STMT_ID=conf_2.ID AND conf_2.CODE='" + crit_interv_surgery_obj.getStatement() + "'";
+				  }
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 				  
 			  } break;
 			  
