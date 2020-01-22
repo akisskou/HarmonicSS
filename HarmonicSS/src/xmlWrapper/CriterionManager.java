@@ -1,6 +1,8 @@
 package xmlWrapper;
 
+import criterionManager.Criterion;
+
 public interface CriterionManager {
-	public boolean canUseCriterion(int flag);
+	public boolean canUseCriterion(Criterion crit);
 	public int findPatientsIds(String criterion);
 }

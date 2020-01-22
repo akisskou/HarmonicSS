@@ -42,6 +42,24 @@ public class DBServiceCRUD {
 		return connection_succes;
 	}
 	
+	public static boolean testQuery(String getQueryStatement) throws SQLException {
+		String query_results=""; 
+		
+			System.out.println("Stage-1 Prepare statement.");
+			db_prep_obj = db_con_obj.prepareStatement(getQueryStatement);
+			
+			System.out.println("Stage-2 Ready to execute the query.");
+			// Execute the Query, and get a java ResultSet
+			
+			ResultSet rs = db_prep_obj.executeQuery();
+			//System.out.println("We are ready to retrieve data from DB.");
+			
+			System.out.println("Stage-3 The query is executed.");
+			// Let's iterate through the java ResultSet
+			if (rs == null) return false;
+			
+			return true;
+	}
 	
 	public static String getDataFromDB(String getQueryStatement) throws SQLException {
 		String query_results=""; 
