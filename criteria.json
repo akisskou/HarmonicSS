@@ -13,38 +13,33 @@ Description: Female patients
 Description: Diagnosed with cancer
 {
 	"criterion":"condition_diagnosis",
-	"condition":"COND-140000",
-	"statement":"CONFIRM-01"
+	"condition":"COND-140000"
 }
 
 Description: Diagnosed with cancer before 2015
 {
 	"criterion":"condition_diagnosis",
 	"condition":"COND-140000",
-	"date_until_year":"2014",
-	"statement":"CONFIRM-01"
+	"date_until_year":"2014"
 }
 
 Description: Received Glucocorticoids
 {
 	"criterion":"intervention_medication",
-	"pharmacological_drug":"CHEM-10000",
-	"statement":"CONFIRM-01"
+	"pharmacological_drug":"CHEM-10000"
 }
 
 Description: Received Glucocorticoids in the past (before now)
 {
 	"criterion":"intervention_medication",
 	"pharmacological_drug":"CHEM-10000",
-	"period_of_time_until_year":"2019",
-	"statement":"CONFIRM-01"
+	"period_of_time_until_year":"2019"
 }
 
 Description: There was an abortion
 {
 	"criterion":"demographics_pregnancy",
-	"outcome_coded_value":"PREG-OUT-300",
-	"statement":"CONFIRM-01"
+	"outcome_coded_value":"PREG-OUT-300"
 }
 
 Description: Active Smoker with more than 200 cigarettes each year
@@ -52,8 +47,7 @@ Description: Active Smoker with more than 200 cigarettes each year
 	"criterion":"lifestyle_smoking",
 	"status_coded_value":"SMOK-STAT-01",
 	"amount_unit":"UNITEXP-18",
-	"amount_range_min_value":"200",
-	"statement":"CONFIRM-01"
+	"amount_range_min_value":"200"
 }
 
 Description: Anti-Ro/SSA was true (normal)
