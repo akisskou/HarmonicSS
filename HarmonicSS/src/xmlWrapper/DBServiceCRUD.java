@@ -1,5 +1,11 @@
 package xmlWrapper;
 
+import java.io.File;
+import java.io.FileNotFoundException;
+import java.io.FileOutputStream;
+import java.io.FileWriter;
+import java.io.IOException;
+import java.io.InputStream;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -87,6 +93,40 @@ public class DBServiceCRUD {
 			return query_results;
 	}
 	
+	public static void getXMLRequestFromDB(String requestID) throws SQLException, IOException {
+		String query = "SELECT REQUEST_XML FROM EXECUTION_DATA WHERE REQUEST_ID='" + requestID +"'";
+		db_prep_obj = db_con_obj.prepareStatement(query);
+		ResultSet rs = db_prep_obj.executeQuery();
+		//File fXmlFile = new File(requestID+".xml");
+		/*FileOutputStream fos = new FileOutputStream(fXmlFile);
+		System.out.println("Writing BLOB to file " + fXmlFile.getAbsolutePath());
+        while (rs.next()) {
+            InputStream input = rs.getBinaryStream("REQUEST_XML");
+            byte[] buffer = new byte[1024];
+            while (input.read(buffer) > 0) {
+                fos.write(buffer);
+            }
+        }*/
+		FileWriter fw = new FileWriter(requestID + ".xml");
+		 while (rs.next()) {
+			 fw.write(rs.getString("REQUEST_XML"));
+			 fw.close();
+		 }
+		
+        if (rs != null) {
+            rs.close();
+        }
+        if (db_prep_obj != null) {
+        	db_prep_obj.close();
+        }
+        if (db_con_obj != null) {
+        	db_con_obj.close();
+        }
+        /*if (fos != null) {
+            fos.close();
+        }*/
+		//return fXmlFile;
+	}
 	
 	
 	public static void main(String [] args) {

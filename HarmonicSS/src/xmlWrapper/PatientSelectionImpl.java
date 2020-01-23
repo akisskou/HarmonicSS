@@ -11,32 +11,6 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
-
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ntua.criteria.*;
@@ -98,8 +72,13 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
   	  	
   	  	try {
   	  		JAXBContext jaxbContext;
+	    	ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB","emps","emps"); //?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC","root","");
+	    	if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the ponte database failed. Check the Credentials and the DB URL.");
+	    	else System.out.println("I am ponte and I'm gooooooood");
+	    	
+	    	DBServiceCRUD.getXMLRequestFromDB(requestID);
   	  		File fXmlFile = new File(requestID+".xml");
-  	  		jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
+	    	jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
   	  		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
   	  		patientsSelectionRequest = ((JAXBElement<PatientsSelectionRequest>) jaxbUnmarshaller.unmarshal(fXmlFile)).getValue();
 
@@ -673,82 +652,96 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			  
 			  case "examination_biopsy": { //Check if user provided the info of all the fields 
 				  examination_biopsy  examination_biopsy_obj =  (examination_biopsy)current_Criterion;
-				  query = "SELECT DISTINCT patient.UID " +
+				  
+				  String tables = "patient, exam_biopsy, voc_biopsy";
+				  String where_clause = "patient.ID = exam_biopsy.PATIENT_ID AND exam_biopsy.BIOPSY_ID=voc_biopsy.ID AND voc_biopsy.CODE='"+examination_biopsy_obj.getBiopsy_type()+"' ";
+				  
+				  /*query = "SELECT DISTINCT patient.UID " +
 						  "FROM patient, exam_biopsy, dt_amount, dt_amount_range, voc_confirmation, voc_biopsy, dt_date, voc_assessment, voc_lab_test, voc_unit " + //interv_Surgery, dt_date, voc_direction, voc_confirmation
 						  "WHERE patient.ID = exam_biopsy.PATIENT_ID AND " + 
 						  "exam_biopsy.BIOPSY_ID=voc_biopsy.ID AND " +
-						  "voc_biopsy.CODE='"+examination_biopsy_obj.getBiopsy_type()+"' "; // ='SAL-BIO-21' Make_OR_of_CODES("voc_lab_test.CODE", examination_biopsy_obj.getBiopsy_type());				  		 
+						  "voc_biopsy.CODE='"+examination_biopsy_obj.getBiopsy_type()+"' "; */// ='SAL-BIO-21' Make_OR_of_CODES("voc_lab_test.CODE", examination_biopsy_obj.getBiopsy_type());				  		 
 
 				  
 				  
 				  if(!(examination_biopsy_obj.getTest_id()).isEmpty()) {
-					  	query += "AND exam_biopsy.TEST_ID = voc_lab_test.ID " +
-					  	"AND voc_lab_test.CODE = '"+examination_biopsy_obj.getTest_id() +"' "; //'BLOOD-100'
+					  tables += ", voc_lab_test";
+					  where_clause += "AND exam_biopsy.TEST_ID = voc_lab_test.ID AND voc_lab_test.CODE = '"+examination_biopsy_obj.getTest_id() +"' "; //'BLOOD-100'
 				  };  
 				  
 			  
 				  if(!examination_biopsy_obj.getOutcome_amount_exact_value().isEmpty()) { // [OUTCOME_AMOUNT]
-					  	query += "AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE = '"+examination_biopsy_obj.getOutcome_amount_exact_value()+"' " +
+					  tables += ", dt_amount"; //, voc_unit";
+					  where_clause += "AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE = '"+examination_biopsy_obj.getOutcome_amount_exact_value()+"' " /* +
 					  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
-					  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' ";
+					  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' "*/;
 				  } else
 				  
 				  if(!examination_biopsy_obj.getOutcome_amount_range_min_value().isEmpty()&&!examination_biopsy_obj.getOutcome_amount_range_max_value().isEmpty()) { // [OUTCOME_AMOUNT]
-					  	query += "AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE < '"+examination_biopsy_obj.getOutcome_amount_range_max_value()+"' " +
-					  	"AND dt_amount.VALUE > '"+examination_biopsy_obj.getOutcome_amount_range_min_value()+"' " +
+					  tables += ", dt_amount"; //, voc_unit";
+					  where_clause += "AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE < '"+examination_biopsy_obj.getOutcome_amount_range_max_value()+"' " +
+					  	"AND dt_amount.VALUE > '"+examination_biopsy_obj.getOutcome_amount_range_min_value()+"' "/* +
 					  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
-					  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' ";
+					  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' "*/;
 				  } else
 					  
 				  if(examination_biopsy_obj.getOutcome_amount_range_min_value().isEmpty()&&!examination_biopsy_obj.getOutcome_amount_range_max_value().isEmpty()) { // [OUTCOME_AMOUNT]
-					  	query += "AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE < '"+examination_biopsy_obj.getOutcome_amount_range_max_value()+"' " +
+					  tables += ", dt_amount"; //, voc_unit";	
+					  where_clause += "AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE < '"+examination_biopsy_obj.getOutcome_amount_range_max_value()+"' "/* +
 					  	//"AND dt_amount.VALUE > '"+examination_lab_test_obj.getOutcome_amount_range_min_value()+"' " +
 					  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
-					  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' ";
+					  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' "*/;
 					  	System.out.println("Mpikame max value amount.");
 				  } else
 					  
 				  if(!examination_biopsy_obj.getOutcome_amount_range_min_value().isEmpty()&&examination_biopsy_obj.getOutcome_amount_range_max_value().isEmpty()) { // [OUTCOME_AMOUNT]
-					  	query += "AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID " + //AND dt_amount.VALUE < '"+examination_lab_test_obj.getOutcome_amount_range_max_value()+"' 
-					  	"AND dt_amount.VALUE > '"+examination_biopsy_obj.getOutcome_amount_range_min_value()+"' " +
+					  tables += ", dt_amount"; //, voc_unit";	
+					  where_clause += "AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID " + //AND dt_amount.VALUE < '"+examination_lab_test_obj.getOutcome_amount_range_max_value()+"' 
+					  	"AND dt_amount.VALUE > '"+examination_biopsy_obj.getOutcome_amount_range_min_value()+"' "/* +
 					  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
-					  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' ";
+					  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' "*/;
 				  }
 					  					  
 				  //TODO NORMAL_RANGE  does it check if the value belongs in these two limits.		  
 				  if(!(examination_biopsy_obj.getNormal_range_value()).isEmpty()) {
-					  	query += "AND exam_biopsy.NORMAL_RANGE_ID = dt_amount_range.ID " +
+					  tables += ", dt_amount_range, voc_unit";
+					  where_clause += "AND exam_biopsy.NORMAL_RANGE_ID = dt_amount_range.ID " +
 					  	"AND dt_amount_range.VALUE1 <= '"+examination_biopsy_obj.getNormal_range_value()+"' " +
 					  	"AND dt_amount_range.VALUE2 >= '"+examination_biopsy_obj.getNormal_range_value()+"' " +
 					    "AND dt_amount_range.UNIT_ID = voc_unit.ID AND voc_unit.CODE='"+examination_biopsy_obj.getOutcome_amount_unit()+"' ";
 				  };
 				  
 				  if(!examination_biopsy_obj.getAssessment().isEmpty()) {  // [OUTCOME_ASSESSMENT]
-					  	query += "AND exam_biopsy.ASSESSMENT_ID = voc_assessment.ID " + 
+					  tables += ", voc_assessment";
+					  where_clause += "AND exam_biopsy.ASSESSMENT_ID = voc_assessment.ID " + 
 					  	//"AND voc_assessment.CODE ='"+crit_exam_lab_test_obj.OUTCOME_ASSESSMENT_ID_voc_assessment_CODE+"' ";
 					  	"AND " + Make_OR_of_CODES("voc_assessment.CODE", examination_biopsy_obj.getAssessment());
 				  }
 
 				  if(!examination_biopsy_obj.getOutcome_check().isEmpty()) {  // [OUTCOME_ASSESSMENT]
-					  	query += "AND exam_biopsy.OUTCOME_CHECK_ID = voc_confirmation.ID " + 
+					  tables += ", voc_confirmation";
+					  where_clause += " AND exam_biopsy.OUTCOME_CHECK_ID = voc_confirmation.ID " + 
 					  	//"AND voc_assessment.CODE ='"+crit_exam_lab_test_obj.OUTCOME_ASSESSMENT_ID_voc_assessment_CODE+"' ";
 					  	"AND " + Make_OR_of_CODES("voc_confirmation.CODE", examination_biopsy_obj.getOutcome_check());
 				  }					  
 
 				  if(!(examination_biopsy_obj.getBiopsy_period_of_time_exact_year()).isEmpty()) {
-							  query += Make_specific_date_query(mode, "exam_biopsy.BIOPSY_DATE_ID","dt_date",examination_biopsy_obj.getBiopsy_period_of_time_exact_year(), 
+					  tables += ", dt_date";
+					  where_clause += Make_specific_date_query(mode, "exam_biopsy.BIOPSY_DATE_ID","dt_date",examination_biopsy_obj.getBiopsy_period_of_time_exact_year(), 
 									  examination_biopsy_obj.getBiopsy_period_of_time_exact_month(), examination_biopsy_obj.getBiopsy_period_of_time_exact_day());					  		
 						  } else if(!(examination_biopsy_obj.getBiopsy_period_of_time_interval_end_year()).isEmpty()) {
-							  query += Make_begin_end_date_query (mode,"exam_biopsy.BIOPSY_DATE_ID", "dt_date",examination_biopsy_obj.getBiopsy_period_of_time_interval_start_year(), 
+							  tables += ", dt_date";
+							  where_clause += Make_begin_end_date_query (mode,"exam_biopsy.BIOPSY_DATE_ID", "dt_date",examination_biopsy_obj.getBiopsy_period_of_time_interval_start_year(), 
 									  examination_biopsy_obj.getBiopsy_period_of_time_interval_start_month(), examination_biopsy_obj.getBiopsy_period_of_time_interval_start_day(),
 									  examination_biopsy_obj.getBiopsy_period_of_time_interval_end_year(), examination_biopsy_obj.getBiopsy_period_of_time_interval_end_month(),
 									  examination_biopsy_obj.getBiopsy_period_of_time_interval_end_day()); 			  
 						  } else if(!(examination_biopsy_obj.getBiopsy_period_of_time_until_year()).isEmpty()) {
-							  query += Make_begin_end_date_query (mode,"exam_biopsy.BIOPSY_DATE_ID","dt_date", "1800", "1", "1", examination_biopsy_obj.getBiopsy_period_of_time_until_year(), examination_biopsy_obj.getBiopsy_period_of_time_until_month(),
+							  tables += ", dt_date";
+							  where_clause += Make_begin_end_date_query (mode,"exam_biopsy.BIOPSY_DATE_ID","dt_date", "1800", "1", "1", examination_biopsy_obj.getBiopsy_period_of_time_until_year(), examination_biopsy_obj.getBiopsy_period_of_time_until_month(),
 									  examination_biopsy_obj.getBiopsy_period_of_time_until_day()); 
 						  }
 				  
-				  
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 
 					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
 					//System.out.println("We executed: "+crit_exam_lab_test_obj.criterion_name+"\nThe Query is: "+query); 
@@ -788,80 +781,97 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			  } break;
 			  case "examination_questionnaire_score": { //Check if user provided the info of all the fields 
 				  examination_questionnaire_score  examination_questionnaire_score_obj =  (examination_questionnaire_score)current_Criterion;
-				  query = "SELECT DISTINCT patient.UID " +
+				  
+				  String tables = "patient, exam_questionnaire_score, voc_questionnaire";
+				  String where_clause = "patient.ID = exam_questionnaire_score.PATIENT_ID AND exam_questionnaire_score.SCORE_ID=voc_questionnaire.ID AND " + Make_OR_of_CODES("voc_questionnaire.CODE", examination_questionnaire_score_obj.getScore());
+				  
+				 /* query = "SELECT DISTINCT patient.UID " +
 						  "FROM patient, exam_questionnaire_score, voc_questionnaire, dt_date, voc_assessment, dt_int_range " + 
 						  "WHERE patient.ID = exam_questionnaire_score.PATIENT_ID AND " + 
 						  "exam_questionnaire_score.SCORE_ID=voc_questionnaire.ID " +
 						  //"voc_lab_test.CODE='"+crit_exam_lab_test_obj.getTEST_ID_voc_lab_test_CODE()+"' ";
-				  		  "AND " + Make_OR_of_CODES("voc_questionnaire.CODE", examination_questionnaire_score_obj.getScore());
+				  		  "AND " + Make_OR_of_CODES("voc_questionnaire.CODE", examination_questionnaire_score_obj.getScore());*/
 				  
 				  if(!examination_questionnaire_score_obj.getValue().isEmpty()) {  //TODO check value
-					  	query += "AND " + Make_OR_of_CODES("exam_questionnaire_score.VALUE", examination_questionnaire_score_obj.getValue());
+					  where_clause += " AND " + Make_OR_of_CODES("exam_questionnaire_score.VALUE", examination_questionnaire_score_obj.getValue());
 				  }
 				  
 				  if(!examination_questionnaire_score_obj.getAssessment().isEmpty()) {  // [OUTCOME_ASSESSMENT]
-					  	query += "AND exam_questionnaire_score.ASSESSMENT_ID = voc_assessment.ID " + 
+					  tables += ", voc_assessment";
+					  where_clause += " AND exam_questionnaire_score.ASSESSMENT_ID = voc_assessment.ID " + 
 					  	//"AND voc_assessment.CODE ='"+crit_exam_lab_test_obj.OUTCOME_ASSESSMENT_ID_voc_assessment_CODE+"' ";
 					  	"AND " + Make_OR_of_CODES("voc_assessment.CODE", examination_questionnaire_score_obj.getAssessment());
 				  }
 				  
 				  //TODO NORMAL_RANGE  does it check if the value belongs in these two limits.		  
 				  if(!(examination_questionnaire_score_obj.getNormal_range_value()).isEmpty()) {
-					  	query += "AND exam_lab_test.NORMAL_RANGE_ID = dt_amount_range.ID " +
+					  tables += ", exam_lab_test, dt_amount_range, voc_unit";
+					  where_clause += " AND exam_lab_test.NORMAL_RANGE_ID = dt_amount_range.ID " +
 					  	"AND dt_amount_range.VALUE1 <= '"+examination_questionnaire_score_obj.getNormal_range_value()+"' " +
 					  	"AND dt_amount_range.VALUE2 >= '"+examination_questionnaire_score_obj.getNormal_range_value()+"' " +
 					    "AND dt_amount_range.UNIT_ID = voc_unit.ID AND voc_unit.CODE='"+examination_questionnaire_score_obj.getUnit()+"' ";
 				  };
 				  
 				  if(!examination_questionnaire_score_obj.getOther_term().isEmpty()) {  //TODO check value
-					  	query += "AND " + Make_OR_of_CODES("examination_questionnaire_score.OTHER_TERM_ID", examination_questionnaire_score_obj.getOther_term());
+					  where_clause += " AND " + Make_OR_of_CODES("exam_questionnaire_score.OTHER_TERM_ID", examination_questionnaire_score_obj.getOther_term());
 				  }
 				  
 				  				  
 				  if(!(examination_questionnaire_score_obj.getQuestionnaire_period_of_time_exact_year()).isEmpty()) {
-					  query += Make_specific_date_query(mode, "exam_questionnaire_score.QUESTIONNAIRE_DATE_ID","dt_date",examination_questionnaire_score_obj.getQuestionnaire_period_of_time_exact_year(), 
+					  tables += ", dt_date";
+					  where_clause += Make_specific_date_query(mode, "exam_questionnaire_score.QUESTIONNAIRE_DATE_ID","dt_date",examination_questionnaire_score_obj.getQuestionnaire_period_of_time_exact_year(), 
 							  examination_questionnaire_score_obj.getQuestionnaire_period_of_time_exact_month(), examination_questionnaire_score_obj.getQuestionnaire_period_of_time_exact_day());					  		
 				  } else if(!(examination_questionnaire_score_obj.getQuestionnaire_period_of_time_interval_end_year()).isEmpty()) {
-					  query += Make_begin_end_date_query (mode,"exam_questionnaire_score.QUESTIONNAIRE_DATE_ID", "dt_date",examination_questionnaire_score_obj.getQuestionnaire_period_of_time_interval_start_year(), 
+					  tables += ", dt_date";
+					  where_clause += Make_begin_end_date_query (mode,"exam_questionnaire_score.QUESTIONNAIRE_DATE_ID", "dt_date",examination_questionnaire_score_obj.getQuestionnaire_period_of_time_interval_start_year(), 
 							  examination_questionnaire_score_obj.getQuestionnaire_period_of_time_interval_start_month(), examination_questionnaire_score_obj.getQuestionnaire_period_of_time_interval_start_day(),
 							  examination_questionnaire_score_obj.getQuestionnaire_period_of_time_interval_end_year(), examination_questionnaire_score_obj.getQuestionnaire_period_of_time_interval_end_month(),
 							  examination_questionnaire_score_obj.getQuestionnaire_period_of_time_interval_end_day()); 			  
 				  } else if(!(examination_questionnaire_score_obj.getQuestionnaire_period_of_time_until_year()).isEmpty()) {
-					  query += Make_begin_end_date_query (mode,"exam_questionnaire_score.QUESTIONNAIRE_DATE_ID","dt_date", "1800", "1", "1", examination_questionnaire_score_obj.getQuestionnaire_period_of_time_until_year(), examination_questionnaire_score_obj.getQuestionnaire_period_of_time_until_month(),
+					  tables += ", dt_date";
+					  where_clause += Make_begin_end_date_query (mode,"exam_questionnaire_score.QUESTIONNAIRE_DATE_ID","dt_date", "1800", "1", "1", examination_questionnaire_score_obj.getQuestionnaire_period_of_time_until_year(), examination_questionnaire_score_obj.getQuestionnaire_period_of_time_until_month(),
 							  examination_questionnaire_score_obj.getQuestionnaire_period_of_time_until_day()); 
 				  }
-				  
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 				  
 			  } break;  //examination_essdai_domain
 			  
 			  case "examination_essdai_domain": { //Check if user provided the info of all the fields 
 				  examination_essdai_domain  examination_essdai_domain_obj =  (examination_essdai_domain)current_Criterion;
-				  query = "SELECT DISTINCT patient.UID " +
+				  
+				  String tables = "patient, exam_essdai_domain, voc_essdai_domain";
+				  String where_clause = "patient.ID = exam_essdai_domain.PATIENT_ID AND exam_essdai_domain.DOMAIN_ID = voc_essdai_domain.ID AND " + Make_OR_of_CODES("voc_essdai_domain.CODE", examination_essdai_domain_obj.getDomain());
+				  
+				  /*query = "SELECT DISTINCT patient.UID " +
 						  "FROM patient, exam_essdai_domain, voc_essdai_domain, dt_date, voc_activity_level " + 
 						  "WHERE patient.ID = exam_essdai_domain.PATIENT_ID AND " + 
 						  "exam_essdai_domain.DOMAIN_ID = voc_essdai_domain.ID " +
 						  //"voc_essdai_domain.CODE = '"+examination_essdai_domain_obj.getDomain()+"' ";
-				  		  "AND " + Make_OR_of_CODES("voc_essdai_domain.CODE", examination_essdai_domain_obj.getDomain());
+				  		  "AND " + Make_OR_of_CODES("voc_essdai_domain.CODE", examination_essdai_domain_obj.getDomain());*/
 				 
 			  
 				  if(!(examination_essdai_domain_obj.getActivity_level()).isEmpty()) {
-					  	query += "AND exam_essdai_domain.ACTIVITY_LEVEL_ID = voc_activity_level.ID " +
+					  tables += ", voc_activity_level";
+					  where_clause += " AND exam_essdai_domain.ACTIVITY_LEVEL_ID = voc_activity_level.ID " +
 					  	"AND voc_activity_level.CODE = '" + examination_essdai_domain_obj.getActivity_level() +"' "; //'BLOOD-100'
 				  };
 				  
 				  if(!(examination_essdai_domain_obj.getQuestionnaire_period_of_time_exact_year()).isEmpty()) {
-					  query += Make_specific_date_query(mode, "exam_essdai_domain.QUESTIONNAIRE_DATE_ID","dt_date",examination_essdai_domain_obj.getQuestionnaire_period_of_time_exact_year(), 
+					  tables += ", dt_date";
+					  where_clause += Make_specific_date_query(mode, "exam_essdai_domain.QUESTIONNAIRE_DATE_ID","dt_date",examination_essdai_domain_obj.getQuestionnaire_period_of_time_exact_year(), 
 							  examination_essdai_domain_obj.getQuestionnaire_period_of_time_exact_month(), examination_essdai_domain_obj.getQuestionnaire_period_of_time_exact_day());					  		
 				  } else if(!(examination_essdai_domain_obj.getQuestionnaire_period_of_time_interval_end_year()).isEmpty()) {
-					  query += Make_begin_end_date_query (mode,"exam_essdai_domain.QUESTIONNAIRE_DATE_ID", "dt_date",examination_essdai_domain_obj.getQuestionnaire_period_of_time_interval_start_year(), 
+					  tables += ", dt_date";
+					  where_clause += Make_begin_end_date_query (mode,"exam_essdai_domain.QUESTIONNAIRE_DATE_ID", "dt_date",examination_essdai_domain_obj.getQuestionnaire_period_of_time_interval_start_year(), 
 							  examination_essdai_domain_obj.getQuestionnaire_period_of_time_interval_start_month(), examination_essdai_domain_obj.getQuestionnaire_period_of_time_interval_start_day(),
 							  examination_essdai_domain_obj.getQuestionnaire_period_of_time_interval_end_year(), examination_essdai_domain_obj.getQuestionnaire_period_of_time_interval_end_month(),
 							  examination_essdai_domain_obj.getQuestionnaire_period_of_time_interval_end_day()); 			  
 				  } else if(!(examination_essdai_domain_obj.getQuestionnaire_period_of_time_until_year()).isEmpty()) {
-					  query += Make_begin_end_date_query (mode,"exam_essdai_domain.QUESTIONNAIRE_DATE_ID","dt_date", "1800", "1", "1", examination_essdai_domain_obj.getQuestionnaire_period_of_time_until_year(), examination_essdai_domain_obj.getQuestionnaire_period_of_time_until_month(),
+					  tables += ", dt_date";
+					  where_clause += Make_begin_end_date_query (mode,"exam_essdai_domain.QUESTIONNAIRE_DATE_ID","dt_date", "1800", "1", "1", examination_essdai_domain_obj.getQuestionnaire_period_of_time_until_year(), examination_essdai_domain_obj.getQuestionnaire_period_of_time_until_month(),
 							  examination_essdai_domain_obj.getQuestionnaire_period_of_time_until_day()); 
 				  }
-				  System.out.println("Test id: "+query);
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 			  } break; //examination_caci_condition
 			  
 			  case "examination_caci_condition": { //Check if user provided the info of all the fields 
@@ -967,58 +977,74 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			  
 			  case "patient": { //Check if user provided the info of all the fields 
 				  patient  patient_obj =  (patient)current_Criterion;
-				  query = "SELECT DISTINCT patient.UID " +
+				  
+				  String tables = "patient";
+				  String where_clause = "";
+				  
+				  /*query = "SELECT DISTINCT patient.UID " +
 						  "FROM patient,  dt_date as dt_date1, dt_date as dt_date2, dt_date as dt_date3, dt_date as dt_date4, voc_direction " + //exam_lab_test, voc_lab_test, dt_amount, voc_unit, voc_assessment, dt_amount_range,interv_Surgery, dt_date, voc_direction, voc_confirmation
 						  "WHERE "; 
 						  //"exam_lab_test.TEST_ID=voc_lab_test.ID " +
 						  //"voc_lab_test.CODE='"+crit_exam_lab_test_obj.getTEST_ID_voc_lab_test_CODE()+"' ";
 				  		  //"AND " + Make_OR_of_CODES("voc_lab_test.CODE", patient_obj.getBirth_period_of_time_exact_year());
-				  System.out.println("Test id: "+patient_obj.getBirth_period_of_time_exact_year());
+				  System.out.println("Test id: "+patient_obj.getBirth_period_of_time_exact_year());*/
 				  				  
 				  if(!(patient_obj.getBirth_period_of_time_exact_year()).isEmpty()) {
-					  query += Make_specific_date_query(mode, "patient.DATE_OF_BIRTH_ID","dt_date1",patient_obj.getBirth_period_of_time_exact_year(),
+					  tables += ", dt_date as dt_date1";
+					  where_clause += Make_specific_date_query(mode, "patient.DATE_OF_BIRTH_ID","dt_date1",patient_obj.getBirth_period_of_time_exact_year(),
 							  patient_obj.getBirth_period_of_time_exact_month(),patient_obj.getBirth_period_of_time_exact_day());					  		
 				  } else if(!(patient_obj.getBirth_period_of_time_interval_start_year()).isEmpty()) {
-					  query += Make_begin_end_date_query (mode,"patient.DATE_OF_BIRTH_ID", "dt_date1",patient_obj.getBirth_period_of_time_interval_start_year(), patient_obj.getBirth_period_of_time_interval_start_month(), patient_obj.getBirth_period_of_time_interval_start_day(), patient_obj.getBirth_period_of_time_interval_end_year(), patient_obj.getBirth_period_of_time_interval_end_month(),
+					  tables += ", dt_date as dt_date1";
+					  where_clause += Make_begin_end_date_query (mode,"patient.DATE_OF_BIRTH_ID", "dt_date1",patient_obj.getBirth_period_of_time_interval_start_year(), patient_obj.getBirth_period_of_time_interval_start_month(), patient_obj.getBirth_period_of_time_interval_start_day(), patient_obj.getBirth_period_of_time_interval_end_year(), patient_obj.getBirth_period_of_time_interval_end_month(),
 							  patient_obj.getBirth_period_of_time_interval_end_day()); 			  
 				  } else if(!(patient_obj.getBirth_period_of_time_until_year()).isEmpty()) {
-					  query += Make_begin_end_date_query (mode,"patient.DATE_OF_BIRTH_ID","dt_date1", "1800", "1", "1", patient_obj.getBirth_period_of_time_until_year(), 
+					  tables += ", dt_date as dt_date1";
+					  where_clause += Make_begin_end_date_query (mode,"patient.DATE_OF_BIRTH_ID","dt_date1", "1800", "1", "1", patient_obj.getBirth_period_of_time_until_year(), 
 							  patient_obj.getBirth_period_of_time_until_month(), patient_obj.getBirth_period_of_time_until_day()); 
 				  }
 				  
 				  if(!(patient_obj.getSymptoms_onset_period_of_time_exact_year()).isEmpty()) {
-					  query += Make_specific_date_query(mode, "patient.PSS_SYMPTOMS_ONSET_DATE_ID","dt_date2",patient_obj.getSymptoms_onset_period_of_time_exact_year(),
+					  tables += ", dt_date as dt_date2";
+					  where_clause += Make_specific_date_query(mode, "patient.PSS_SYMPTOMS_ONSET_DATE_ID","dt_date2",patient_obj.getSymptoms_onset_period_of_time_exact_year(),
 							  patient_obj.getSymptoms_onset_period_of_time_exact_month(),patient_obj.getSymptoms_onset_period_of_time_exact_day());					  		
 				  } else if(!(patient_obj.getSymptoms_onset_period_of_time_interval_start_year()).isEmpty()) {
-					  query += Make_begin_end_date_query (mode,"patient.PSS_SYMPTOMS_ONSET_DATE_ID", "dt_date2",patient_obj.getSymptoms_onset_period_of_time_interval_start_year(), patient_obj.getSymptoms_onset_period_of_time_interval_start_month(), patient_obj.getSymptoms_onset_period_of_time_interval_start_day(), patient_obj.getSymptoms_onset_period_of_time_interval_end_year(), patient_obj.getSymptoms_onset_period_of_time_interval_end_month(),
+					  tables += ", dt_date as dt_date2";
+					  where_clause += Make_begin_end_date_query (mode,"patient.PSS_SYMPTOMS_ONSET_DATE_ID", "dt_date2",patient_obj.getSymptoms_onset_period_of_time_interval_start_year(), patient_obj.getSymptoms_onset_period_of_time_interval_start_month(), patient_obj.getSymptoms_onset_period_of_time_interval_start_day(), patient_obj.getSymptoms_onset_period_of_time_interval_end_year(), patient_obj.getSymptoms_onset_period_of_time_interval_end_month(),
 							  patient_obj.getSymptoms_onset_period_of_time_interval_end_day()); 			  
 				  } else if(!(patient_obj.getSymptoms_onset_period_of_time_until_year()).isEmpty()) {
-					  query += Make_begin_end_date_query (mode,"patient.PSS_SYMPTOMS_ONSET_DATE_ID","dt_date2", "1800", "1", "1", patient_obj.getSymptoms_onset_period_of_time_until_year(), 
+					  tables += ", dt_date as dt_date2";
+					  where_clause += Make_begin_end_date_query (mode,"patient.PSS_SYMPTOMS_ONSET_DATE_ID","dt_date2", "1800", "1", "1", patient_obj.getSymptoms_onset_period_of_time_until_year(), 
 							  patient_obj.getSymptoms_onset_period_of_time_until_month(), patient_obj.getSymptoms_onset_period_of_time_until_day()); 
 				  }
 				  
 				  if(!(patient_obj.getDiagnosis_period_of_time_exact_year()).isEmpty()) {
-					  query += Make_specific_date_query(mode, "patient.PSS_DIAGNOSIS_DATE_ID","dt_date3",patient_obj.getDiagnosis_period_of_time_exact_year(),
+					  tables += ", dt_date as dt_date3";
+					  where_clause += Make_specific_date_query(mode, "patient.PSS_DIAGNOSIS_DATE_ID","dt_date3",patient_obj.getDiagnosis_period_of_time_exact_year(),
 							  patient_obj.getDiagnosis_period_of_time_exact_month(),patient_obj.getDiagnosis_period_of_time_exact_day());					  		
 				  } else if(!(patient_obj.getDiagnosis_period_of_time_interval_start_year()).isEmpty()) {
-					  query += Make_begin_end_date_query (mode,"patient.PSS_DIAGNOSIS_DATE_ID", "dt_date3",patient_obj.getDiagnosis_period_of_time_interval_start_year(), patient_obj.getDiagnosis_period_of_time_interval_start_month(), patient_obj.getDiagnosis_period_of_time_interval_start_day(), patient_obj.getDiagnosis_period_of_time_interval_end_year(), patient_obj.getDiagnosis_period_of_time_interval_end_month(),
+					  tables += ", dt_date as dt_date3";
+					  where_clause += Make_begin_end_date_query (mode,"patient.PSS_DIAGNOSIS_DATE_ID", "dt_date3",patient_obj.getDiagnosis_period_of_time_interval_start_year(), patient_obj.getDiagnosis_period_of_time_interval_start_month(), patient_obj.getDiagnosis_period_of_time_interval_start_day(), patient_obj.getDiagnosis_period_of_time_interval_end_year(), patient_obj.getDiagnosis_period_of_time_interval_end_month(),
 							  patient_obj.getDiagnosis_period_of_time_interval_end_day()); 			  
 				  } else if(!(patient_obj.getDiagnosis_period_of_time_until_year()).isEmpty()) {
-					  query += Make_begin_end_date_query (mode,"patient.PSS_DIAGNOSIS_DATE_ID","dt_date3", "1800", "1", "1", patient_obj.getDiagnosis_period_of_time_until_year(), 
+					  tables += ", dt_date as dt_date3";
+					  where_clause += Make_begin_end_date_query (mode,"patient.PSS_DIAGNOSIS_DATE_ID","dt_date3", "1800", "1", "1", patient_obj.getDiagnosis_period_of_time_until_year(), 
 							  patient_obj.getDiagnosis_period_of_time_until_month(), patient_obj.getDiagnosis_period_of_time_until_day()); 
 				  }
 				  
 				  if(!(patient_obj.getCohort_inclusion_period_of_time_exact_year()).isEmpty()) {
-					  query += Make_specific_date_query(mode, "patient.COHORT_INCLUSION_DATE_ID","dt_date4",patient_obj.getCohort_inclusion_period_of_time_exact_year(),
+					  tables += ", dt_date as dt_date4";
+					  where_clause += Make_specific_date_query(mode, "patient.COHORT_INCLUSION_DATE_ID","dt_date4",patient_obj.getCohort_inclusion_period_of_time_exact_year(),
 							  patient_obj.getCohort_inclusion_period_of_time_exact_month(),patient_obj.getCohort_inclusion_period_of_time_exact_day());					  		
 				  } else if(!(patient_obj.getCohort_inclusion_period_of_time_interval_start_year()).isEmpty()) {
-					  query += Make_begin_end_date_query (mode,"patient.COHORT_INCLUSION_DATE_ID", "dt_date4",patient_obj.getCohort_inclusion_period_of_time_interval_start_year(), patient_obj.getCohort_inclusion_period_of_time_interval_start_month(), patient_obj.getCohort_inclusion_period_of_time_interval_start_day(), patient_obj.getCohort_inclusion_period_of_time_interval_end_year(), patient_obj.getCohort_inclusion_period_of_time_interval_end_month(),
+					  tables += ", dt_date as dt_date4";
+					  where_clause += Make_begin_end_date_query (mode,"patient.COHORT_INCLUSION_DATE_ID", "dt_date4",patient_obj.getCohort_inclusion_period_of_time_interval_start_year(), patient_obj.getCohort_inclusion_period_of_time_interval_start_month(), patient_obj.getCohort_inclusion_period_of_time_interval_start_day(), patient_obj.getCohort_inclusion_period_of_time_interval_end_year(), patient_obj.getCohort_inclusion_period_of_time_interval_end_month(),
 							  patient_obj.getCohort_inclusion_period_of_time_interval_end_day()); 			  
 				  } else if(!(patient_obj.getCohort_inclusion_period_of_time_until_year()).isEmpty()) {
-					  query += Make_begin_end_date_query (mode,"patient.COHORT_INCLUSION_DATE_ID","dt_date4", "1800", "1", "1", patient_obj.getCohort_inclusion_period_of_time_until_year(), 
+					  tables += ", dt_date as dt_date4";
+					  where_clause += Make_begin_end_date_query (mode,"patient.COHORT_INCLUSION_DATE_ID","dt_date4", "1800", "1", "1", patient_obj.getCohort_inclusion_period_of_time_until_year(), 
 							  patient_obj.getCohort_inclusion_period_of_time_until_month(), patient_obj.getCohort_inclusion_period_of_time_until_day()); 
 				  }
-				  
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 				  query=query.replace("WHERE  AND", "WHERE");
 				  query=query.replace("WHERE AND", "WHERE");
 				  System.out.println("The query is: "+query);
@@ -1409,7 +1435,6 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		System.out.println("Begin");
 		
 		final String requestID = "Req01";
-
 		PatientSelectionImpl testObj = new PatientSelectionImpl();
 		
 		String crit_incl_excl_in = testObj.readXMLbyRequestID(requestID);
