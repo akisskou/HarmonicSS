@@ -1,6 +1,7 @@
 package xmlWrapper;
 
 import java.io.IOException;
+import java.io.InputStreamReader;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -11,6 +12,7 @@ import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ntua.criteria.*;
@@ -27,8 +29,13 @@ import static queries.SQL_aux_functions.Make_begin_end_date_query;
 import static queries.SQL_aux_functions.Make_begin_end_period_query;
 import static queries.SQL_aux_functions.Make_specific_date_query;
 
+import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileWriter;
 import java.io.PrintWriter;
+import java.io.Reader;
+import java.net.HttpURLConnection;
+import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -72,12 +79,29 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
   	  	
   	  	try {
   	  		JAXBContext jaxbContext;
-	    	ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB","emps","emps"); //?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC","root","");
+	    	/*ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB","emps","emps"); //?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC","root","");
 	    	if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the ponte database failed. Check the Credentials and the DB URL.");
 	    	else System.out.println("I am ponte and I'm gooooooood");
 	    	
-	    	DBServiceCRUD.getXMLRequestFromDB(requestID);
-  	  		File fXmlFile = new File(requestID+".xml");
+	    	DBServiceCRUD.getXMLRequestFromDB(requestID);*/
+	    	
+	    	URL myXMLService = new URL("http://localhost:8080/GetXMLS1/GetXMLServlet");
+	    	HttpURLConnection con = (HttpURLConnection) myXMLService.openConnection();
+			con.setRequestMethod("GET");
+			con.setDoOutput(true);
+			Reader in = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
+		    StringBuilder sb = new StringBuilder();
+		    for (int c; (c = in.read()) >= 0;)
+		        sb.append((char)c);
+		    String resp = sb.toString().replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"");
+		    
+		    System.out.println(resp);
+		    File fXmlFile = new File(requestID+".xml");
+		    FileWriter fw = new FileWriter(fXmlFile.getAbsolutePath());
+		    fw.write(resp);
+			fw.close();
+		    
+  	  		
 	    	jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
   	  		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
   	  		patientsSelectionRequest = ((JAXBElement<PatientsSelectionRequest>) jaxbUnmarshaller.unmarshal(fXmlFile)).getValue();
