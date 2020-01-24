@@ -96,12 +96,12 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		    String resp = sb.toString().replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"");
 		    
 		    System.out.println(resp);
-		    File fXmlFile = new File(requestID+".xml");
-		    FileWriter fw = new FileWriter(fXmlFile.getAbsolutePath());
+		    
+		    FileWriter fw = new FileWriter(requestID+".xml");
 		    fw.write(resp);
 			fw.close();
 		    
-  	  		
+			File fXmlFile = new File(requestID+".xml");
 	    	jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
   	  		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
   	  		patientsSelectionRequest = ((JAXBElement<PatientsSelectionRequest>) jaxbUnmarshaller.unmarshal(fXmlFile)).getValue();
