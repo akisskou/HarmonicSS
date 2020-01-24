@@ -87,12 +87,12 @@ public class ReqRespList extends HttpServlet {
 				myjson.put("response_XML", rs.getString("RESPONSE_XML").replace("\t","").replace("\n", "").replace("\r", ""));
 				listJSONobj.add(myjson);
 			}
-			JSONObject result = new JSONObject();
-			result.put("Request_Response_List", listJSONobj);
+			/*JSONObject result = new JSONObject();
+			result.put("Request_Response_List", listJSONobj);*/
 			response.setContentType("text/html; charset=UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			PrintWriter pw = response.getWriter();
-			pw.print(result.toString());
+			pw.print(listJSONobj.toString());
 			pw.close();
 			if (rs != null) {
 	            rs.close();
@@ -115,7 +115,7 @@ public class ReqRespList extends HttpServlet {
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		doGet(request, response);
+		//doGet(request, response);
 	}
 
 }
