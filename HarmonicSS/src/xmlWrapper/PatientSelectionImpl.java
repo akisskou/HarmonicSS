@@ -17,6 +17,19 @@ import org.json.JSONException;
 import org.json.JSONObject;
 import org.ntua.criteria.*;
 
+import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.model.AxiomType;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLLiteral;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+//import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
+
+
 import jsonProcess.*;
 import criterionManager.*;
 import criterionManager.Criterion;
@@ -41,6 +54,7 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashSet;
 import java.util.Iterator;
+import java.util.List;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
@@ -58,6 +72,10 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	static String requestID = "";
 	private static PatientsSelectionRequest patientsSelectionRequest;
 	private static File responseXML = new File("Resp01.xml");
+	private static OWLOntology ontology;
+	private static OWLOntologyManager manager;
+	private static IRI documentIRI;
+	private static List<MyOWLClass> allClasses;
 	
     /**
      * @see HttpServlet#HttpServlet()
@@ -65,6 +83,73 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     public PatientSelectionImpl() {
         super();
         // TODO Auto-generated constructor stub
+    }
+    
+    
+    @SuppressWarnings("deprecation")
+    private static void findClasses(){
+		Set<OWLClass> ontClasses = new HashSet<OWLClass>(); 
+        ontClasses = ontology.getClassesInSignature();
+        allClasses = new ArrayList<MyOWLClass>();
+        
+        for (Iterator<OWLClass> it = ontClasses.iterator(); it.hasNext(); ) {
+        	MyOWLClass f = new MyOWLClass();
+        	f.name = it.next();
+        	f.id = f.name.getIRI().getFragment();
+        	allClasses.add(f);
+        }
+	}
+	
+	@SuppressWarnings("deprecation")
+	private static void findSubclasses(){
+		for (final org.semanticweb.owlapi.model.OWLSubClassOfAxiom subClasse : ontology.getAxioms(AxiomType.SUBCLASS_OF))
+        {
+        	OWLClassExpression sup = subClasse.getSuperClass();
+        	OWLClass sub = (OWLClass) subClasse.getSubClass();
+        	
+            if (sup instanceof OWLClass && sub instanceof OWLClass)
+            {
+            	int i;
+            	for(i=0; i<allClasses.size(); i++){
+            		if (sup.equals(allClasses.get(i).name)) break;
+            	}
+            	int j;
+            	for(j=0; j<allClasses.size(); j++){
+            		if (sub.equals(allClasses.get(j).name)){
+            			allClasses.get(i).subClasses.add(allClasses.get(j));
+            			allClasses.get(j).isSubClass = true;
+            			break;
+            		}
+            	}
+            	
+            }
+        }
+	}
+	
+	private static String getSubKeywords(String keywords, MyOWLClass checked){
+		if(keywords.equals("")) keywords += checked.id;			
+		else keywords += ","+checked.id;
+		for(int i=0; i<checked.subClasses.size(); i++){
+			keywords = getSubKeywords(keywords, checked.subClasses.get(i));
+		}
+		return keywords;
+	}
+    
+    public String getTermsWithNarrowMeaning(String myTerm) {
+    	String narrowTerms = "";
+    	for(int i=0; i<allClasses.size(); i++){
+			if(myTerm.equals(allClasses.get(i).id)){
+				try{
+					narrowTerms = getSubKeywords(narrowTerms, allClasses.get(i));
+				}
+				catch (Exception e) {
+		   			System.out.println(e);
+		   		}
+				
+				break;	
+			}
+		}	
+    	return narrowTerms;
     }
 
     @SuppressWarnings("unchecked")
@@ -85,7 +170,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	    	
 	    	DBServiceCRUD.getXMLRequestFromDB(requestID);*/
 	    	
-	    	URL myXMLService = new URL("http://localhost:8080/GetXMLS1/GetXMLServlet");
+	    	/*URL myXMLService = new URL("http://localhost:8080/GetXMLS2/GetXMLServlet");
 	    	HttpURLConnection con = (HttpURLConnection) myXMLService.openConnection();
 			con.setRequestMethod("GET");
 			con.setDoOutput(true);
@@ -99,7 +184,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		    
 		    FileWriter fw = new FileWriter(requestID+".xml");
 		    fw.write(resp);
-			fw.close();
+			fw.close();*/
 		    
 			File fXmlFile = new File(requestID+".xml");
 	    	jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
@@ -144,18 +229,11 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
   	   return result_incl+"XXX"+result_excl;
     }
     
-    public void criterionDBmatching(ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions){
-    	Result_UIDs results = new Result_UIDs();
-    	Boolean mode;
-    	for (int j=0;j<2;j++) {
-			
-		if(j==0) mode = false; //LOGGER.log(Level.INFO,"======** UIDs_defined_ALL_elements **======\n",true);}
-		else mode = true; //LOGGER.log(Level.INFO,"======** UIDs_UNdefined_some_elements **======\n",true);}
+    private String createQuery(ArrayList<Criterion> list_of_criterions, boolean incl, boolean mode, String results_of_all_Criterions) {
     	String results_of_one_Criterion="";
-    	String results_of_all_Criterions="";
-    	for(int i=0; i<list_of_inclusive_criterions.size(); i++) {
+    	for(int i=0; i<list_of_criterions.size(); i++) {
     		
-			Criterion current_Criterion=list_of_inclusive_criterions.get(i); //current_criterion
+			Criterion current_Criterion=list_of_criterions.get(i); //current_criterion
 			if(!canUseCriterion(current_Criterion)){
 				System.out.println("Criterion " + current_Criterion.getCriterion() + " cannot be used.");
 				continue;
@@ -360,8 +438,13 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  condition_diagnosis condition_diagnosis_obj =  (condition_diagnosis)current_Criterion;
 				  
 				  String tables = "patient, cond_diagnosis, voc_medical_condition";
-				  String where_clause = "patient.ID = cond_diagnosis.PATIENT_ID AND cond_diagnosis.CONDITION_ID = voc_medical_condition.ID AND " + Make_OR_of_CODES("voc_medical_condition.CODE", condition_diagnosis_obj.getCondition());
-				 
+				  String where_clause = "patient.ID = cond_diagnosis.PATIENT_ID AND cond_diagnosis.CONDITION_ID = voc_medical_condition.ID AND (" + Make_OR_of_CODES("voc_medical_condition.CODE", condition_diagnosis_obj.getCondition());
+				  String narrowTerms = getTermsWithNarrowMeaning(condition_diagnosis_obj.getCondition());
+				  String[] allNarrowTerms = narrowTerms.split(",");
+				  for(int c=1; c<allNarrowTerms.length; c++) {
+					  where_clause += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
+				  }
+				  where_clause += ")";
 				  
 				  if(!condition_diagnosis_obj.getStage().isEmpty()) {  // [OUTCOME_ASSESSMENT]
 					  tables += ", voc_lymphoma_stage";
@@ -397,14 +480,22 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  		query += " AND cond_diagnosis.STMT_ID=voc_confirmation.ID " +
 				  				 "AND voc_confirmation.CODE='"+condition_diagnosis_obj.getStatement() + "'";
 				  }
+				  if(incl) where_clause += " AND cond_diagnosis.STMT_ID=1";
+				  else where_clause += " AND cond_diagnosis.STMT_ID=2";
+				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 			  } break;
 			  
 			  case "intervention_medication": { //Check if user provided the info of all the fields 
 				  intervention_medication  crit_interv_medication_obj =  (intervention_medication )current_Criterion;
 				  String tables = "patient, interv_medication, voc_pharm_drug";
-				  String where_clause = "patient.ID = interv_medication.PATIENT_ID AND interv_medication.MEDICATION_ID = voc_pharm_drug.ID AND " + Make_OR_of_CODES("voc_pharm_drug.CODE", crit_interv_medication_obj.getVoc_pharm_drug_CODE());
-				  
+				  String where_clause = "patient.ID = interv_medication.PATIENT_ID AND interv_medication.MEDICATION_ID = voc_pharm_drug.ID AND (" + Make_OR_of_CODES("voc_pharm_drug.CODE", crit_interv_medication_obj.getVoc_pharm_drug_CODE());
+				  String narrowTerms = getTermsWithNarrowMeaning(crit_interv_medication_obj.getVoc_pharm_drug_CODE());
+				  String[] allNarrowTerms = narrowTerms.split(",");
+				  for(int c=1; c<allNarrowTerms.length; c++) {
+					  where_clause += " OR " + Make_OR_of_CODES("voc_pharm_drug.CODE", allNarrowTerms[c]);
+				  }
+				  where_clause += ")";
 				  
 				  //if(!crit_interv_medication_obj.getVoc_pharm_drug_BROADER_TERM_ID().isEmpty()) query += "AND voc_pharm_drug.BROADER_TERM_ID = '"+crit_interv_medication_obj.getVoc_pharm_drug_BROADER_TERM_ID()+"' "; //Do we need the Broader_Term_ID? (`BROADER_TERM_ID`) REFERENCES `voc_pharm_drug` (`ID`)
 					  
@@ -1092,10 +1183,23 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			//LOGGER.log(Level.INFO, "Criterion-"+(i+1)+": "+current_Criterion.getCriterion()+"\nQuery-"+(i+1)+": "+query+"\n"+
 			//"Results: "+results_of_one_Criterion+"\n",true);
 			
-			if(i==0) results_of_all_Criterions = results_of_one_Criterion;
+			if(results_of_all_Criterions.equals("")) results_of_all_Criterions = results_of_one_Criterion;
 			else results_of_all_Criterions = intersection_of_UIDs(results_of_one_Criterion, results_of_all_Criterions);
     	}
-    	results.Input_UIDs(mode,results_of_all_Criterions);
+    	return results_of_all_Criterions;
+    }
+    
+    public void criterionDBmatching(ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions){
+    	Result_UIDs results = new Result_UIDs();
+    	Boolean mode;
+    	for (int j=0;j<2;j++) {
+			
+    		if(j==0) mode = false; //LOGGER.log(Level.INFO,"======** UIDs_defined_ALL_elements **======\n",true);}
+    		else mode = true; //LOGGER.log(Level.INFO,"======** UIDs_UNdefined_some_elements **======\n",true);}
+    		String results_of_all_Criterions="";
+    		results_of_all_Criterions = createQuery(list_of_inclusive_criterions, true, mode, results_of_all_Criterions);
+    		results_of_all_Criterions = createQuery(list_of_exclusive_criterions, false, mode, results_of_all_Criterions);
+    		results.Input_UIDs(mode,results_of_all_Criterions);
     	}
     	System.out.println(results.Output_JSON_UIDs());
     }
@@ -1376,6 +1480,18 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		JSONObject all = new JSONObject();
 		requestID = request.getParameter("requestID");
 		if(requestID!=null){
+	    	manager = OWLManager.createOWLOntologyManager();
+		    documentIRI = IRI.create("file:///C:/Users/Jason/Desktop/", "HarmonicSS-Reference-Model+Vocabularies-v.0.9.owl");
+		    try{
+		        ontology = manager.loadOntologyFromOntologyDocument(documentIRI);
+	            findClasses();
+	            findSubclasses();
+			}
+			catch (OWLOntologyCreationException e) {
+		        e.printStackTrace();
+				
+			}
+		    
 			String crit_incl_excl_in = readXMLbyRequestID(requestID);
 			System.out.println(crit_incl_excl_in);
 			String[] crit_incl_excl=crit_incl_excl_in.split("XXX");
@@ -1429,7 +1545,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			}
 	    	ConfigureFile obj = new ConfigureFile("jdbc:mysql://localhost:3306/harmonicssdb?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC","root","");
 	    	//ConfigureFile obj = new ConfigureFile("jdbc:mysql://147.102.19.66:3306/harmonicssdb?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC","emps","emps");
-
+	    	
 			if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
 	    	else System.out.println("everything's gooooooood");
 	    	
