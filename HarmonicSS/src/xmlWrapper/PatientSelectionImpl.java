@@ -669,7 +669,13 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  tables += ", voc_assessment";	
 					  where_clause += " AND exam_lab_test.OUTCOME_ASSESSMENT_ID = voc_assessment.ID " + 
 					  	//"AND voc_assessment.CODE ='"+crit_exam_lab_test_obj.OUTCOME_ASSESSMENT_ID_voc_assessment_CODE+"' ";
-					  	"AND " + Make_OR_of_CODES("voc_assessment.CODE", examination_lab_test_obj.getOutcome_assessment());
+					  	"AND (" + Make_OR_of_CODES("voc_assessment.CODE", examination_lab_test_obj.getOutcome_assessment());
+					  String narrowTerms = getTermsWithNarrowMeaning(examination_lab_test_obj.getOutcome_assessment());
+					  String[] allNarrowTerms = narrowTerms.split(",");
+					  for(int c=1; c<allNarrowTerms.length; c++) {
+						  where_clause += " OR " + Make_OR_of_CODES("voc_assessment.CODE", allNarrowTerms[c]);
+					  }
+					  where_clause += ")";
 				  }
 				  
 				  //TODO NORMAL_RANGE  does it check if the value belongs in these two limits.		  
@@ -793,13 +799,6 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  String tables = "patient, exam_biopsy, voc_biopsy";
 				  String where_clause = "patient.ID = exam_biopsy.PATIENT_ID AND exam_biopsy.BIOPSY_ID=voc_biopsy.ID AND voc_biopsy.CODE='"+examination_biopsy_obj.getBiopsy_type()+"' ";
 				  
-				  /*query = "SELECT DISTINCT patient.UID " +
-						  "FROM patient, exam_biopsy, dt_amount, dt_amount_range, voc_confirmation, voc_biopsy, dt_date, voc_assessment, voc_lab_test, voc_unit " + //interv_Surgery, dt_date, voc_direction, voc_confirmation
-						  "WHERE patient.ID = exam_biopsy.PATIENT_ID AND " + 
-						  "exam_biopsy.BIOPSY_ID=voc_biopsy.ID AND " +
-						  "voc_biopsy.CODE='"+examination_biopsy_obj.getBiopsy_type()+"' "; */// ='SAL-BIO-21' Make_OR_of_CODES("voc_lab_test.CODE", examination_biopsy_obj.getBiopsy_type());				  		 
-
-				  
 				  
 				  if(!(examination_biopsy_obj.getTest_id()).isEmpty()) {
 					  tables += ", voc_lab_test";
@@ -852,7 +851,13 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  tables += ", voc_assessment";
 					  where_clause += "AND exam_biopsy.ASSESSMENT_ID = voc_assessment.ID " + 
 					  	//"AND voc_assessment.CODE ='"+crit_exam_lab_test_obj.OUTCOME_ASSESSMENT_ID_voc_assessment_CODE+"' ";
-					  	"AND " + Make_OR_of_CODES("voc_assessment.CODE", examination_biopsy_obj.getAssessment());
+					  	"AND (" + Make_OR_of_CODES("voc_assessment.CODE", examination_biopsy_obj.getAssessment());
+					  String narrowTerms = getTermsWithNarrowMeaning(examination_biopsy_obj.getAssessment());
+					  String[] allNarrowTerms = narrowTerms.split(",");
+					  for(int c=1; c<allNarrowTerms.length; c++) {
+						  where_clause += " OR " + Make_OR_of_CODES("voc_assessment.CODE", allNarrowTerms[c]);
+					  }
+					  where_clause += ")";
 				  }
 
 				  if(!examination_biopsy_obj.getOutcome_check().isEmpty()) {  // [OUTCOME_ASSESSMENT]
@@ -894,7 +899,13 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  tables += ", voc_assessment";
 					  where_clause += "AND exam_medical_imaging_test.ASSESSMENT_ID = voc_assessment.ID " + 
 					  	//"AND voc_assessment.CODE ='"+crit_exam_lab_test_obj.OUTCOME_ASSESSMENT_ID_voc_assessment_CODE+"' ";
-					  	"AND " + Make_OR_of_CODES("voc_assessment.CODE", examination_medical_imaging_test_obj.getAssessment());
+					  	"AND (" + Make_OR_of_CODES("voc_assessment.CODE", examination_medical_imaging_test_obj.getAssessment());
+					  String narrowTerms = getTermsWithNarrowMeaning(examination_medical_imaging_test_obj.getAssessment());
+					  String[] allNarrowTerms = narrowTerms.split(",");
+					  for(int c=1; c<allNarrowTerms.length; c++) {
+						  where_clause += " OR " + Make_OR_of_CODES("voc_assessment.CODE", allNarrowTerms[c]);
+					  }
+					  where_clause += ")";
 				  }
 				  
 				  if(!(examination_medical_imaging_test_obj.getTest_period_of_time_exact_year()).isEmpty()) {
@@ -924,13 +935,6 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  String tables = "patient, exam_questionnaire_score, voc_questionnaire";
 				  String where_clause = "patient.ID = exam_questionnaire_score.PATIENT_ID AND exam_questionnaire_score.SCORE_ID=voc_questionnaire.ID AND " + Make_OR_of_CODES("voc_questionnaire.CODE", examination_questionnaire_score_obj.getScore());
 				  
-				 /* query = "SELECT DISTINCT patient.UID " +
-						  "FROM patient, exam_questionnaire_score, voc_questionnaire, dt_date, voc_assessment, dt_int_range " + 
-						  "WHERE patient.ID = exam_questionnaire_score.PATIENT_ID AND " + 
-						  "exam_questionnaire_score.SCORE_ID=voc_questionnaire.ID " +
-						  //"voc_lab_test.CODE='"+crit_exam_lab_test_obj.getTEST_ID_voc_lab_test_CODE()+"' ";
-				  		  "AND " + Make_OR_of_CODES("voc_questionnaire.CODE", examination_questionnaire_score_obj.getScore());*/
-				  
 				  if(!examination_questionnaire_score_obj.getValue().isEmpty()) {  //TODO check value
 					  where_clause += " AND " + Make_OR_of_CODES("exam_questionnaire_score.VALUE", examination_questionnaire_score_obj.getValue());
 				  }
@@ -939,7 +943,13 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  tables += ", voc_assessment";
 					  where_clause += " AND exam_questionnaire_score.ASSESSMENT_ID = voc_assessment.ID " + 
 					  	//"AND voc_assessment.CODE ='"+crit_exam_lab_test_obj.OUTCOME_ASSESSMENT_ID_voc_assessment_CODE+"' ";
-					  	"AND " + Make_OR_of_CODES("voc_assessment.CODE", examination_questionnaire_score_obj.getAssessment());
+					  	"AND (" + Make_OR_of_CODES("voc_assessment.CODE", examination_questionnaire_score_obj.getAssessment());
+					  String narrowTerms = getTermsWithNarrowMeaning(examination_questionnaire_score_obj.getAssessment());
+					  String[] allNarrowTerms = narrowTerms.split(",");
+					  for(int c=1; c<allNarrowTerms.length; c++) {
+						  where_clause += " OR " + Make_OR_of_CODES("voc_assessment.CODE", allNarrowTerms[c]);
+					  }
+					  where_clause += ")";
 				  }
 				  
 				  //TODO NORMAL_RANGE  does it check if the value belongs in these two limits.		  
