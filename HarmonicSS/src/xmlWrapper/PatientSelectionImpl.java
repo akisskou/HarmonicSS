@@ -408,8 +408,13 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  condition_symptom crit_cond_symptom_obj =  (condition_symptom)current_Criterion;
 				  
 				  String tables = "patient, cond_symptom, voc_symptom_sign";
-				  String where_clause = "patient.ID = cond_symptom.PATIENT_ID AND cond_symptom.CONDITION_ID = voc_symptom_sign.ID AND " + Make_OR_of_CODES("voc_symptom_sign.CODE", crit_cond_symptom_obj.getVoc_symptom_sign_CODE());
-				  
+				  String where_clause = "patient.ID = cond_symptom.PATIENT_ID AND cond_symptom.CONDITION_ID = voc_symptom_sign.ID AND (" + Make_OR_of_CODES("voc_symptom_sign.CODE", crit_cond_symptom_obj.getVoc_symptom_sign_CODE());
+				  String narrowTerms = getTermsWithNarrowMeaning(crit_cond_symptom_obj.getVoc_symptom_sign_CODE());
+					String[] allNarrowTerms = narrowTerms.split(",");
+					for(int c=1; c<allNarrowTerms.length; c++) {
+						query += " OR " + Make_OR_of_CODES("voc_symptom_sign.CODE", allNarrowTerms[c]);
+					}
+					query += ")";
 				  /*query = "SELECT DISTINCT patient.UID " + 
 						  "FROM patient, cond_symptom, voc_symptom_sign, dt_date, voc_direction, voc_confirmation " + 
 						  "WHERE patient.ID = cond_symptom.PATIENT_ID " + 
@@ -623,8 +628,15 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  examination_lab_test  examination_lab_test_obj =  (examination_lab_test)current_Criterion;
 				  
 				  String tables = "patient, exam_lab_test, voc_lab_test";
-				  String where_clause = "patient.ID = exam_lab_test.PATIENT_ID AND exam_lab_test.TEST_ID=voc_lab_test.ID AND " + Make_OR_of_CODES("voc_lab_test.CODE", examination_lab_test_obj.getTest_id());
+				  String where_clause = "patient.ID = exam_lab_test.PATIENT_ID AND exam_lab_test.TEST_ID=voc_lab_test.ID AND (" + Make_OR_of_CODES("voc_lab_test.CODE", examination_lab_test_obj.getTest_id());
 				  
+				  String narrowTerms = getTermsWithNarrowMeaning(examination_lab_test_obj.getTest_id());
+				  String[] allNarrowTerms = narrowTerms.split(",");
+				  for(int c=1; c<allNarrowTerms.length; c++) {
+					  where_clause += " OR " + Make_OR_of_CODES("voc_lab_test.CODE", allNarrowTerms[c]);  //" + Make_OR_of_CODES("voc_pharm_drug.CODE", allNarrowTerms[c]);
+				  }
+				  where_clause += ") ";
+					
 				  /*query = "SELECT DISTINCT patient.UID " +
 						  "FROM patient, exam_lab_test, voc_lab_test " +//, exam_lab_test, voc_lab_test, dt_amount, voc_unit, voc_assessment, dt_amount_range, dt_date " + //, voc_direction interv_Surgery, dt_date, voc_direction, voc_confirmation
 						  "WHERE patient.ID = exam_lab_test.PATIENT_ID AND " + 
@@ -670,10 +682,10 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  where_clause += " AND exam_lab_test.OUTCOME_ASSESSMENT_ID = voc_assessment.ID " + 
 					  	//"AND voc_assessment.CODE ='"+crit_exam_lab_test_obj.OUTCOME_ASSESSMENT_ID_voc_assessment_CODE+"' ";
 					  	"AND (" + Make_OR_of_CODES("voc_assessment.CODE", examination_lab_test_obj.getOutcome_assessment());
-					  String narrowTerms = getTermsWithNarrowMeaning(examination_lab_test_obj.getOutcome_assessment());
-					  String[] allNarrowTerms = narrowTerms.split(",");
-					  for(int c=1; c<allNarrowTerms.length; c++) {
-						  where_clause += " OR " + Make_OR_of_CODES("voc_assessment.CODE", allNarrowTerms[c]);
+					  String narrowTermsAssess = getTermsWithNarrowMeaning(examination_lab_test_obj.getOutcome_assessment());
+					  String[] allNarrowTermsAssess = narrowTermsAssess.split(",");
+					  for(int c=1; c<allNarrowTermsAssess.length; c++) {
+						  where_clause += " OR " + Make_OR_of_CODES("voc_assessment.CODE", allNarrowTermsAssess[c]);
 					  }
 					  where_clause += ")";
 				  }
@@ -797,12 +809,23 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  examination_biopsy  examination_biopsy_obj =  (examination_biopsy)current_Criterion;
 				  
 				  String tables = "patient, exam_biopsy, voc_biopsy";
-				  String where_clause = "patient.ID = exam_biopsy.PATIENT_ID AND exam_biopsy.BIOPSY_ID=voc_biopsy.ID AND voc_biopsy.CODE='"+examination_biopsy_obj.getBiopsy_type()+"' ";
-				  
+				  String where_clause = "patient.ID = exam_biopsy.PATIENT_ID AND exam_biopsy.BIOPSY_ID=voc_biopsy.ID AND (voc_biopsy.CODE='"+examination_biopsy_obj.getBiopsy_type()+"' ";
+				  String myNarrowTerms = getTermsWithNarrowMeaning(examination_biopsy_obj.getBiopsy_type());
+					String[] myAllNarrowTerms = myNarrowTerms.split(",");
+					for(int c=1; c<myAllNarrowTerms.length; c++) {
+						query += " OR voc_biopsy.CODE='" + myAllNarrowTerms[c] + "'";
+					}
+					query += ") ";
 				  
 				  if(!(examination_biopsy_obj.getTest_id()).isEmpty()) {
 					  tables += ", voc_lab_test";
-					  where_clause += "AND exam_biopsy.TEST_ID = voc_lab_test.ID AND voc_lab_test.CODE = '"+examination_biopsy_obj.getTest_id() +"' "; //'BLOOD-100'
+					  where_clause += "AND exam_biopsy.TEST_ID = voc_lab_test.ID AND (voc_lab_test.CODE = '"+examination_biopsy_obj.getTest_id() +"'"; //'BLOOD-100'
+					  String narrowTerms = getTermsWithNarrowMeaning(examination_biopsy_obj.getTest_id());
+					  String[] allNarrowTerms = narrowTerms.split(",");
+					  for(int c=1; c<allNarrowTerms.length; c++) {
+						  where_clause += " OR voc_lab_test.CODE = '"+ allNarrowTerms[c] +"'";  //" + Make_OR_of_CODES("voc_pharm_drug.CODE", allNarrowTerms[c]);
+					  }
+					  where_clause += ") ";
 				  };  
 				  
 			  
@@ -893,7 +916,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  examination_medical_imaging_test  examination_medical_imaging_test_obj =  (examination_medical_imaging_test)current_Criterion;
 				  
 				  String tables = "exam_medical_imaging_test, patient, voc_medical_imaging_test";
-				  String where_clause = "patient.ID = exam_medical_imaging_test.PATIENT_ID AND exam_medical_imaging_test.TEST_ID=voc_medical_imaging_test.ID AND " + Make_OR_of_CODES("voc_medical_imaging_test.CODE", examination_medical_imaging_test_obj.getTest_id()) +" ";
+				  String where_clause = "patient.ID = exam_medical_imaging_test.PATIENT_ID AND exam_medical_imaging_test.TEST_ID=voc_medical_imaging_test.ID AND (" + Make_OR_of_CODES("voc_medical_imaging_test.CODE", examination_medical_imaging_test_obj.getTest_id()) +" ";
+				  
+				  String myNarrowTerms = getTermsWithNarrowMeaning(examination_medical_imaging_test_obj.getTest_id());
+				  String[] myAllNarrowTerms = myNarrowTerms.split(",");
+				  for(int c=1; c<myAllNarrowTerms.length; c++) {
+					  query += "OR " + Make_OR_of_CODES("voc_medical_imaging_test.CODE", myAllNarrowTerms[c]);
+				  }
+				  query += ") ";
 				  
 				  if(!examination_medical_imaging_test_obj.getAssessment().isEmpty()) {  // [OUTCOME_ASSESSMENT]
 					  tables += ", voc_assessment";
@@ -933,7 +963,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  examination_questionnaire_score  examination_questionnaire_score_obj =  (examination_questionnaire_score)current_Criterion;
 				  
 				  String tables = "patient, exam_questionnaire_score, voc_questionnaire";
-				  String where_clause = "patient.ID = exam_questionnaire_score.PATIENT_ID AND exam_questionnaire_score.SCORE_ID=voc_questionnaire.ID AND " + Make_OR_of_CODES("voc_questionnaire.CODE", examination_questionnaire_score_obj.getScore());
+				  String where_clause = "patient.ID = exam_questionnaire_score.PATIENT_ID AND exam_questionnaire_score.SCORE_ID=voc_questionnaire.ID AND (" + Make_OR_of_CODES("voc_questionnaire.CODE", examination_questionnaire_score_obj.getScore());
+				  
+				  String myNarrowTerms = getTermsWithNarrowMeaning(examination_questionnaire_score_obj.getScore());
+				  String[] myAllNarrowTerms = myNarrowTerms.split(",");
+				  for(int c=1; c<myAllNarrowTerms.length; c++) {
+					  where_clause += " OR " + Make_OR_of_CODES("voc_questionnaire.CODE", myAllNarrowTerms[c]);
+				  }
+				  where_clause += ")";
 				  
 				  if(!examination_questionnaire_score_obj.getValue().isEmpty()) {  //TODO check value
 					  where_clause += " AND " + Make_OR_of_CODES("exam_questionnaire_score.VALUE", examination_questionnaire_score_obj.getValue());
@@ -1090,7 +1127,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  other_family_history  other_family_history_obj =  (other_family_history)current_Criterion;
 				  
 				  String tables = "other_family_history, patient, voc_medical_condition";
-				  String where_clause = "patient.ID = other_family_history.PATIENT_ID AND other_family_history.MEDICAL_CONDITION_ID=voc_medical_condition.ID AND " + Make_OR_of_CODES("voc_medical_condition.CODE", other_family_history_obj.getMedical_condition());
+				  String where_clause = "patient.ID = other_family_history.PATIENT_ID AND other_family_history.MEDICAL_CONDITION_ID=voc_medical_condition.ID AND (" + Make_OR_of_CODES("voc_medical_condition.CODE", other_family_history_obj.getMedical_condition());
+				  
+				  String narrowTerms = getTermsWithNarrowMeaning(other_family_history_obj.getMedical_condition());
+				  String[] allNarrowTerms = narrowTerms.split(",");
+				  for(int c=1; c<allNarrowTerms.length; c++) {
+					  where_clause += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
+				  }
+				  where_clause += ")";
 				  
 				  if(!(other_family_history_obj.getRelative_degree()).isEmpty()) {
 					  tables += ", voc_relative_degree";
@@ -1361,17 +1405,35 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     		break;
     		case "condition_symptom": {
     			condition_symptom crit_cond_symptom_obj = (condition_symptom)crit;
-    			query = "SELECT * FROM cond_symptom, voc_symptom_sign WHERE cond_symptom.CONDITION_ID = voc_symptom_sign.ID AND " + Make_OR_of_CODES("voc_symptom_sign.CODE", crit_cond_symptom_obj.getVoc_symptom_sign_CODE());
+    			query = "SELECT * FROM cond_symptom, voc_symptom_sign WHERE cond_symptom.CONDITION_ID = voc_symptom_sign.ID AND (" + Make_OR_of_CODES("voc_symptom_sign.CODE", crit_cond_symptom_obj.getVoc_symptom_sign_CODE());
+    			String narrowTerms = getTermsWithNarrowMeaning(crit_cond_symptom_obj.getVoc_symptom_sign_CODE());
+				String[] allNarrowTerms = narrowTerms.split(",");
+				for(int c=1; c<allNarrowTerms.length; c++) {
+					query += " OR " + Make_OR_of_CODES("voc_symptom_sign.CODE", allNarrowTerms[c]);
+				}
+				query += ")";
     		}
     		break;
     		case "condition_diagnosis": {
     			condition_diagnosis crit_cond_diagnosis_obj = (condition_diagnosis)crit;
-    			query = "SELECT * FROM cond_diagnosis, voc_medical_condition WHERE cond_diagnosis.CONDITION_ID = voc_medical_condition.ID AND " + Make_OR_of_CODES("voc_medical_condition.CODE", crit_cond_diagnosis_obj.getCondition());
+    			query = "SELECT * FROM cond_diagnosis, voc_medical_condition WHERE cond_diagnosis.CONDITION_ID = voc_medical_condition.ID AND (" + Make_OR_of_CODES("voc_medical_condition.CODE", crit_cond_diagnosis_obj.getCondition());
+    			String narrowTerms = getTermsWithNarrowMeaning(crit_cond_diagnosis_obj.getCondition());
+				String[] allNarrowTerms = narrowTerms.split(",");
+				for(int c=1; c<allNarrowTerms.length; c++) {
+					query += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
+				}
+				query += ")";
     		}
     		break;
     		case "intervention_medication": {
     			intervention_medication  crit_interv_medication_obj =  (intervention_medication )crit;
-				query = "SELECT * FROM interv_medication, voc_pharm_drug WHERE interv_medication.MEDICATION_ID = voc_pharm_drug.ID AND " + Make_OR_of_CODES("voc_pharm_drug.CODE", crit_interv_medication_obj.getVoc_pharm_drug_CODE());
+				query = "SELECT * FROM interv_medication, voc_pharm_drug WHERE interv_medication.MEDICATION_ID = voc_pharm_drug.ID AND (" + Make_OR_of_CODES("voc_pharm_drug.CODE", crit_interv_medication_obj.getVoc_pharm_drug_CODE());
+				String narrowTerms = getTermsWithNarrowMeaning(crit_interv_medication_obj.getVoc_pharm_drug_CODE());
+				String[] allNarrowTerms = narrowTerms.split(",");
+				for(int c=1; c<allNarrowTerms.length; c++) {
+					query += " OR " + Make_OR_of_CODES("voc_pharm_drug.CODE", allNarrowTerms[c]);
+				}
+				query += ")";
     		}
     		break;
     		case "intervention_chemotherapy": {
@@ -1385,22 +1447,47 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     		break;
     		case "examination_lab_test": {
     			examination_lab_test  examination_lab_test_obj =  (examination_lab_test)crit;
-				query = "SELECT * FROM exam_lab_test, voc_lab_test WHERE exam_lab_test.TEST_ID=voc_lab_test.ID AND " + Make_OR_of_CODES("voc_lab_test.CODE", examination_lab_test_obj.getTest_id());
+				query = "SELECT * FROM exam_lab_test, voc_lab_test WHERE exam_lab_test.TEST_ID=voc_lab_test.ID AND (" + Make_OR_of_CODES("voc_lab_test.CODE", examination_lab_test_obj.getTest_id());
+				String narrowTerms = getTermsWithNarrowMeaning(examination_lab_test_obj.getTest_id());
+				String[] allNarrowTerms = narrowTerms.split(",");
+				for(int c=1; c<allNarrowTerms.length; c++) {
+					query += " OR " + Make_OR_of_CODES("voc_lab_test.CODE", allNarrowTerms[c]);  
+				}
+				query += ") ";
     		}
     		break;
     		case "examination_biopsy": { //Check if user provided the info of all the fields 
 				examination_biopsy  examination_biopsy_obj =  (examination_biopsy)crit;
-				query = "SELECT * FROM exam_biopsy, voc_biopsy WHERE exam_biopsy.BIOPSY_ID=voc_biopsy.ID AND voc_biopsy.CODE='"+examination_biopsy_obj.getBiopsy_type()+"' "; // ='SAL-BIO-21' Make_OR_of_CODES("voc_lab_test.CODE", examination_biopsy_obj.getBiopsy_type());				  		 
+				query = "SELECT * FROM exam_biopsy, voc_biopsy WHERE exam_biopsy.BIOPSY_ID=voc_biopsy.ID AND (voc_biopsy.CODE='"+examination_biopsy_obj.getBiopsy_type()+"'"; // ='SAL-BIO-21' Make_OR_of_CODES("voc_lab_test.CODE", examination_biopsy_obj.getBiopsy_type());				  		 
+				String narrowTerms = getTermsWithNarrowMeaning(examination_biopsy_obj.getBiopsy_type());
+				String[] allNarrowTerms = narrowTerms.split(",");
+				for(int c=1; c<allNarrowTerms.length; c++) {
+					query += " OR voc_biopsy.CODE='" + allNarrowTerms[c] + "'";
+				}
+				query += ") ";
     		}
     		break;
     		case "examination_medical_imaging_test": { //Check if user provided the info of all the fields 
 				examination_medical_imaging_test  examination_medical_imaging_test_obj =  (examination_medical_imaging_test)crit;
-				query = "SELECT * FROM exam_medical_imaging_test, voc_medical_imaging_test WHERE exam_medical_imaging_test.TEST_ID=voc_medical_imaging_test.ID AND " + Make_OR_of_CODES("voc_medical_imaging_test.CODE", examination_medical_imaging_test_obj.getTest_id()) +" ";
+				query = "SELECT * FROM exam_medical_imaging_test, voc_medical_imaging_test WHERE exam_medical_imaging_test.TEST_ID=voc_medical_imaging_test.ID AND (" + Make_OR_of_CODES("voc_medical_imaging_test.CODE", examination_medical_imaging_test_obj.getTest_id()) +" ";
+				String myNarrowTerms = getTermsWithNarrowMeaning(examination_medical_imaging_test_obj.getTest_id());
+				  String[] myAllNarrowTerms = myNarrowTerms.split(",");
+				  for(int c=1; c<myAllNarrowTerms.length; c++) {
+					  query += "OR " + Make_OR_of_CODES("voc_medical_imaging_test.CODE", myAllNarrowTerms[c]);
+				  }
+				  query += ") ";
+    		
     		}
     		break;
     		case "examination_questionnaire_score": { //Check if user provided the info of all the fields 
 				examination_questionnaire_score  examination_questionnaire_score_obj =  (examination_questionnaire_score)crit;
-				query = "SELECT * FROM exam_questionnaire_score, voc_questionnaire WHERE exam_questionnaire_score.SCORE_ID=voc_questionnaire.ID AND " + Make_OR_of_CODES("voc_questionnaire.CODE", examination_questionnaire_score_obj.getScore());
+				query = "SELECT * FROM exam_questionnaire_score, voc_questionnaire WHERE exam_questionnaire_score.SCORE_ID=voc_questionnaire.ID AND (" + Make_OR_of_CODES("voc_questionnaire.CODE", examination_questionnaire_score_obj.getScore());
+				String myNarrowTerms = getTermsWithNarrowMeaning(examination_questionnaire_score_obj.getScore());
+				  String[] myAllNarrowTerms = myNarrowTerms.split(",");
+				  for(int c=1; c<myAllNarrowTerms.length; c++) {
+					  query += " OR " + Make_OR_of_CODES("voc_questionnaire.CODE", myAllNarrowTerms[c]);
+				  }
+				  query += ")";
     		}
     		break;
     		case "examination_essdai_domain": {
@@ -1420,7 +1507,13 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     		break;
     		case "other_family_history": { //Check if user provided the info of all the fields 
 				other_family_history  other_family_history_obj =  (other_family_history)crit;
-				query = "SELECT * FROM other_family_history, voc_medical_condition WHERE other_family_history.MEDICAL_CONDITION_ID=voc_medical_condition.ID AND " + Make_OR_of_CODES("voc_medical_condition.CODE", other_family_history_obj.getMedical_condition());
+				query = "SELECT * FROM other_family_history, voc_medical_condition WHERE other_family_history.MEDICAL_CONDITION_ID=voc_medical_condition.ID AND (" + Make_OR_of_CODES("voc_medical_condition.CODE", other_family_history_obj.getMedical_condition());
+				String narrowTerms = getTermsWithNarrowMeaning(other_family_history_obj.getMedical_condition());
+				String[] allNarrowTerms = narrowTerms.split(",");
+				for(int c=1; c<allNarrowTerms.length; c++) {
+					query += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
+				}
+				query += ")";
     		}
     		break;
     		case "other_clinical_trials": { //Check if user provided the info of all the fields 
