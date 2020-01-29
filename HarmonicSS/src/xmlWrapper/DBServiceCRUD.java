@@ -48,8 +48,18 @@ public class DBServiceCRUD {
 		return connection_succes;
 	}
 	
+	public static void closeJDBCConnection() throws SQLException {
+		 if (db_prep_obj != null) {
+	        	db_prep_obj.close();
+	        }
+	        if (db_con_obj != null) {
+	        	db_con_obj.close();
+	        }
+	        System.out.println("DB Connection closed successfully");
+	}
+	
 	public static boolean testQuery(String getQueryStatement) throws SQLException {
-		String query_results=""; 
+		//String query_results=""; 
 		
 			System.out.println("Stage-1 Prepare statement.");
 			db_prep_obj = db_con_obj.prepareStatement(getQueryStatement);
@@ -62,7 +72,7 @@ public class DBServiceCRUD {
 			
 			System.out.println("Stage-3 The query is executed.");
 			// Let's iterate through the java ResultSet
-			if (rs == null) return false;
+			if (!rs.next()) return false;
 			
 			return true;
 	}

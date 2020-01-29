@@ -48,6 +48,7 @@ import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.HttpURLConnection;
+import java.net.MalformedURLException;
 import java.net.URL;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -412,9 +413,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  String narrowTerms = getTermsWithNarrowMeaning(crit_cond_symptom_obj.getVoc_symptom_sign_CODE());
 					String[] allNarrowTerms = narrowTerms.split(",");
 					for(int c=1; c<allNarrowTerms.length; c++) {
-						query += " OR " + Make_OR_of_CODES("voc_symptom_sign.CODE", allNarrowTerms[c]);
+						where_clause += " OR " + Make_OR_of_CODES("voc_symptom_sign.CODE", allNarrowTerms[c]);
 					}
-					query += ")";
+					where_clause += ")";
 				  /*query = "SELECT DISTINCT patient.UID " + 
 						  "FROM patient, cond_symptom, voc_symptom_sign, dt_date, voc_direction, voc_confirmation " + 
 						  "WHERE patient.ID = cond_symptom.PATIENT_ID " + 
@@ -813,9 +814,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  String myNarrowTerms = getTermsWithNarrowMeaning(examination_biopsy_obj.getBiopsy_type());
 					String[] myAllNarrowTerms = myNarrowTerms.split(",");
 					for(int c=1; c<myAllNarrowTerms.length; c++) {
-						query += " OR voc_biopsy.CODE='" + myAllNarrowTerms[c] + "'";
+						where_clause += " OR voc_biopsy.CODE='" + myAllNarrowTerms[c] + "'";
 					}
-					query += ") ";
+					where_clause += ") ";
 				  
 				  if(!(examination_biopsy_obj.getTest_id()).isEmpty()) {
 					  tables += ", voc_lab_test";
@@ -921,9 +922,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  String myNarrowTerms = getTermsWithNarrowMeaning(examination_medical_imaging_test_obj.getTest_id());
 				  String[] myAllNarrowTerms = myNarrowTerms.split(",");
 				  for(int c=1; c<myAllNarrowTerms.length; c++) {
-					  query += "OR " + Make_OR_of_CODES("voc_medical_imaging_test.CODE", myAllNarrowTerms[c]);
+					  where_clause += "OR " + Make_OR_of_CODES("voc_medical_imaging_test.CODE", myAllNarrowTerms[c]);
 				  }
-				  query += ") ";
+				  where_clause += ") ";
 				  
 				  if(!examination_medical_imaging_test_obj.getAssessment().isEmpty()) {  // [OUTCOME_ASSESSMENT]
 					  tables += ", voc_assessment";
@@ -1363,12 +1364,32 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     	}
     }
     
-    public String[] getCohortsAccessByRequestID(String requestID){
-    	String[] cohortAccess = new String[cohort_names.size()];
-    	for(int i=0; i<cohort_names.size(); i++){
-    		cohortAccess[i]="Accepted";
+    public void accessCohorts(String darID, ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions) throws IOException, JSONException, SQLException{
+    	//String[] cohortAccess = new String[cohort_names.size()];
+    	URL myXMLService = new URL("http://localhost:8080/GetCohortsC4New/GetCohortsServlet");
+    	HttpURLConnection con = (HttpURLConnection) myXMLService.openConnection();
+		con.setRequestMethod("GET");
+		con.setDoOutput(true);
+		Reader in = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
+	    StringBuilder sb = new StringBuilder();
+	    for (int c; (c = in.read()) >= 0;)
+	        sb.append((char)c);
+	    JSONArray cohorts = new JSONArray(sb.toString());
+    	for(int i=0; i<cohorts.length(); i++){
+    		if(cohorts.getJSONObject(i).get("statusId").equals("1")) {
+    			String cohortName = "Harm-DB-0"+cohorts.getJSONObject(i).get("cohortId");
+    			//String cohortName = cohorts.getJSONObject(i).get("cohortName").toString();
+    			System.out.println("-------------------------------- Execute query for cohort " + cohortName + " -------------------------------");
+    			ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/"+cohortName,"emps","emps");
+    			if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
+    	    	else System.out.println("everything's gooooooood");
+    			criterionDBmatching(list_of_inclusive_criterions,list_of_exclusive_criterions);
+    			writeXMLResponse();	
+    			DBServiceCRUD.closeJDBCConnection();
+    			System.out.println("End");
+    		}
+    		
     	}
-    	return cohortAccess;
     }
     
     public boolean canUseCriterion(Criterion crit){
@@ -1614,7 +1635,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				e1.printStackTrace();
 				//return "JsonParseException Bad JSON format.";
 			}
-	    	ConfigureFile obj = new ConfigureFile("jdbc:mysql://localhost:3306/harmonicssdb?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC","root","");
+	    	/*ConfigureFile obj = new ConfigureFile("jdbc:mysql://localhost:3306/harmonicssdb?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC","root","");
 	    	//ConfigureFile obj = new ConfigureFile("jdbc:mysql://147.102.19.66:3306/harmonicssdb?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC","emps","emps");
 	    	
 			if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
@@ -1622,8 +1643,19 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	    	
 	    	criterionDBmatching(list_of_inclusive_criterions,list_of_exclusive_criterions);
 			writeXMLResponse();			
-			System.out.println("End");
-			
+			System.out.println("End");*/
+			try {
+				accessCohorts("59", list_of_inclusive_criterions, list_of_exclusive_criterions);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
 			
 		}
 		response.setContentType("text/html; charset=UTF-8");
