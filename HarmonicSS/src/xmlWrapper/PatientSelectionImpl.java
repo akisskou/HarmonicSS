@@ -1569,6 +1569,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
+		Logger LOGGER = Util_Logger.Initialize_logger("C:/Users/Jason/eclipse-workspace/HarmonicSS/LogFile.log");
 		JSONObject all = new JSONObject();
 		requestID = request.getParameter("requestID");
 		if(requestID!=null){
