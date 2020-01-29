@@ -17,6 +17,7 @@ import javax.xml.ws.Response;
 
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.json.JSONArray;
+import org.json.JSONException;
 
 /**
  * Servlet implementation class GetXMLServlet
@@ -77,7 +78,10 @@ public class GetXMLServlet extends HttpServlet {
 	        e.printStackTrace();
 	    } catch (IOException e) {
 	        e.printStackTrace();
-	    }
+	    } catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 	}
 
 	/**
