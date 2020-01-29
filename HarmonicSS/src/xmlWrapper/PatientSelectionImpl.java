@@ -171,7 +171,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	    	
 	    	DBServiceCRUD.getXMLRequestFromDB(requestID);*/
 	    	
-	    	/*URL myXMLService = new URL("http://localhost:8080/GetXMLS2/GetXMLServlet");
+	    	URL myXMLService = new URL("http://localhost:8080/GetXMLS2/GetXMLServlet");
 	    	HttpURLConnection con = (HttpURLConnection) myXMLService.openConnection();
 			con.setRequestMethod("GET");
 			con.setDoOutput(true);
@@ -185,7 +185,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		    
 		    FileWriter fw = new FileWriter(requestID+".xml");
 		    fw.write(resp);
-			fw.close();*/
+			fw.close();
 		    
 			File fXmlFile = new File(requestID+".xml");
 	    	jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
