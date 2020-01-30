@@ -17,6 +17,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.json.JSONObject;
 
+import com.google.gson.Gson;
+
 /**
  * Servlet implementation class SetCohortStatusServlet
  */
@@ -38,7 +40,17 @@ public class SetCohortStatusServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		//response.getWriter().append("Served at: ").append(request.getContextPath());
+		
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		//doGet(request, response);
 		try{
+			NewCohort coh = new Gson().fromJson(request.getReader(), NewCohort.class);
 			URL url = new URL("https://private.harmonicss.eu/index.php/apps/coh/api/1.0/p6");
 			String name = "hrexpert";
 	        String password = "1hrexpert2!";
@@ -47,13 +59,13 @@ public class SetCohortStatusServlet extends HttpServlet {
 	        byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
 	        String authStringEnc = new String(authEncBytes);
 			JSONObject params = new JSONObject();
-			params.put("darId", "40");
-		    params.put("cohortId", "20");
-		    params.put("statusId", "2");
-		    params.put("statusDate", "2010-12-04 21:00:00");
-		    params.put("validDate", "2011-12-04 21:00:00");
-		    params.put("remarks", "");
-		    params.put("filename", "");
+			params.put("darId", coh.darId);
+		    params.put("cohortId", coh.cohortId);
+		    params.put("statusId", coh.statusId);
+		    params.put("statusDate", coh.statusDate);
+		    params.put("validDate", coh.validDate);
+		    params.put("remarks", coh.remarks);
+		    params.put("filename", coh.filename);
 		    String postData = params.toString();
 		    //System.out.println(postData);
 		    byte[] postDataBytes = postData.getBytes("UTF-8");
@@ -82,14 +94,6 @@ public class SetCohortStatusServlet extends HttpServlet {
 		catch (Exception e) {
    			System.out.println(e);
    		}
-	}
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		doGet(request, response);
 	}
 
 }
