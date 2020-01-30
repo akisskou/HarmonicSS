@@ -17,6 +17,8 @@ import javax.servlet.http.HttpServletResponse;
 import org.apache.tomcat.util.codec.binary.Base64;
 import org.json.JSONObject;
 
+import com.google.gson.Gson;
+
 /**
  * Servlet implementation class CreateRequestServlet
  */
@@ -38,7 +40,16 @@ public class CreateRequestServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		//response.getWriter().append("Served at: ").append(request.getContextPath());
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		//doGet(request, response);
 		try{
+			NewRequest req = new Gson().fromJson(request.getReader(), NewRequest.class);
 			URL url = new URL("https://private.harmonicss.eu/index.php/apps/coh/api/1.0/dar");
 			String name = "hrexpert";
 	        String password = "1hrexpert2!";
@@ -47,10 +58,10 @@ public class CreateRequestServlet extends HttpServlet {
 	        byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
 	        String authStringEnc = new String(authEncBytes);
 			JSONObject params = new JSONObject();
-			params.put("userId", "FanisKalatzisServicePost");
-		    params.put("submitDate", "2018-11-21 21:59:59");
-		    params.put("serviceId", "2");
-		    params.put("justification", "VAL_A1POSTED");
+			params.put("userId", req.userId);
+		    params.put("submitDate", req.submitDate);
+		    params.put("serviceId", req.serviceId);
+		    params.put("justification", req.justification);
 		    String postData = params.toString();
 		    //System.out.println(postData);
 		    byte[] postDataBytes = postData.getBytes("UTF-8");
@@ -79,14 +90,6 @@ public class CreateRequestServlet extends HttpServlet {
 		catch (Exception e) {
    			System.out.println(e);
    		}
-	}
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		doGet(request, response);
 	}
 
 }
