@@ -39,7 +39,7 @@ public class GetCohortsServlet extends HttpServlet {
 		// TODO Auto-generated method stub
 		//response.getWriter().append("Served at: ").append(request.getContextPath());
 		try {
-	        String webPage = "https://private.harmonicss.eu/index.php/apps/coh/api/1.0/c4?darId=59";
+	        String webPage = "https://private.harmonicss.eu/index.php/apps/coh/api/1.0/c4?darId="+request.getParameter("darId");
 	        String name = "hrexpert";
 	        String password = "1hrexpert2!";
 
