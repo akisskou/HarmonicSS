@@ -79,13 +79,23 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	static ArrayList<String> crit_names_incl = new ArrayList<String>();
 	static ArrayList<String> crit_names_excl = new ArrayList<String>();
 	static ArrayList<String> cohort_names = new ArrayList<String>();
+	private static List<JSONObject> inclusion_criteria = new ArrayList<JSONObject>();
+	private static List<JSONObject> exclusion_criteria = new ArrayList<JSONObject>();	
+	private static JSONObject criterionResponseInfos = new JSONObject();
+	private static String termAndSubterms = "";
 	static String requestID = "";
+	private static JAXBContext xmljaxbContext;
+	private static Marshaller xmljaxbMarshaller;
 	private static PatientsSelectionRequest patientsSelectionRequest;
-	private static File responseXML = new File("Resp01.xml");
+	private static PatientsSelectionResponse patientsSelectionResponse;
+	//private static File responseXML = new File("Resp01.xml");
 	private static OWLOntology ontology;
 	private static OWLOntologyManager manager;
 	private static IRI documentIRI;
 	private static List<MyOWLClass> allClasses;
+	private static List<String[]> UIDsDefined = new ArrayList<String[]>();
+	private static List<String[]> UIDsUndefined = new ArrayList<String[]>();
+	private static Result_UIDs results;
 	
     /**
      * @see HttpServlet#HttpServlet()
@@ -192,11 +202,11 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		    
 		    System.out.println(resp);
 		    
-		    FileWriter fw = new FileWriter(requestID+".xml");
+		    FileWriter fw = new FileWriter("Request"+requestID+".xml");
 		    fw.write(resp);
 			fw.close();
 		    
-			File fXmlFile = new File(requestID+".xml");
+			File fXmlFile = new File("Request"+requestID+".xml");
 	    	jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
   	  		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
   	  		patientsSelectionRequest = ((JAXBElement<PatientsSelectionRequest>) jaxbUnmarshaller.unmarshal(fXmlFile)).getValue();
@@ -239,17 +249,26 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
   	   return result_incl+"XXX"+result_excl;
     }
     
-    private String createQuery(ArrayList<Criterion> list_of_criterions, boolean incl, boolean mode, String results_of_all_Criterions) {
+    private String createQuery(ArrayList<Criterion> list_of_criterions, boolean incl, boolean mode, String results_of_all_Criterions) throws JSONException {
     	String results_of_one_Criterion="";
     	for(int i=0; i<list_of_criterions.size(); i++) {
-    		
+    		criterionResponseInfos = new JSONObject();
 			Criterion current_Criterion=list_of_criterions.get(i); //current_criterion
 			if(!canUseCriterion(current_Criterion)){
 				System.out.println("Criterion " + current_Criterion.getCriterion() + " cannot be used.");
+				criterionResponseInfos.put("usage", "notused");
+				criterionResponseInfos.put("notes", termAndSubterms);
+				if(incl) inclusion_criteria.add(criterionResponseInfos);
+				else exclusion_criteria.add(criterionResponseInfos);
+				System.out.println(criterionResponseInfos);
 				continue;
 			}
 			else System.out.println("Criterion " + current_Criterion.getCriterion() + " can be used.");
-
+			criterionResponseInfos.put("usage", "used");
+			criterionResponseInfos.put("notes", termAndSubterms);
+			if(incl) inclusion_criteria.add(criterionResponseInfos);
+			else exclusion_criteria.add(criterionResponseInfos);
+			System.out.println(criterionResponseInfos);
 			String query="";
 			switch(current_Criterion.getCriterion()) { //The name of the Criterion.
 			  
@@ -1300,8 +1319,8 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     	return results_of_all_Criterions;
     }
     
-    public void criterionDBmatching(ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions){
-    	Result_UIDs results = new Result_UIDs();
+    public void criterionDBmatching(ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions) throws JSONException{
+    	results = new Result_UIDs();
     	Boolean mode;
     	for (int j=0;j<2;j++) {
 			
@@ -1312,6 +1331,8 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     		results_of_all_Criterions = createQuery(list_of_exclusive_criterions, false, mode, results_of_all_Criterions);
     		results.Input_UIDs(mode,results_of_all_Criterions);
     	}
+    	UIDsDefined.add(results.UIDs_defined_ALL_elements );
+    	UIDsUndefined.add(results.UIDs_UNdefined_some_elements);
     	System.out.println(results.Output_JSON_UIDs());
     }
     
@@ -1330,43 +1351,58 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	  }
 
     
-    public void writeXMLResponse(){
+    public void writeXMLResponse(int cohortIndex, boolean createXML){
     	try{
-    		
-    		JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
-    		Marshaller jaxbMarshaller = jaxbContext.createMarshaller();
-    		jaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-    		PatientsSelectionResponse patientsSelectionResponse = new PatientsSelectionResponse();
+    		if(cohortIndex==0) {
+    		xmljaxbContext = JAXBContext.newInstance(ObjectFactory.class);
+    		xmljaxbMarshaller = xmljaxbContext.createMarshaller();
+    		xmljaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
+    		patientsSelectionResponse = new PatientsSelectionResponse();
     		//jaxbMarshaller.marshal(patientsSelectionResponse, responseXML);
     		patientsSelectionResponse.setUserID(patientsSelectionRequest.getUserID());
     		patientsSelectionResponse.setSessionID(patientsSelectionRequest.getSessionID());
     		patientsSelectionResponse.setResponseDate(patientsSelectionRequest.getRequestDate());
-    		for(String cohortID: patientsSelectionRequest.getCohortID()){
+    		//for(String cohortID: patientsSelectionRequest.getCohortID()){
+    		}
     			CohortResponse cohortResponse = new CohortResponse();
-    			cohortResponse.setCohortID(cohortID);
+    			cohortResponse.setCohortID(patientsSelectionRequest.getCohortID().get(cohortIndex));
     			cohortResponse.setQueryDate(patientsSelectionRequest.getRequestDate());
-    			cohortResponse.setEligiblePatientsNumber(14);
+    			if(results.UIDs_defined_ALL_elements.length==1 && results.UIDs_defined_ALL_elements[0].equals("")) cohortResponse.setEligiblePatientsNumber(0);
+    			else cohortResponse.setEligiblePatientsNumber(results.UIDs_defined_ALL_elements.length);
     			EligibilityCriteriaUsed inclAndExclCriteriaUsed = new EligibilityCriteriaUsed();
+    			int i=0;
     			for(org.ntua.criteria.Criterion inclCriterion: patientsSelectionRequest.getEligibilityCriteria().getInclusionCriteria().getCriterion()){
     				CriterionUsage inclCriterionUsage = new CriterionUsage();
     				inclCriterionUsage.setCriterionID(inclCriterion.getUID());
-    				inclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.USED);
-    				inclCriterionUsage.setNotesHTML("+++ Additional terms (if any) +++");
+    				if(inclusion_criteria.get(i).getString("usage").equals("used")) inclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.USED);
+    				else inclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.NOT_USED);
+    				System.out.println(inclusion_criteria.get(i));
+    				inclCriterionUsage.setNotesHTML(inclusion_criteria.get(i).getString("notes"));
     				inclAndExclCriteriaUsed.getCriterionUsage().add(inclCriterionUsage);
+    				i++;
     			}
+    			
+    			i=0;
     			for(org.ntua.criteria.Criterion exclCriterion: patientsSelectionRequest.getEligibilityCriteria().getExclusionCriteria().getCriterion()){
     				CriterionUsage exclCriterionUsage = new CriterionUsage();
     				exclCriterionUsage.setCriterionID(exclCriterion.getUID());
-    				exclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.NOT_USED);
-    				exclCriterionUsage.setNotesHTML("+++ The Reason for not using this criterion +++");
+    				if(exclusion_criteria.get(i).getString("usage").equals("used")) exclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.USED);
+    				else exclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.NOT_USED);
+    				System.out.println(exclusion_criteria.get(i));
+    				exclCriterionUsage.setNotesHTML(exclusion_criteria.get(i).getString("notes"));
     				inclAndExclCriteriaUsed.getCriterionUsage().add(exclCriterionUsage);
+    				i++;
     			}
+    			
     			cohortResponse.setEligibilityCriteriaUsed(inclAndExclCriteriaUsed);
     			patientsSelectionResponse.getCohortResponse().add(cohortResponse);
-    		}
+    		//}
+    		if(createXML) {
+    		File fXmlFile = new File("Response"+requestID+".xml");
     		ObjectFactory objectFactory = new ObjectFactory();
     		JAXBElement<PatientsSelectionResponse> je =  objectFactory.createPatientsSelectionResponse(patientsSelectionResponse);
-    		jaxbMarshaller.marshal(je, responseXML);
+    		xmljaxbMarshaller.marshal(je, fXmlFile);
+    		}
     	}
     	catch(Exception e){
     		e.printStackTrace();
@@ -1384,53 +1420,73 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	    for (int c; (c = in.read()) >= 0;)
 	        sb.append((char)c);
 	    JSONArray cohorts = new JSONArray(sb.toString());
+	    boolean createXML = false;
     	for(int i=0; i<cohorts.length(); i++){
     		if(cohorts.getJSONObject(i).get("statusId").equals("2")) {
     			String cohortName = "Harm-DB-0"+cohorts.getJSONObject(i).get("cohortId");
     			//String cohortName = cohorts.getJSONObject(i).get("cohortName").toString();
+    			
     			System.out.println("-------------------------------- Execute query for cohort " + cohortName + " -------------------------------");
     			ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/"+cohortName,"emps","emps");
     			if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
     	    	else System.out.println("everything's gooooooood");
     			criterionDBmatching(list_of_inclusive_criterions,list_of_exclusive_criterions);
-    			writeXMLResponse();	
+    			if(i==cohorts.length()-1) createXML=true;
+    			writeXMLResponse(i, createXML);	
+    			inclusion_criteria.clear();
+    			exclusion_criteria.clear();
     			DBServiceCRUD.closeJDBCConnection();
     			System.out.println("End");
     		}
     		
     	}
+    	ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB","emps","emps");
+    	if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
+    	else System.out.println("everything's gooooooood");
+    	DBServiceCRUD.setExecutedDataToDB(requestID);
+    	DBServiceCRUD.closeJDBCConnection();
+    	System.out.println("-------------------------------- Execution data saved to database -------------------------------");
+    	
     }
     
     public boolean canUseCriterion(Criterion crit){
     	String query="";
+    	String assistanceQuery="";
     	boolean myresults = false;
     	switch(crit.getCriterion()) {
     		case "demographics_gender": {
     			query = "SELECT * FROM demo_sex_data";
+    			termAndSubterms = "No gender data";
     		}
     		break;
     		case "demographics_ethnicity": {
     			query = "SELECT * FROM demo_ethnicity_data";
+    			termAndSubterms = "No ethnicity data";
     		}
     		break;
     		case "demographics_education": {
     			query = "SELECT * FROM demo_education_level_data";
+    			termAndSubterms = "No education data";
     		}
     		break;
     		case "demographics_weight": {
     			query = "SELECT * FROM demo_weight_data";
+    			termAndSubterms = "No weight data";
     		}
     		break;
     		case "demographics_occupation": {
     			query = "SELECT * FROM demo_occupation_data";
+    			termAndSubterms = "No occupation data";
     		}
     		break;
     		case "demographics_pregnancy": {
     			query = "SELECT * FROM demo_pregnancy_data";
+    			termAndSubterms = "No pregnancy data";
     		}
     		break;
     		case "lifestyle_smoking": {
     			query = "SELECT * FROM lifestyle_smoking";
+    			termAndSubterms = "No smoking data";
     		}
     		break;
     		case "condition_symptom": {
@@ -1442,6 +1498,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					query += " OR " + Make_OR_of_CODES("voc_symptom_sign.CODE", allNarrowTerms[c]);
 				}
 				query += ")";
+				assistanceQuery = "SELECT NAME FROM voc_symptom_sign WHERE" + query.split("AND")[1]; 
     		}
     		break;
     		case "condition_diagnosis": {
@@ -1453,6 +1510,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					query += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
 				}
 				query += ")";
+				assistanceQuery = "SELECT NAME FROM voc_medical_condition WHERE" + query.split("AND")[1]; 
     		}
     		break;
     		case "intervention_medication": {
@@ -1464,15 +1522,18 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					query += " OR " + Make_OR_of_CODES("voc_pharm_drug.CODE", allNarrowTerms[c]);
 				}
 				query += ")";
+				assistanceQuery = "SELECT NAME FROM voc_pharm_drug WHERE" + query.split("AND")[1]; 
     		}
     		break;
     		case "intervention_chemotherapy": {
 				  //intervention_chemotherapy  crit_interv_chemotherapy_obj =  (intervention_chemotherapy)crit;
 				query = "SELECT * FROM interv_chemotherapy"; //, voc_confirmation WHERE interv_chemotherapy.DUE_TO_PSS_ID = voc_confirmation.ID AND " + Make_OR_of_CODES("voc_confirmation.CODE", crit_interv_chemotherapy_obj.getReason());
+				termAndSubterms = "No chemotherapy data";
     		}
     		break;
     		case "intervention_surgery": { 
     			query = "SELECT * FROM intervention_surgery";
+    			termAndSubterms = "No surgery data";
     		}
     		break;
     		case "examination_lab_test": {
@@ -1484,6 +1545,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					query += " OR " + Make_OR_of_CODES("voc_lab_test.CODE", allNarrowTerms[c]);  
 				}
 				query += ") ";
+				assistanceQuery = "SELECT NAME FROM voc_lab_test WHERE" + query.split("AND")[1];
     		}
     		break;
     		case "examination_biopsy": { //Check if user provided the info of all the fields 
@@ -1495,6 +1557,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					query += " OR voc_biopsy.CODE='" + allNarrowTerms[c] + "'";
 				}
 				query += ") ";
+				assistanceQuery = "SELECT NAME FROM voc_biopsy WHERE" + query.split("AND")[1];
     		}
     		break;
     		case "examination_medical_imaging_test": { //Check if user provided the info of all the fields 
@@ -1506,7 +1569,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  query += "OR " + Make_OR_of_CODES("voc_medical_imaging_test.CODE", myAllNarrowTerms[c]);
 				  }
 				  query += ") ";
-    		
+				  assistanceQuery = "SELECT NAME FROM voc_medical_imaging_test WHERE" + query.split("AND")[1];
     		}
     		break;
     		case "examination_questionnaire_score": { //Check if user provided the info of all the fields 
@@ -1518,21 +1581,25 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  query += " OR " + Make_OR_of_CODES("voc_questionnaire.CODE", myAllNarrowTerms[c]);
 				  }
 				  query += ")";
+				  assistanceQuery = "SELECT NAME FROM voc_questionnaire WHERE" + query.split("AND")[1];
     		}
     		break;
     		case "examination_essdai_domain": {
     			examination_essdai_domain  examination_essdai_domain_obj =  (examination_essdai_domain)crit;
 				query = "SELECT * FROM exam_essdai_domain, voc_essdai_domain WHERE exam_essdai_domain.DOMAIN_ID = voc_essdai_domain.ID AND " + Make_OR_of_CODES("voc_essdai_domain.CODE", examination_essdai_domain_obj.getDomain());
+				assistanceQuery = "SELECT NAME FROM voc_essdai_domain WHERE" + query.split("AND")[1];
     		}
     		break;
     		case "examination_caci_condition": { //Check if user provided the info of all the fields 
 				examination_caci_condition  examination_caci_condition_obj =  (examination_caci_condition)crit;
 				query = "SELECT * FROM exam_caci_condition, voc_caci_condition WHERE exam_caci_condition.CACI_ID = voc_caci_condition.ID AND " + Make_OR_of_CODES("voc_caci_condition.CODE", examination_caci_condition_obj.getCaci());
+				assistanceQuery = "SELECT NAME FROM voc_caci_condition WHERE" + query.split("AND")[1];
     		}
     		break;
     		case "other_healthcare_visit": { //Check if user provided the info of all the fields 
 				other_healthcare_visit  other_healthcare_visit_obj =  (other_healthcare_visit)crit;
 				query = "SELECT * FROM other_healthcare_visit, voc_specialist WHERE other_healthcare_visit.SPECIALIST_ID=voc_specialist.ID AND " + Make_OR_of_CODES("voc_specialist.CODE", other_healthcare_visit_obj.getSpecialist());
+				assistanceQuery = "SELECT NAME FROM voc_specialist WHERE" + query.split("AND")[1];
     		}
     		break;
     		case "other_family_history": { //Check if user provided the info of all the fields 
@@ -1544,20 +1611,34 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					query += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
 				}
 				query += ")";
+				assistanceQuery = "SELECT NAME FROM voc_medical_condition WHERE" + query.split("AND")[1];
     		}
     		break;
     		case "other_clinical_trials": { //Check if user provided the info of all the fields 
 				query = "SELECT * FROM other_clinical_trials"; 
+				termAndSubterms = "No other clinical trials data";
     		}
     		break;
     		case "patient": { //Check if user provided the info of all the fields 
 				query = "SELECT * FROM patient";
+				termAndSubterms = "No patients data";
     		}
     		break;
     		default: System.out.println("Undefined criterion-name in the input JSON file.");
     	}
     	try { 
-    		if(!query.equals("")) myresults = DBServiceCRUD.testQuery(query);		
+    		if(!query.equals("")) myresults = DBServiceCRUD.testQuery(query);
+    		if(!assistanceQuery.equals("")) {
+    			String[] assistanceResults = DBServiceCRUD.assistanceQuery(assistanceQuery).split(",");
+    			termAndSubterms = "Search for term: " + assistanceResults[0];
+    			if(assistanceResults.length>1) {
+    				termAndSubterms += " and subterms:";
+    				for(int sub=1; sub<assistanceResults.length; sub++) {
+    					if(sub==1) termAndSubterms += assistanceResults[sub];
+    					else termAndSubterms += "," + assistanceResults[sub];
+    				}
+    			}
+    		}
     	} catch (SQLException e) {
     		//LOGGER.log(Level.SEVERE,"Bad type query or arguments: "+query,true);
     		//flush_handler();

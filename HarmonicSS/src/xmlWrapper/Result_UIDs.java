@@ -29,6 +29,7 @@ public class Result_UIDs {
 		this.UIDs_defined_ALL_elements = null;
 		this.UIDs_UNdefined_some_elements = null;
 	}
+	
 	public  void Input_UIDs(Boolean mode, String UIDs) {
 		
 		if(!UIDs.isEmpty()) {
