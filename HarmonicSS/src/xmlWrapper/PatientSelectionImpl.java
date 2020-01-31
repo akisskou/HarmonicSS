@@ -29,6 +29,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 //import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
+import com.google.gson.Gson;
 
 import jsonProcess.*;
 import criterionManager.*;
@@ -50,6 +51,13 @@ import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Paths;
+import java.sql.Connection;
+import java.sql.DriverManager;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -60,6 +68,7 @@ import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
 import java.util.logging.Logger;
+import java.util.stream.Stream;
 /**
  * Servlet implementation class PatientSelectionImpl
  */
@@ -171,7 +180,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	    	
 	    	DBServiceCRUD.getXMLRequestFromDB(requestID);*/
 	    	
-	    	URL myXMLService = new URL("http://localhost:8080/GetXMLS2/GetXMLServlet");
+	    	URL myXMLService = new URL("http://localhost:8080/GetXMLS2/GetXMLServlet?darId="+requestID);
 	    	HttpURLConnection con = (HttpURLConnection) myXMLService.openConnection();
 			con.setRequestMethod("GET");
 			con.setDoOutput(true);
@@ -1366,7 +1375,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     
     public void accessCohorts(String darID, ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions) throws IOException, JSONException, SQLException{
     	//String[] cohortAccess = new String[cohort_names.size()];
-    	URL myXMLService = new URL("http://localhost:8080/GetCohortsC4New/GetCohortsServlet");
+    	URL myXMLService = new URL("http://localhost:8080/GetCohortsC4New/GetCohortsServlet?darId="+darID);
     	HttpURLConnection con = (HttpURLConnection) myXMLService.openConnection();
 		con.setRequestMethod("GET");
 		con.setDoOutput(true);
@@ -1376,7 +1385,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	        sb.append((char)c);
 	    JSONArray cohorts = new JSONArray(sb.toString());
     	for(int i=0; i<cohorts.length(); i++){
-    		if(cohorts.getJSONObject(i).get("statusId").equals("1")) {
+    		if(cohorts.getJSONObject(i).get("statusId").equals("2")) {
     			String cohortName = "Harm-DB-0"+cohorts.getJSONObject(i).get("cohortId");
     			//String cohortName = cohorts.getJSONObject(i).get("cohortName").toString();
     			System.out.println("-------------------------------- Execute query for cohort " + cohortName + " -------------------------------");
@@ -1646,7 +1655,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			writeXMLResponse();			
 			System.out.println("End");*/
 			try {
-				accessCohorts("59", list_of_inclusive_criterions, list_of_exclusive_criterions);
+				accessCohorts(requestID, list_of_inclusive_criterions, list_of_exclusive_criterions);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -1673,70 +1682,4 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		// TODO Auto-generated method stub
 	}
 
-	/*public static void main(String[] args) throws Exception {
-		// TODO Auto-generated method stub
-		//Logger LOGGER = Initialize_logger("LogFile.log");
-		System.out.println("Begin");
-		
-		final String requestID = "Req01";
-		PatientSelectionImpl testObj = new PatientSelectionImpl();
-		
-		String crit_incl_excl_in = testObj.readXMLbyRequestID(requestID);
-		System.out.println(crit_incl_excl_in);
-		String[] crit_incl_excl=crit_incl_excl_in.split("XXX");
-		String criteria = Intermediate_Layer.preProcess_JSON(crit_incl_excl[0]);
-		System.out.println("After Criteria preprocessed:\n"+criteria);
-		ArrayList<Criterion> list_of_inclusive_criterions=null;
-		try {
-			list_of_inclusive_criterions = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
-			findCriterion((Criterion)list_of_inclusive_criterions.get(0));
-			System.out.println(list_of_inclusive_criterions);
-			
-		} catch (JsonParseException e1) {
-			/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
-			flush_handler();*/
-			//e1.printStackTrace();
-			//return "JsonParseException Bad JSON format.";
-		//} catch (JsonMappingException e1) {
-			/*LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
-			flush_handler();*/
-			//e1.printStackTrace();
-			//return "JsonParseException Bad JSON format.";
-		//} catch (IOException e1) {
-			/*LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
-			flush_handler();*/
-			//e1.printStackTrace();
-			//return "JsonParseException Bad JSON format.";
-		/*}
-		criteria = Intermediate_Layer.preProcess_JSON(crit_incl_excl[1]);
-		System.out.println("After Criteria preprocessed:\n"+criteria);
-		ArrayList<Criterion> list_of_exclusive_criterions=null;
-		try {
-			list_of_exclusive_criterions = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
-			findCriterion((Criterion)list_of_exclusive_criterions.get(0));
-			System.out.println(list_of_exclusive_criterions);
-				
-		} catch (JsonParseException e1) {
-			/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
-			flush_handler();*/
-			//e1.printStackTrace();
-			//return "JsonParseException Bad JSON format.";
-		//} catch (JsonMappingException e1) {
-			/*LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
-			flush_handler();*/
-			//e1.printStackTrace();
-			//return "JsonParseException Bad JSON format.";
-		//} catch (IOException e1) {
-			/*LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
-			flush_handler();*/
-			//e1.printStackTrace();
-			//return "JsonParseException Bad JSON format.";
-		/*}
-		testObj.writeXMLResponse();
-		
-		System.out.println("End");
-		
-	}*/
-
-	
 }
