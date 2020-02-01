@@ -49,9 +49,9 @@ public class TestServlet extends HttpServlet {
 		// TODO Auto-generated method stub
 		//response.getWriter().append("Served at: ").append(request.getContextPath());
 		try {
-			int darId = createRequest("FanisKalatzisServicePost", "2018-11-21 21:59:59", "2", "VAL_A1POSTED");
+			int darId = createRequest("hrexpert", "2018-11-21 21:59:59", "2", "VAL_A1POSTED");
 			System.out.println("New request with id="+darId+" created successfully.");
-			File fXmlFile = new File("Req01.xml");
+			File fXmlFile = new File("TestReq1.xml");
 			JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
   	  		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
   	  		PatientsSelectionRequest patientsSelectionRequest = ((JAXBElement<PatientsSelectionRequest>) jaxbUnmarshaller.unmarshal(fXmlFile)).getValue();
@@ -60,7 +60,7 @@ public class TestServlet extends HttpServlet {
   	  			setCohortsStatus(darId, myCohort.split("-")[2], 2, "2010-12-04 21:00:00", "2011-12-04 21:00:00", "Remarks for my service", "testfilename");
   	  			System.out.println("Cohort with id="+myCohort.split("-")[2]+" updated successfully.");
   	  		}
-			String requestXML = readLineByLineJava8("Req01.xml");
+			String requestXML = readLineByLineJava8("TestReq1.xml");
 			setRequestXML(darId, requestXML);
 			System.out.println("Request xml updated successfully.");
 			/*Class.forName("com.mysql.jdbc.Driver");
