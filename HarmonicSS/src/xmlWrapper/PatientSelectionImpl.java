@@ -59,8 +59,10 @@ import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -1409,7 +1411,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     	}
     }
     
-    public void accessCohorts(String darID, ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions) throws IOException, JSONException, SQLException{
+    public void accessCohorts(String darID, ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions) throws IOException, JSONException, SQLException, ClassNotFoundException{
     	//String[] cohortAccess = new String[cohort_names.size()];
     	URL myXMLService = new URL("http://localhost:8080/GetCohortsC4New/GetCohortsServlet?darId="+darID);
     	HttpURLConnection con = (HttpURLConnection) myXMLService.openConnection();
@@ -1440,14 +1442,43 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     		}
     		
     	}
-    	ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB","emps","emps");
+    	/*ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB","emps","emps");
     	if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
     	else System.out.println("everything's gooooooood");
     	DBServiceCRUD.setExecutedDataToDB(requestID);
-    	DBServiceCRUD.closeJDBCConnection();
+    	DBServiceCRUD.closeJDBCConnection();*/
+    	Class.forName("com.mysql.jdbc.Driver");
+		System.out.println("Congrats - Seems your MySQL JDBC Driver Registered!");
+		Connection db_con_obj = DriverManager.getConnection("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB", "emps","emps");
+		String requestXML = readLineByLineJava8("Request"+darID+".xml");
+		String responseXML = readLineByLineJava8("Response"+darID+".xml");
+		Date date = new Date();
+		Object param = new java.sql.Timestamp(date.getTime());
+		System.out.println(darID);
+		String query = "INSERT INTO EXECUTION_DATA (REQUEST_ID, REQUEST_XML, EXECUTION_DATE, RESPONSE_XML) VALUES (?, ?, ?, ?)";
+		PreparedStatement db_prep_obj = db_con_obj.prepareStatement(query);
+		db_prep_obj.setString(1, darID);
+		db_prep_obj.setString(2, requestXML.replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;"));
+		db_prep_obj.setTimestamp(3, (Timestamp) param);
+		db_prep_obj.setString(4, responseXML.replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;"));
+		db_prep_obj.execute();
     	System.out.println("-------------------------------- Execution data saved to database -------------------------------");
     	
     }
+    
+    private static String readLineByLineJava8(String filePath) 
+	{
+	    StringBuilder contentBuilder = new StringBuilder();
+	    try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.UTF_8)) 
+	    {
+	        stream.forEach(s -> contentBuilder.append(s).append("\n"));
+	    }
+	    catch (IOException e) 
+	    {
+	        e.printStackTrace();
+	    }
+	    return contentBuilder.toString();
+	}
     
     public boolean canUseCriterion(Criterion crit){
     	String query="";
@@ -1659,7 +1690,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		Logger LOGGER = Util_Logger.Initialize_logger("C:/Users/Jason/eclipse-workspace/HarmonicSS/LogFile.log");
+		//Logger LOGGER = Util_Logger.Initialize_logger("C:/Users/Jason/eclipse-workspace/HarmonicSS/LogFile.log");
 		JSONObject all = new JSONObject();
 		requestID = request.getParameter("requestID");
 		if(requestID!=null){
@@ -1744,6 +1775,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
 			}

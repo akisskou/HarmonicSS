@@ -102,7 +102,7 @@ public class DBServiceCRUD {
 		String execDate = formatter.format(date);*/
 		String query = "INSERT INTO EXECUTION_DATA (REQUEST_ID, REQUEST_XML, RESPONSE_XML) VALUES ("+darId+", "+requestXML+", "+responseXML+")";
 		db_prep_obj = db_con_obj.prepareStatement(query);
-		db_prep_obj.executeQuery();
+		db_prep_obj.execute();
 	}
 	
 	private static String readLineByLineJava8(String filePath) 

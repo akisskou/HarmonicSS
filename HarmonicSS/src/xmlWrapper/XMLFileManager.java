@@ -12,5 +12,5 @@ import criterionManager.Criterion;
 public interface XMLFileManager {
 	public String readXMLbyRequestID(String requestID);
 	public void writeXMLResponse(int cohortIndex, boolean createXML);
-	public void accessCohorts(String darID, ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions) throws MalformedURLException, IOException, JSONException, SQLException;
+	public void accessCohorts(String darID, ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions) throws MalformedURLException, IOException, JSONException, SQLException, ClassNotFoundException;
 }
