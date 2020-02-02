@@ -4,12 +4,14 @@ import java.io.BufferedReader;
 import java.io.File;
 import java.io.IOException;
 import java.io.InputStreamReader;
+import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
+import java.util.ArrayList;
 import java.util.List;
 import java.util.stream.Stream;
 
@@ -32,7 +34,7 @@ import org.ntua.criteria.PatientsSelectionRequest;
  */
 @WebServlet("/TestServlet")
 public class TestServlet extends HttpServlet {
-	private static final long serialVersionUID = 1L;
+	private static final long serialVersionUID = 1L;	
        
     /**
      * @see HttpServlet#HttpServlet()
@@ -50,7 +52,6 @@ public class TestServlet extends HttpServlet {
 		//response.getWriter().append("Served at: ").append(request.getContextPath());
 		try {
 			int darId = createRequest("hrexpert", "2018-11-21 21:59:59", "2", "VAL_A1POSTED");
-			System.out.println("New request with id="+darId+" created successfully.");
 			File fXmlFile = new File("TestReq1.xml");
 			JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
   	  		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
@@ -62,7 +63,15 @@ public class TestServlet extends HttpServlet {
   	  		}
 			String requestXML = readLineByLineJava8("TestReq1.xml");
 			setRequestXML(darId, requestXML);
-			System.out.println("Request xml updated successfully.");
+			JSONObject testResponse = new JSONObject();
+			testResponse.put("requestID", darId);
+			testResponse.put("cohortList", cohortList);
+			testResponse.put("requestXML", requestXML);
+			response.setContentType("text/html; charset=UTF-8");
+			response.setCharacterEncoding("UTF-8");
+			PrintWriter pw = response.getWriter();
+			pw.print(testResponse.toString());
+			pw.close();
 			/*Class.forName("com.mysql.jdbc.Driver");
 			System.out.println("Congrats - Seems your MySQL JDBC Driver Registered!");
 			Connection db_con_obj = DriverManager.getConnection("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB", "emps","emps");
@@ -79,6 +88,7 @@ public class TestServlet extends HttpServlet {
 			System.out.println("Sorry, couldn't found JDBC driver. Make sure you have added JDBC Maven Dependency Correctly");
 			e.printStackTrace();
 		}
+		
 	}
 
 	/**
@@ -119,7 +129,6 @@ public class TestServlet extends HttpServlet {
 		    for (int c; (c = in.read()) >= 0;)
 		        sb.append((char)c);
 		    String resp = sb.toString();
-		    System.out.println(resp);
 		    JSONObject newRequest = new JSONObject(resp);
 		    return newRequest.getInt("id");
 		}
@@ -163,7 +172,6 @@ public class TestServlet extends HttpServlet {
 		    params.put("remarks", remarks);
 		    params.put("filename", filename);
 		    String postData = params.toString();
-		    //System.out.println(postData);
 		    byte[] postDataBytes = postData.getBytes("UTF-8");
 		    HttpURLConnection conn = (HttpURLConnection)url.openConnection();
 		    conn.setRequestMethod("POST");
@@ -177,7 +185,6 @@ public class TestServlet extends HttpServlet {
 		    for (int c; (c = in.read()) >= 0;)
 		        sb.append((char)c);
 		    String resp = sb.toString();
-		    System.out.println(resp);
 		}
 	
 		
@@ -213,8 +220,6 @@ public class TestServlet extends HttpServlet {
 		    for (int c; (c = in.read()) >= 0;)
 		        sb.append((char)c);
 		    String resp = sb.toString();
-		    System.out.println(resp);
-		    System.out.println(requestXML);
 		}
 		catch (Exception e) {
    			System.out.println(e);

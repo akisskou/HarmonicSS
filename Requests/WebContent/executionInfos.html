@@ -1,0 +1,85 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html" charset="ISO-8859-1">
+<title>Home</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<style>
+	*{
+  		box-sizing: border-box;
+	}
+	table, th, td {
+  		border: 1px solid black;
+  		border-collapse: collapse;
+	}
+	th, td {
+  		padding: 2px;
+	}
+	table {
+    	table-layout: auto;
+    	width: 100%;
+	}
+	
+</style>
+</head>
+<body onload="asyncLoadContent()">
+	<!--h3>Welcome! Here is my ontology:</h3-->
+	<div class="container">
+        <div id="results">
+        </div>
+    </div>
+       
+	<script type="text/javascript">
+	
+	var ontUser = document.getElementById("results");
+	
+	function asyncLoadContent() { 
+		writeContent("Loading...");
+		initExecutionData();
+	}
+	
+	function writeContent(data) {
+		ontUser.innerHTML = data;
+	}
+	
+	function initExecutionData() {
+ 		var HttpClient = function() {
+ 			this.get = function(aUrl, aCallback) {
+ 				var anHttpRequest = new XMLHttpRequest();
+ 				anHttpRequest.onreadystatechange = function() { 
+ 					if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+ 						aCallback(anHttpRequest.responseText);
+ 					}
+ 				anHttpRequest.open( "GET", aUrl, true ); 
+ 				anHttpRequest.send( null ); 
+ 			}
+ 		}
+ 		var theurl;
+ 		theurl='ReqRespList';
+ 		
+ 		var client = new HttpClient();
+ 		client.get(theurl, function(response) { 
+			var response1 = JSON.parse(response);
+			var reqresp = response1.request_response_list;
+			var results = '<h4>Execution data<h4>';
+			if (reqresp.length>0){
+			
+				results += '<table table-layout="auto" width="100%"><tr padding="2px"><th>id</th><th>user id</th><th>request id</th><th>execution date</th></tr>';
+				for(i=0; i<reqresp.length; i++){
+					results += '<tr align="center"><td>'+reqresp[i].id+'<br><br><img src="'+reqresp[i].user_id+'"></td><td>'+reqresp[i].request_id+'</td><td>'+reqresp[i].execution_date+'</td></tr>';
+				}
+ 			}
+			$('#results').html(results);
+ 		});
+	}
+	
+	window.onbeforeunload = function(event)
+    {
+		if(!isChecked) sessionStorage.clear();
+		
+    };
+	
+	</script>
+</body>
+</html>

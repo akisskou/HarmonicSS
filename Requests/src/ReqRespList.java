@@ -81,14 +81,16 @@ public class ReqRespList extends HttpServlet {
 			List<JSONObject> listJSONobj = new ArrayList<JSONObject>();
 			while (rs.next()) {
 				JSONObject myjson = new JSONObject();
+				myjson.put("id", rs.getString("ID"));
+				myjson.put("user_id", rs.getString("USER_ID"));
 				myjson.put("request_id", rs.getString("REQUEST_ID"));
 				myjson.put("request_XML", rs.getString("REQUEST_XML").replace("\t","").replace("\n", "").replace("\r", ""));
 				myjson.put("execution_date", rs.getString("EXECUTION_DATE").replace("\t","").replace("\n", "").replace("\r", ""));
 				myjson.put("response_XML", rs.getString("RESPONSE_XML").replace("\t","").replace("\n", "").replace("\r", ""));
 				listJSONobj.add(myjson);
 			}
-			/*JSONObject result = new JSONObject();
-			result.put("Request_Response_List", listJSONobj);*/
+			JSONObject result = new JSONObject();
+			result.put("request_response_list", listJSONobj);
 			response.setContentType("text/html; charset=UTF-8");
 			response.setCharacterEncoding("UTF-8");
 			PrintWriter pw = response.getWriter();
