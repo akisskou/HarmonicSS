@@ -11,6 +11,9 @@ import javax.xml.bind.JAXBContext;
 import javax.xml.bind.JAXBElement;
 import javax.xml.bind.Marshaller;
 import javax.xml.bind.Unmarshaller;
+import javax.xml.datatype.DatatypeConstants;
+import javax.xml.datatype.DatatypeFactory;
+import javax.xml.datatype.XMLGregorianCalendar;
 
 import org.json.JSONArray;
 import org.json.JSONException;
@@ -60,9 +63,11 @@ import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Timestamp;
+import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
+import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
@@ -76,10 +81,6 @@ import java.util.stream.Stream;
  */
 public class PatientSelectionImpl extends HttpServlet implements XMLFileManager, CriterionManager{
 	private static final long serialVersionUID = 1L;
-	static ArrayList<String> criterion_incl = new ArrayList<String>();
-	static ArrayList<String> criterion_excl = new ArrayList<String>();
-	static ArrayList<String> crit_names_incl = new ArrayList<String>();
-	static ArrayList<String> crit_names_excl = new ArrayList<String>();
 	static ArrayList<String> cohort_names = new ArrayList<String>();
 	private static List<JSONObject> inclusion_criteria = new ArrayList<JSONObject>();
 	private static List<JSONObject> exclusion_criteria = new ArrayList<JSONObject>();	
@@ -98,6 +99,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	private static List<String[]> UIDsDefined = new ArrayList<String[]>();
 	private static List<String[]> UIDsUndefined = new ArrayList<String[]>();
 	private static Result_UIDs results;
+	private static List<JSONObject> cohortResponseList = new ArrayList<JSONObject>();
 	
     /**
      * @see HttpServlet#HttpServlet()
@@ -176,10 +178,6 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 
     @SuppressWarnings("unchecked")
 	public String readXMLbyRequestID(String requestID){
-    	criterion_incl.clear();
-  	  	criterion_excl.clear();
-  	  	crit_names_incl.clear();
-  	  	crit_names_excl.clear();
   	  	cohort_names.clear();
   	  	String result_incl = "";
   	  	String result_excl = "";
@@ -1363,7 +1361,12 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     		//jaxbMarshaller.marshal(patientsSelectionResponse, responseXML);
     		patientsSelectionResponse.setUserID(patientsSelectionRequest.getUserID());
     		patientsSelectionResponse.setSessionID(patientsSelectionRequest.getSessionID());
-    		patientsSelectionResponse.setResponseDate(patientsSelectionRequest.getRequestDate());
+    		GregorianCalendar gregorianCalendar = new GregorianCalendar();
+            DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
+            XMLGregorianCalendar now = 
+                datatypeFactory.newXMLGregorianCalendar(gregorianCalendar);
+            now.setTimezone(DatatypeConstants.FIELD_UNDEFINED);
+    		patientsSelectionResponse.setResponseDate(now);
     		//for(String cohortID: patientsSelectionRequest.getCohortID()){
     		}
     			CohortResponse cohortResponse = new CohortResponse();
@@ -1424,8 +1427,11 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	    JSONArray cohorts = new JSONArray(sb.toString());
 	    boolean createXML = false;
     	for(int i=0; i<cohorts.length(); i++){
+    		JSONObject cohortResponse = new JSONObject();
+    		String cohortName = "Harm-DB-0"+cohorts.getJSONObject(i).get("cohortId");
+    		cohortResponse.put("cohort_name", cohortName);
     		if(cohorts.getJSONObject(i).get("statusId").equals("2")) {
-    			String cohortName = "Harm-DB-0"+cohorts.getJSONObject(i).get("cohortId");
+    			
     			//String cohortName = cohorts.getJSONObject(i).get("cohortName").toString();
     			
     			System.out.println("-------------------------------- Execute query for cohort " + cohortName + " -------------------------------");
@@ -1435,11 +1441,18 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     			criterionDBmatching(list_of_inclusive_criterions,list_of_exclusive_criterions);
     			if(i==cohorts.length()-1) createXML=true;
     			writeXMLResponse(i, createXML);	
+    			cohortResponse.put("patients_IDs_list", results.UIDs_defined_ALL_elements);
+    			cohortResponseList.add(cohortResponse);
     			inclusion_criteria.clear();
     			exclusion_criteria.clear();
     			DBServiceCRUD.closeJDBCConnection();
     			System.out.println("End");
     		}
+    		else {
+    			cohortResponse.put("cohort_notes","Cohort not available.");
+    			cohortResponseList.add(cohortResponse);
+    		}
+    			
     		
     	}
     	/*ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB","emps","emps");
@@ -1692,8 +1705,11 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		// TODO Auto-generated method stub
 		//Logger LOGGER = Util_Logger.Initialize_logger("C:/Users/Jason/eclipse-workspace/HarmonicSS/LogFile.log");
 		JSONObject all = new JSONObject();
+		
+		//cohortResponseList
 		requestID = request.getParameter("requestID");
 		if(requestID!=null){
+			all.put("requestId", requestID);
 	    	manager = OWLManager.createOWLOntologyManager();
 		    documentIRI = IRI.create("file:///C:/Users/Jason/Desktop/", "HarmonicSS-Reference-Model+Vocabularies-v.0.9.owl");
 		    try{
@@ -1783,6 +1799,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			}
 			
 		}
+		all.put("cohort_response_list", cohortResponseList);
 		response.setContentType("text/html; charset=UTF-8");
 		response.setCharacterEncoding("UTF-8");
 		PrintWriter pw = response.getWriter();
