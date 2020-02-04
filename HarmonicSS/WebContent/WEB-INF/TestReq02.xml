@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<iccs:PatientsSelectionRequest sessionID="101010203920" requestDate="2019-10-16" xsi:schemaLocation="http://www.ntua.org/criteria PatientsSelection-EligibilityCriteria-Schema-v.1.3.xsd" xmlns:iccs="http://www.ntua.org/criteria" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserID>HARM-USER-10</UserID>
+	
+	<CohortID>COHORT-ID-02</CohortID>
+	<CohortID>COHORT-ID-03</CohortID>
+	
+	<RequestTitle>Patient Selection request for clinical study XYZ</RequestTitle>
+	
+	<RequestID>ELIGIBLE_PATIENTS_NUMBER</RequestID>	
+	
+	<EligibilityCriteria>
+	
+		<InclusionCriteria>
+			<!-- Demographics Criterion -->
+			<Criterion UID="CRIT-ID-01" Name="-">
+				<Description>Female patients</Description>
+				<FormalExpression Language="JSON" ID="CRIT-ID-01-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+					<BooleanExpression>
+						{"criterion":"demographics_gender","gender":"SEX-02"}
+					</BooleanExpression>
+				</FormalExpression>
+			</Criterion>
+		</InclusionCriteria>
+		
+		<ExclusionCriteria>
+			<!-- Disease Criterion -->
+			<Criterion UID="CRIT-ID-02" Name="-">
+				<Description>Diagnosed with cancer</Description>
+				<FormalExpression Language="JSON" ID="CRIT-ID-02-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+					<BooleanExpression>
+						{"criterion":"condition_diagnosis","condition":"COND-140000"}
+					</BooleanExpression>
+				</FormalExpression>
+			</Criterion>
+			<!-- Blood Test Criterion -->
+			<Criterion UID="CRIT-ID-03" Name="-">
+				<Description>Schrimers Test value was Abnormal</Description>
+				<FormalExpression Language="JSON" ID="CRIT-ID-03-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+					<BooleanExpression>
+						{"criterion":"examination_lab_test","test_id":"OCULAR-01","outcome_assessment":"ASSESS-20"}
+					</BooleanExpression>
+				</FormalExpression>
+			</Criterion>
+		</ExclusionCriteria>
+		
+	</EligibilityCriteria>
+
+</iccs:PatientsSelectionRequest>
+
+
+

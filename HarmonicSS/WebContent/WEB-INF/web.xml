@@ -10,13 +10,13 @@
     <welcome-file>default.jsp</welcome-file>
   </welcome-file-list>
   <servlet>
-    <description></description>
-    <display-name>PatientSelectionImpl</display-name>
-    <servlet-name>PatientSelectionImpl</servlet-name>
-    <servlet-class>xmlWrapper.PatientSelectionImpl</servlet-class>
+  	<description></description>
+  	<display-name>PatientSelectionImpl</display-name>
+  	<servlet-name>PatientSelectionImpl</servlet-name>
+  	<servlet-class>xmlWrapper.PatientSelectionImpl</servlet-class>
   </servlet>
   <servlet-mapping>
-    <servlet-name>PatientSelectionImpl</servlet-name>
-    <url-pattern>/PatientSelectionImpl</url-pattern>
+  	<servlet-name>PatientSelectionImpl</servlet-name>
+  	<url-pattern>/PatientSelectionImpl</url-pattern>
   </servlet-mapping>
 </web-app>

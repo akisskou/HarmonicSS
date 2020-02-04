@@ -1,0 +1,70 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<iccs:PatientsSelectionRequest sessionID="101010203920" requestDate="2019-10-16" xsi:schemaLocation="http://www.ntua.org/criteria PatientsSelection-EligibilityCriteria-Schema-v.1.3.xsd" xmlns:iccs="http://www.ntua.org/criteria" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserID>HARM-USER-13</UserID>
+	
+	<CohortID>COHORT-ID-08</CohortID>
+	<CohortID>COHORT-ID-05</CohortID>
+	
+	<RequestTitle>Patient Selection request for clinical study XYZ</RequestTitle>
+	
+	<RequestID>ELIGIBLE_PATIENTS_NUMBER</RequestID>	
+	
+	<EligibilityCriteria>
+	
+		<InclusionCriteria>
+			<!-- Patients Criterion -->
+			<Criterion UID="CRIT-ID-01" Name="-">
+				<Description>Patients over 55 years old</Description>
+				<FormalExpression Language="JSON" ID="CRIT-ID-01-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+					<BooleanExpression>
+						{"criterion":"patient", "birth_period_of_time_until_year":"1964"}
+					</BooleanExpression>
+				</FormalExpression>
+			</Criterion>
+			<!-- Medication Criterion -->
+			<Criterion UID="CRIT-ID-02" Name="-">
+				<Description>Received Glucocorticoids in the past (before now)</Description>
+				<FormalExpression Language="JSON" ID="CRIT-ID-02-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+					<BooleanExpression>
+						{"criterion":"intervention_medication","pharmacological_drug":"CHEM-10000","period_of_time_until_year":"2019"}
+					</BooleanExpression>
+				</FormalExpression>
+			</Criterion>
+			<!-- Lifestyle Criterion -->
+			<Criterion UID="CRIT-ID-03" Name="-">
+				<Description>Active Smoker with more than 200 cigarettes each year</Description>
+				<FormalExpression Language="JSON" ID="CRIT-ID-02-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+					<BooleanExpression>
+						{"criterion":"lifestyle_smoking","status_coded_value":"SMOK-STAT-01","amount_unit":"UNITEXP-18","amount_range_min_value":"200"}
+					</BooleanExpression>
+				</FormalExpression>
+			</Criterion>
+		</InclusionCriteria>
+		
+		<ExclusionCriteria>
+			<!-- Blood Test Criterion -->
+			<Criterion UID="CRIT-ID-04" Name="-">
+				<Description>Anti-Ro/SSA was true (normal)</Description>
+				<FormalExpression Language="JSON" ID="CRIT-ID-03-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+					<BooleanExpression>
+						{"criterion":"examination_lab_test","test_id":"BLOOD-530", "outcome_assessment":"ASSESS-10"}
+					</BooleanExpression>
+				</FormalExpression>
+			</Criterion>
+			<!-- Demographics Criterion -->
+			<Criterion UID="CRIT-ID-05" Name="-">
+				<Description>There was an abortion</Description>
+				<FormalExpression Language="JSON" ID="CRIT-ID-03-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+					<BooleanExpression>
+						{"criterion":"demographics_pregnancy","outcome_coded_value":"PREG-OUT-300"}
+					</BooleanExpression>
+				</FormalExpression>
+			</Criterion>
+		</ExclusionCriteria>
+		
+	</EligibilityCriteria>
+
+</iccs:PatientsSelectionRequest>
+
+
+

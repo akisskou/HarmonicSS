@@ -1,0 +1,52 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<iccs:PatientsSelectionRequest sessionID="101010203920" requestDate="2019-10-16" xsi:schemaLocation="http://www.ntua.org/criteria PatientsSelection-EligibilityCriteria-Schema-v.1.3.xsd" xmlns:iccs="http://www.ntua.org/criteria" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance">
+	<UserID>HARM-USER-13</UserID>
+	
+	<CohortID>COHORT-ID-08</CohortID>
+	<CohortID>COHORT-ID-01</CohortID>
+	
+	<RequestTitle>Patient Selection request for clinical study XYZ</RequestTitle>
+	
+	<RequestID>ELIGIBLE_PATIENTS_NUMBER</RequestID>	
+	
+	<EligibilityCriteria>
+	
+		<InclusionCriteria>
+			<!-- Biopsy Test Criterion -->
+			<Criterion UID="CRIT-ID-01" Name="-">
+				<Description>Minor Salivary Gland Greenspan Focus Score > 5</Description>
+				<FormalExpression Language="JSON" ID="CRIT-ID-01-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+					<BooleanExpression>
+						{"criterion":"examination_biopsy","biopsy_type":"SAL-BIO-20","test_id":"BIOPSY-21","outcome_amount_range_min_value":"5"}
+					</BooleanExpression>
+				</FormalExpression>
+			</Criterion>
+		</InclusionCriteria>
+		
+		<ExclusionCriteria>
+			<!-- Questionnaire Criterion -->
+			<Criterion UID="CRIT-ID-03" Name="-">
+				<Description>ESSDAI score > 22</Description>
+				<FormalExpression Language="JSON" ID="CRIT-ID-03-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+					<BooleanExpression>
+						{"criterion":"examination_questionnaire_score","score":"QUEST-010","value":"22"}
+					</BooleanExpression>
+				</FormalExpression>
+			</Criterion>
+			<!-- Demographics Criterion -->
+			<Criterion UID="CRIT-ID-04" Name="-">
+				<Description>Constitutional ESSDAI domain activity level HIGH before 2014</Description>
+				<FormalExpression Language="JSON" ID="CRIT-ID-03-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
+					<BooleanExpression>
+						{"criterion":"examination_essdai_domain","domain":"ESSDAI-01","activity_level":"ACTLVL-03","questionnaire_period_of_time_until_year":"2014"}
+					</BooleanExpression>
+				</FormalExpression>
+			</Criterion>
+		</ExclusionCriteria>
+		
+	</EligibilityCriteria>
+
+</iccs:PatientsSelectionRequest>
+
+
+

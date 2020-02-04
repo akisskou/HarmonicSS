@@ -1,0 +1,86 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html" charset="ISO-8859-1">
+<title>Execute Request</title>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+</head>
+<body>
+	<div class="container">
+		<p><a href="index.html">Home</a></p>
+		<input type="text" id="username" placeholder="username">
+		<input type="password" id="password" placeholder="password">
+		<input type="text" id="requestID" placeholder="requestID">
+        <br>
+        <br>
+        <button onclick='executeRequest()'>Execute request</button><br><br><br>
+        <div id="data">
+        </div>
+    </div>
+    
+    <!-- 4 include the jQuery library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script> 
+  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-slimScroll/1.3.8/jquery.slimscroll.min.js"></script> 
+  
+	<script type="text/javascript">
+	
+	function executeRequest() {
+		$('#data').html("<h4>Executing your request...</h4>");
+		var requestID = document.getElementById("requestID");
+	 	var username = document.getElementById("username");
+	 	var password = document.getElementById("password");
+	 	if (!(username && username.value.trim()) || !(password && password.value.trim())){
+			alert("Please enter username and password!");
+			return false;
+		}
+	 	if(!(requestID && requestID.value.trim())){
+	 		alert("Request ID must not be null!");
+			return false;
+	 	}
+ 		var HttpClient = function() {
+ 			this.get = function(aUrl, aCallback) {
+ 				var anHttpRequest = new XMLHttpRequest();
+ 				anHttpRequest.onreadystatechange = function() { 
+ 					if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+ 						aCallback(anHttpRequest.responseText);
+ 					}
+ 				anHttpRequest.open( "POST", aUrl, true ); 
+ 				anHttpRequest.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+ 				anHttpRequest.send(JSON.stringify({"requestID": requestID.value.trim(), "username": username.value.trim(), "password": password.value.trim()})); 
+ 			}
+ 		}
+ 		var theurl;
+ 		
+ 		
+ 		theurl='PatientSelectionImpl';
+ 		
+ 		var client = new HttpClient();
+ 		client.get(theurl, function(response) { 
+			var response1 = JSON.parse(response);
+			//var darId = response1.cohort_response_list;
+			
+			var cohortsResponse = response1.cohort_response_list;
+			var data = "<h4>";
+			$('#data').html(data);
+			for(i=0; i<cohortsResponse.length; i++){
+				data += cohortsResponse[i].cohort_name+": <br>Number of patients found: ";
+				if(cohortsResponse[i].patients_IDs_list.length==1 && cohortsResponse[i].patients_IDs_list[0]==="") data += "0";
+				else{
+					data += cohortsResponse[i].patients_IDs_list.length+"<br>Patient IDs: ";
+					for(j=0; j<cohortsResponse[i].patients_IDs_list.length; j++){
+						if(j==0) data += cohortsResponse[i].patients_IDs_list[j];
+						else data += ", "+cohortsResponse[i].patients_IDs_list[j];
+					}
+				}
+				
+				
+				data += "<br><br>"
+			}
+			data += "</h4>";
+			$('#data').html(data);
+			});
+	}
+	</script>
+</body>
+</html>

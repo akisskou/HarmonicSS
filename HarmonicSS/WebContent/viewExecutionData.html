@@ -1,0 +1,48 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html" charset="ISO-8859-1">
+<title>View Execution Data</title>
+</head>
+<body onload="getDataFromDB()">
+	<div class="container">
+		<p><a href="index.html">Home</a></p>
+		<h3>Execution Data Table</h3>
+        <div id="data">
+        </div>
+    </div>
+    
+    <!-- 4 include the jQuery library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>   
+	<script type="text/javascript">
+	
+	function getDataFromDB() {
+		$('#data').html("<h4>Collecting data from DB...</h4>");
+ 		var HttpClient = function() {
+ 			this.get = function(aUrl, aCallback) {
+ 				var anHttpRequest = new XMLHttpRequest();
+ 				anHttpRequest.onreadystatechange = function() { 
+ 					if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+ 						aCallback(anHttpRequest.responseText);
+ 					}
+ 				anHttpRequest.open( "GET", aUrl, true ); 
+ 				anHttpRequest.send( null ); 
+ 			}
+ 		}
+ 		var theurl='ReqRespList';
+ 		
+ 		var client = new HttpClient();
+ 		client.get(theurl, function(response) { 
+			var response1 = JSON.parse(response);
+			var htmldata='<table table-layout="auto" width="100%"><tr padding="2px"><th>USER ID</th><th>REQUEST ID</th><th>EXECUTION_DATE</th></tr>';
+			var dbList = response1.request_response_list;
+			for(i=0; i<dbList.length; i++){
+				htmldata += '<tr align="center"><td>'+dbList[i].user_id+'</td><td>'+dbList[i].request_id+'</td><td>'+dbList[i].execution_date+'</td></tr>';
+			}
+			htmldata += '</table>';
+			$('#data').html(htmldata);
+		});
+	}
+	</script>
+</body>
+</html>

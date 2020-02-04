@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html" charset="ISO-8859-1">
+<title>Create Request</title>
+</head>
+<body>
+	<div class="container">
+		
+		<p><a href="index.html">Home</a></p>
+		
+		<input type="text" id="username" placeholder="username">
+		<input type="password" id="password" placeholder="password">
+		<select id="requestXML">
+  			<option value="TestReq01">TestReq01.xml</option>
+  			<option value="TestReq02">TestReq02.xml</option>
+  			<option value="TestReq03">TestReq03.xml</option>
+  			<option value="TestReq04">TestReq04.xml</option>
+  			<option value="TestReq05">TestReq05.xml</option>
+  			<option value="Request-Tim-Test">Request-Tim-Test.xml</option>
+		</select>
+        <br>
+        <br>
+        <button onclick='createRequest()'>Create request</button><br><br><br>
+        <div id="data">
+        </div>
+    </div>
+    
+    <!-- 4 include the jQuery library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>   
+	<script type="text/javascript">
+	
+	function createRequest() {
+		$('#data').html("<h4>Creating your request...</h4>");
+ 		var HttpClient = function() {
+ 			this.get = function(aUrl, aCallback) {
+ 				var anHttpRequest = new XMLHttpRequest();
+ 				anHttpRequest.onreadystatechange = function() { 
+ 					if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+ 						aCallback(anHttpRequest.responseText);
+ 					}
+ 				anHttpRequest.open( "GET", aUrl, true ); 
+ 				anHttpRequest.send( null ); 
+ 			}
+ 		}
+ 		var theurl;
+ 		var requestXML = document.getElementById("requestXML");
+ 		var username = document.getElementById("username");
+ 		var password = document.getElementById("password");
+ 		if (!(username && username.value.trim()) || !(password && password.value.trim())){
+			alert("Please enter username and password");
+			return false;
+		}
+ 		theurl='TestServlet?requestXML='+requestXML.value.trim()+'&username='+username.value.trim()+'&password='+password.value.trim();
+ 		
+ 		var client = new HttpClient();
+ 		client.get(theurl, function(response) { 
+			var response1 = JSON.parse(response);
+			var darId = response1.requestID;
+			var htmldata="<h4>Request ID: "+darId+"<br><br>";
+			htmldata += "Inclusion criteria:<br>"+response1.incList+"<br>";
+			htmldata += "Exclusion criteria:<br>"+response1.excList+"<br>";
+			htmldata += "</h4>";
+			$('#data').html(htmldata);
+			});
+	}
+	</script>
+</body>
+</html>
