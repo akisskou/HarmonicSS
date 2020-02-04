@@ -1,7 +1,6 @@
-
-
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
@@ -13,6 +12,7 @@ import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 import java.util.stream.Stream;
 
 import javax.servlet.ServletException;
@@ -51,18 +51,22 @@ public class TestServlet extends HttpServlet {
 		// TODO Auto-generated method stub
 		//response.getWriter().append("Served at: ").append(request.getContextPath());
 		try {
-			int darId = createRequest("hrexpert", "2018-11-21 21:59:59", "2", "VAL_A1POSTED");
-			File fXmlFile = new File("TestReq1.xml");
+			Scanner s = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/config.txt"))));
+			String[] line1 = s.nextLine().split(":");
+			String[] line2 = s.nextLine().split(":");
+			String[] line3 = s.nextLine().split(":");
+			File fXmlFile = new File(getServletContext().getRealPath("/WEB-INF/"+line1[1].trim()));
+			int darId = createRequest(line2[1].trim(), line3[1].trim(), "2018-11-21 21:59:59", "2", "VAL_A1POSTED"); // TODO: current date
 			JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
   	  		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
   	  		PatientsSelectionRequest patientsSelectionRequest = ((JAXBElement<PatientsSelectionRequest>) jaxbUnmarshaller.unmarshal(fXmlFile)).getValue();
   	  		List<String> cohortList = patientsSelectionRequest.getCohortID();
   	  		for(String myCohort : cohortList) {
-  	  			setCohortsStatus(darId, myCohort.split("-")[2], 2, "2010-12-04 21:00:00", "2011-12-04 21:00:00", "Remarks for my service", "testfilename");
+  	  			setCohortsStatus(line2[1].trim(), line3[1].trim(), darId, myCohort.split("-")[2], 2, "2010-12-04 21:00:00", "2011-12-04 21:00:00", "Remarks for my service", "testfilename");
   	  			System.out.println("Cohort with id="+myCohort.split("-")[2]+" updated successfully.");
   	  		}
-			String requestXML = readLineByLineJava8("TestReq1.xml");
-			setRequestXML(darId, requestXML);
+			String requestXML = readLineByLineJava8(line1[1].trim());
+			setRequestXML(line2[1].trim(), line3[1].trim(), darId, requestXML);
 			JSONObject testResponse = new JSONObject();
 			testResponse.put("requestID", darId);
 			testResponse.put("cohortList", cohortList);
@@ -72,18 +76,6 @@ public class TestServlet extends HttpServlet {
 			PrintWriter pw = response.getWriter();
 			pw.print(testResponse.toString());
 			pw.close();
-			/*Class.forName("com.mysql.jdbc.Driver");
-			System.out.println("Congrats - Seems your MySQL JDBC Driver Registered!");
-			Connection db_con_obj = DriverManager.getConnection("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB", "emps","emps");
-			String query = "INSERT INTO EXECUTION_DATA (REQUEST_XML) VALUES (\"&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;iccs:PatientsSelectionRequest sessionID=&quot;101010203920&quot; requestDate=&quot;2019-10-16&quot; xsi:schemaLocation=&quot;http://www.ntua.org/criteria PatientsSelection-EligibilityCriteria-Schema-v.1.3.xsd&quot; xmlns:iccs=&quot;http://www.ntua.org/criteria&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt; &lt;UserID&gt;HARM-USER-15&lt;/UserID&gt; &lt;CohortID&gt;COHORT-ID-01&lt;/CohortID&gt; &lt;CohortID&gt;COHORT-ID-17&lt;/CohortID&gt; &lt;RequestTitle&gt;Patient Selection request for clinical study XYZ&lt;/RequestTitle&gt; &lt;RequestID&gt;ELIGIBLE_PATIENTS_NUMBER&lt;/RequestID&gt; &lt;EligibilityCriteria&gt; &lt;InclusionCriteria&gt; &lt;!-- Demographics Criterion --&gt; &lt;Criterion UID=&quot;CRIT-ID-01&quot; Name=&quot;-&quot;&gt; &lt;Description&gt;Received Glucocorticoids&lt;/Description&gt; &lt;FormalExpression Language=&quot;JSON&quot; ID=&quot;CRIT-ID-01-FE&quot; Origin=&quot;-&quot; InfoLoss=&quot;false&quot; ProducedBy=&quot;HarmonicSS_GUI&quot; Model=&quot;HarmonicSS_ReferenceModel&quot;&gt; &lt;BooleanExpression&gt; {&quot;criterion&quot;:&quot;condition_diagnosis&quot;,&quot;condition&quot;:&quot;COND-101000&quot;} &lt;/BooleanExpression&gt; &lt;/FormalExpression&gt; &lt;/Criterion&gt; &lt;!-- Blood Test Criterion --&gt; &lt;!--Criterion UID=&quot;CRIT-ID-03&quot; Name=&quot;-&quot;&gt; &lt;Description&gt;Diagnosed with cancer&lt;/Description&gt; &lt;FormalExpression Language=&quot;JSON&quot; ID=&quot;CRIT-ID-03-FE&quot; Origin=&quot;-&quot; InfoLoss=&quot;false&quot; ProducedBy=&quot;HarmonicSS_GUI&quot; Model=&quot;HarmonicSS_ReferenceModel&quot;&gt; &lt;BooleanExpression&gt; {&quot;criterion&quot;:&quot;condition_diagnosis&quot;,&quot;condition&quot;:&quot;COND-140000&quot;} &lt;/BooleanExpression&gt; &lt;/FormalExpression&gt; &lt;/Criterion--&gt; &lt;/InclusionCriteria&gt; &lt;ExclusionCriteria&gt; &lt;!-- Medication Criterion --&gt; &lt;Criterion UID=&quot;CRIT-ID-04&quot; Name=&quot;-&quot;&gt; &lt;Description&gt;Anti-Ro/SSA was true (normal)&lt;/Description&gt; &lt;FormalExpression Language=&quot;JSON&quot; ID=&quot;CRIT-ID-04-FE&quot; Origin=&quot;-&quot; InfoLoss=&quot;false&quot; ProducedBy=&quot;HarmonicSS_GUI&quot; Model=&quot;HarmonicSS_ReferenceModel&quot;&gt; &lt;BooleanExpression&gt; {&quot;criterion&quot;:&quot;examination_lab_test&quot;,&quot;test_id&quot;:&quot;BLOOD-530&quot;} &lt;/BooleanExpression&gt; &lt;/FormalExpression&gt; &lt;/Criterion&gt; &lt;/ExclusionCriteria&gt; &lt;/EligibilityCriteria&gt; &lt;/iccs:PatientsSelectionRequest&gt;\")";
-			PreparedStatement db_prep_obj = db_con_obj.prepareStatement(query);
-			db_prep_obj.execute();
-			query = "SELECT MAX(ID) FROM EXECUTION_DATA";
-			db_prep_obj = db_con_obj.prepareStatement(query);
-			ResultSet rs = db_prep_obj.executeQuery();
-			if(rs.next()) {
-				query = "INSERT INTO EXECUTION_DATA (REQUEST_ID) VALUES (\"Req"+rs.getString("ID")+"\") WHERE ID"
-			}*/
 		} catch (Exception e) {
 			System.out.println("Sorry, couldn't found JDBC driver. Make sure you have added JDBC Maven Dependency Correctly");
 			e.printStackTrace();
@@ -99,23 +91,21 @@ public class TestServlet extends HttpServlet {
 		doGet(request, response);
 	}
 	
-	private static int createRequest(String userId, String submitDate, String serviceId, String justification) {
+	// TODO: Close connections
+	
+	private static int createRequest(String username, String password, String submitDate, String serviceId, String justification) {
 		try{
 			HttpServletResponse response = null;
 			URL url = new URL("https://private.harmonicss.eu/index.php/apps/coh/api/1.0/dar");
-			String name = "hrexpert";
-	        String password = "1hrexpert2!";
-
-	        String authString = name + ":" + password;
+	        String authString = username + ":" + password;
 	        byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
 	        String authStringEnc = new String(authEncBytes);
 			JSONObject params = new JSONObject();
-			params.put("userId", userId);
+			params.put("userId", username);
 		    params.put("submitDate", submitDate);
 		    params.put("serviceId", serviceId);
 		    params.put("justification", justification);
 		    String postData = params.toString();
-		    //System.out.println(postData);
 		    byte[] postDataBytes = postData.getBytes("UTF-8");
 		    HttpURLConnection conn = (HttpURLConnection)url.openConnection();
 		    conn.setRequestMethod("POST");
@@ -154,13 +144,10 @@ public class TestServlet extends HttpServlet {
 	    return contentBuilder.toString();
 	}
 	
-	private static void setCohortsStatus(int darId, String cohortId, int statusId, String statusDate, String validDate, String remarks, String filename) {
+	private static void setCohortsStatus(String username, String password, int darId, String cohortId, int statusId, String statusDate, String validDate, String remarks, String filename) {
 		try{
 			URL url = new URL("https://private.harmonicss.eu/index.php/apps/coh/api/1.0/p6");
-			String name = "hrexpert";
-	        String password = "1hrexpert2!";
-
-	        String authString = name + ":" + password;
+	        String authString = username + ":" + password;
 	        byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
 	        String authStringEnc = new String(authEncBytes);
 			JSONObject params = new JSONObject();
@@ -193,20 +180,16 @@ public class TestServlet extends HttpServlet {
    		}
 	}
 	
-	private static void setRequestXML(int darId, String requestXML) {
+	private static void setRequestXML(String username, String password, int darId, String requestXML) {
 		try{
 			URL url = new URL("https://private.harmonicss.eu/hcloud/index.php/apps/coh/api/1.0/s1");
-			String name = "hrexpert";
-	        String password = "1hrexpert2!";
-
-	        String authString = name + ":" + password;
+	        String authString = username + ":" + password;
 	        byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
 	        String authStringEnc = new String(authEncBytes);
 			JSONObject params = new JSONObject();
 			params.put("darId", darId);
-		    params.put("serviceConfig",requestXML.replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")); //"&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;iccs:PatientsSelectionRequest sessionID=&quot;101010203920&quot; requestDate=&quot;2019-10-16&quot; xsi:schemaLocation=&quot;http://www.ntua.org/criteria PatientsSelection-EligibilityCriteria-Schema-v.1.3.xsd&quot; xmlns:iccs=&quot;http://www.ntua.org/criteria&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt; &lt;UserID&gt;HARM-USER-15&lt;/UserID&gt; &lt;CohortID&gt;COHORT-ID-01&lt;/CohortID&gt; &lt;CohortID&gt;COHORT-ID-17&lt;/CohortID&gt; &lt;RequestTitle&gt;Patient Selection request for clinical study XYZ&lt;/RequestTitle&gt; &lt;RequestID&gt;ELIGIBLE_PATIENTS_NUMBER&lt;/RequestID&gt; &lt;EligibilityCriteria&gt; &lt;InclusionCriteria&gt; &lt;!-- Demographics Criterion --&gt; &lt;Criterion UID=&quot;CRIT-ID-01&quot; Name=&quot;-&quot;&gt; &lt;Description&gt;Received Glucocorticoids&lt;/Description&gt; &lt;FormalExpression Language=&quot;JSON&quot; ID=&quot;CRIT-ID-01-FE&quot; Origin=&quot;-&quot; InfoLoss=&quot;false&quot; ProducedBy=&quot;HarmonicSS_GUI&quot; Model=&quot;HarmonicSS_ReferenceModel&quot;&gt; &lt;BooleanExpression&gt; {&quot;criterion&quot;:&quot;condition_diagnosis&quot;,&quot;condition&quot;:&quot;COND-101000&quot;} &lt;/BooleanExpression&gt; &lt;/FormalExpression&gt; &lt;/Criterion&gt; &lt;!-- Blood Test Criterion --&gt; &lt;!--Criterion UID=&quot;CRIT-ID-03&quot; Name=&quot;-&quot;&gt; &lt;Description&gt;Diagnosed with cancer&lt;/Description&gt; &lt;FormalExpression Language=&quot;JSON&quot; ID=&quot;CRIT-ID-03-FE&quot; Origin=&quot;-&quot; InfoLoss=&quot;false&quot; ProducedBy=&quot;HarmonicSS_GUI&quot; Model=&quot;HarmonicSS_ReferenceModel&quot;&gt; &lt;BooleanExpression&gt; {&quot;criterion&quot;:&quot;condition_diagnosis&quot;,&quot;condition&quot;:&quot;COND-140000&quot;} &lt;/BooleanExpression&gt; &lt;/FormalExpression&gt; &lt;/Criterion--&gt; &lt;/InclusionCriteria&gt; &lt;ExclusionCriteria&gt; &lt;!-- Medication Criterion --&gt; &lt;Criterion UID=&quot;CRIT-ID-04&quot; Name=&quot;-&quot;&gt; &lt;Description&gt;Anti-Ro/SSA was true (normal)&lt;/Description&gt; &lt;FormalExpression Language=&quot;JSON&quot; ID=&quot;CRIT-ID-04-FE&quot; Origin=&quot;-&quot; InfoLoss=&quot;false&quot; ProducedBy=&quot;HarmonicSS_GUI&quot; Model=&quot;HarmonicSS_ReferenceModel&quot;&gt; &lt;BooleanExpression&gt; {&quot;criterion&quot;:&quot;examination_lab_test&quot;,&quot;test_id&quot;:&quot;BLOOD-530&quot;} &lt;/BooleanExpression&gt; &lt;/FormalExpression&gt; &lt;/Criterion&gt; &lt;/ExclusionCriteria&gt; &lt;/EligibilityCriteria&gt; &lt;/iccs:PatientsSelectionRequest&gt;");
+		    params.put("serviceConfig",requestXML.replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;")); //.replace("\n","").replace("\t","")); //"&lt;?xml version=&quot;1.0&quot; encoding=&quot;UTF-8&quot;?&gt; &lt;iccs:PatientsSelectionRequest sessionID=&quot;101010203920&quot; requestDate=&quot;2019-10-16&quot; xsi:schemaLocation=&quot;http://www.ntua.org/criteria PatientsSelection-EligibilityCriteria-Schema-v.1.3.xsd&quot; xmlns:iccs=&quot;http://www.ntua.org/criteria&quot; xmlns:xsi=&quot;http://www.w3.org/2001/XMLSchema-instance&quot;&gt; &lt;UserID&gt;HARM-USER-15&lt;/UserID&gt; &lt;CohortID&gt;COHORT-ID-01&lt;/CohortID&gt; &lt;CohortID&gt;COHORT-ID-17&lt;/CohortID&gt; &lt;RequestTitle&gt;Patient Selection request for clinical study XYZ&lt;/RequestTitle&gt; &lt;RequestID&gt;ELIGIBLE_PATIENTS_NUMBER&lt;/RequestID&gt; &lt;EligibilityCriteria&gt; &lt;InclusionCriteria&gt; &lt;!-- Demographics Criterion --&gt; &lt;Criterion UID=&quot;CRIT-ID-01&quot; Name=&quot;-&quot;&gt; &lt;Description&gt;Received Glucocorticoids&lt;/Description&gt; &lt;FormalExpression Language=&quot;JSON&quot; ID=&quot;CRIT-ID-01-FE&quot; Origin=&quot;-&quot; InfoLoss=&quot;false&quot; ProducedBy=&quot;HarmonicSS_GUI&quot; Model=&quot;HarmonicSS_ReferenceModel&quot;&gt; &lt;BooleanExpression&gt; {&quot;criterion&quot;:&quot;condition_diagnosis&quot;,&quot;condition&quot;:&quot;COND-101000&quot;} &lt;/BooleanExpression&gt; &lt;/FormalExpression&gt; &lt;/Criterion&gt; &lt;!-- Blood Test Criterion --&gt; &lt;!--Criterion UID=&quot;CRIT-ID-03&quot; Name=&quot;-&quot;&gt; &lt;Description&gt;Diagnosed with cancer&lt;/Description&gt; &lt;FormalExpression Language=&quot;JSON&quot; ID=&quot;CRIT-ID-03-FE&quot; Origin=&quot;-&quot; InfoLoss=&quot;false&quot; ProducedBy=&quot;HarmonicSS_GUI&quot; Model=&quot;HarmonicSS_ReferenceModel&quot;&gt; &lt;BooleanExpression&gt; {&quot;criterion&quot;:&quot;condition_diagnosis&quot;,&quot;condition&quot;:&quot;COND-140000&quot;} &lt;/BooleanExpression&gt; &lt;/FormalExpression&gt; &lt;/Criterion--&gt; &lt;/InclusionCriteria&gt; &lt;ExclusionCriteria&gt; &lt;!-- Medication Criterion --&gt; &lt;Criterion UID=&quot;CRIT-ID-04&quot; Name=&quot;-&quot;&gt; &lt;Description&gt;Anti-Ro/SSA was true (normal)&lt;/Description&gt; &lt;FormalExpression Language=&quot;JSON&quot; ID=&quot;CRIT-ID-04-FE&quot; Origin=&quot;-&quot; InfoLoss=&quot;false&quot; ProducedBy=&quot;HarmonicSS_GUI&quot; Model=&quot;HarmonicSS_ReferenceModel&quot;&gt; &lt;BooleanExpression&gt; {&quot;criterion&quot;:&quot;examination_lab_test&quot;,&quot;test_id&quot;:&quot;BLOOD-530&quot;} &lt;/BooleanExpression&gt; &lt;/FormalExpression&gt; &lt;/Criterion&gt; &lt;/ExclusionCriteria&gt; &lt;/EligibilityCriteria&gt; &lt;/iccs:PatientsSelectionRequest&gt;");
 		    String postData = params.toString();
-		    //System.out.println(postData);
 		    byte[] postDataBytes = postData.getBytes("UTF-8");
 		    HttpURLConnection conn = (HttpURLConnection)url.openConnection();
 		    conn.setRequestMethod("PUT");
@@ -225,12 +208,4 @@ public class TestServlet extends HttpServlet {
    			System.out.println(e);
    		}
 	}
-	
-	/*public static void main(String[] args) throws Exception {
-		
-		
-		
-		
-	}*/
-
 }
