@@ -1528,6 +1528,26 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     			if(i==cohorts.length()-1) createXML=true;
     			writeXMLResponse(i, createXML);	
     			cohortResponse.put("patients_IDs_list", results.UIDs_defined_ALL_elements);
+    			String result_incl = "";
+      	  		String result_excl = "";
+      	  		int j = 0;
+      	  		for(org.ntua.criteria.Criterion inclCriterion: patientsSelectionRequest.getEligibilityCriteria().getInclusionCriteria().getCriterion()){
+      	  			//System.out.println(inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim());
+      	  			result_incl+=inclCriterion.getDescription()+": "+inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim();
+      	  			if(inclusion_criteria.get(j).getString("usage").equals("used")) result_incl += " - USED<br>";
+      	  			else result_incl += " - NOT USED<br>";
+      	  			j++;
+      	  		}
+      	  		cohortResponse.put("inclusion_criteria", "Inclusion Criteria: <br>"+result_incl);
+      	  		j=0;
+      	  		for(org.ntua.criteria.Criterion exclCriterion: patientsSelectionRequest.getEligibilityCriteria().getExclusionCriteria().getCriterion()){
+      	  			//System.out.println(exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim());
+      	  			result_excl+=exclCriterion.getDescription()+": "+exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim();
+      	  			if(exclusion_criteria.get(j).getString("usage").equals("used")) result_excl += " - USED<br>";
+      	  			else result_excl += " - NOT USED<br>";
+      	  			j++;
+      	  		}
+      	  		cohortResponse.put("exclusion_criteria", "Exclusion Criteria: <br>"+result_excl);
     			cohortResponseList.add(cohortResponse);
     			inclusion_criteria.clear();
     			exclusion_criteria.clear();
