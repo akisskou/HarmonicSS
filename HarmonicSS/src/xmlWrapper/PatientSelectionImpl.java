@@ -33,6 +33,8 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 //import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
+import com.google.gson.Gson;
+
 import jsonProcess.*;
 import criterionManager.*;
 import criterionManager.Criterion;
@@ -1511,8 +1513,8 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     		JSONObject cohortResponse = new JSONObject();
     		String cohortName = "";
     		//if(cohorts.getJSONObject(i).get("cohortId").equals("2")) cohortName = "Harm-DB-09";
-    		if(cohorts.getJSONObject(i).get("cohortId").equals("3")) cohortName = "Harm-DB-09";
-    		else cohortName = "Harm-DB-0"+cohorts.getJSONObject(i).get("cohortId");
+    		//if(cohorts.getJSONObject(i).get("cohortId").equals("3")) cohortName = "Harm-DB-09";
+    		cohortName = "Harm-DB-0"+cohorts.getJSONObject(i).get("cohortId");
     		cohortResponse.put("cohort_name", cohortName);
     		if(cohorts.getJSONObject(i).get("statusId").equals("2")) {
     			
@@ -1871,15 +1873,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				e1.printStackTrace();
 				//return "JsonParseException Bad JSON format.";
 			}
-	    	/*ConfigureFile obj = new ConfigureFile("jdbc:mysql://localhost:3306/harmonicssdb?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC","root","");
-	    	//ConfigureFile obj = new ConfigureFile("jdbc:mysql://147.102.19.66:3306/harmonicssdb?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC","emps","emps");
 	    	
-			if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
-	    	else System.out.println("everything's gooooooood");
-	    	
-	    	criterionDBmatching(list_of_inclusive_criterions,list_of_exclusive_criterions);
-			writeXMLResponse();			
-			System.out.println("End");*/
 			try {
 				accessCohorts(requestID, username, password, list_of_inclusive_criterions, list_of_exclusive_criterions);
 			} catch (IOException e) {
@@ -1914,7 +1908,122 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
+		// TODO Auto-generated method stu
+		JSONObject all = new JSONObject();
+		cohortResponseList.clear();
+		Infos req = new Gson().fromJson(request.getReader(), Infos.class);
+		//cohortResponseList
+		requestID = req.requestID;
+		if(requestID!=null){
+			try {
+				all.put("requestId", requestID);
+			} catch (JSONException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
+	    	manager = OWLManager.createOWLOntologyManager();
+	    	Scanner s1 = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/infos.txt"))));
+			String[] line = s1.nextLine().split(":");
+		    //documentIRI = IRI.create("file:///C:/Users/Jason/Desktop/", "HarmonicSS-Reference-Model+Vocabularies-v.0.9.owl");
+			documentIRI = IRI.create(getServletContext().getResource("/WEB-INF/"+line[1].trim()));
+		    try{
+		        ontology = manager.loadOntologyFromOntologyDocument(documentIRI);
+	            findClasses();
+	            findSubclasses();
+			}
+			catch (OWLOntologyCreationException e) {
+		        e.printStackTrace();
+				
+			}
+			String crit_incl_excl_in = readXMLbyRequestID(requestID, req.username, req.password);
+			System.out.println(crit_incl_excl_in);
+			String[] crit_incl_excl=crit_incl_excl_in.split("XXX");
+			String criteria = Intermediate_Layer.preProcess_JSON(crit_incl_excl[0]);
+			System.out.println("After Criteria preprocessed:\n"+criteria);
+			ArrayList<Criterion> list_of_inclusive_criterions=null;
+			try {
+				list_of_inclusive_criterions = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+				//findCriterion((Criterion)list_of_inclusive_criterions.get(0));
+				System.out.println(list_of_inclusive_criterions);
+				
+			} catch (JsonParseException e1) {
+				/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
+				flush_handler();*/
+				e1.printStackTrace();
+				//return "JsonParseException Bad JSON format.";
+			} catch (JsonMappingException e1) {
+				/*LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
+				flush_handler();*/
+				e1.printStackTrace();
+				//return "JsonParseException Bad JSON format.";
+			} catch (IOException e1) {
+				/*LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
+				flush_handler();*/
+				e1.printStackTrace();
+				//return "JsonParseException Bad JSON format.";
+			}
+			criteria = Intermediate_Layer.preProcess_JSON(crit_incl_excl[1]);
+			System.out.println("After Criteria preprocessed:\n"+criteria);
+			ArrayList<Criterion> list_of_exclusive_criterions=null;
+			try {
+				list_of_exclusive_criterions = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+				//findCriterion((Criterion)list_of_exclusive_criterions.get(0));
+				System.out.println(list_of_exclusive_criterions);
+					
+			} catch (JsonParseException e1) {
+				/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
+				flush_handler();*/
+				e1.printStackTrace();
+				//return "JsonParseException Bad JSON format.";
+			} catch (JsonMappingException e1) {
+				/*LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
+				flush_handler();*/
+				e1.printStackTrace();
+				//return "JsonParseException Bad JSON format.";
+			} catch (IOException e1) {
+				/*LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
+				flush_handler();*/
+				e1.printStackTrace();
+				//return "JsonParseException Bad JSON format.";
+			}
+	    	/*ConfigureFile obj = new ConfigureFile("jdbc:mysql://localhost:3306/harmonicssdb?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC","root","");
+	    	//ConfigureFile obj = new ConfigureFile("jdbc:mysql://147.102.19.66:3306/harmonicssdb?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC","emps","emps");
+	    	
+			if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
+	    	else System.out.println("everything's gooooooood");
+	    	
+	    	criterionDBmatching(list_of_inclusive_criterions,list_of_exclusive_criterions);
+			writeXMLResponse();			
+			System.out.println("End");*/
+			try {
+				accessCohorts(requestID, req.username, req.password, list_of_inclusive_criterions, list_of_exclusive_criterions);
+			} catch (IOException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (JSONException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (SQLException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			} catch (ClassNotFoundException e) {
+				// TODO Auto-generated catch block
+				e.printStackTrace();
+			}
+			
+		}
+		try {
+			all.put("cohort_response_list", cohortResponseList);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+		response.setContentType("text/html; charset=UTF-8");
+		response.setCharacterEncoding("UTF-8");
+		PrintWriter pw = response.getWriter();
+		pw.flush();
+		pw.print(all.toString());
+		pw.close();
 	}
 
 }
