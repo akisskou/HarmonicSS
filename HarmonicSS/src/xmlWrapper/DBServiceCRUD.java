@@ -13,6 +13,7 @@ import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
 import java.util.Date;
 import java.util.stream.Stream;
@@ -92,31 +93,6 @@ public class DBServiceCRUD {
 			else termsFound += ", " + rs.getString("NAME");
 		}
 		return termsFound;
-	}
-	
-	public static void setExecutedDataToDB(String darId) throws SQLException {
-		String requestXML = readLineByLineJava8("Request"+darId+".xml");
-		String responseXML = readLineByLineJava8("Response"+darId+".xml");
-		/*SimpleDateFormat formatter= new SimpleDateFormat("yyyy-MM-dd 'at' HH:mm:ss z");
-		Date date = new Date(System.currentTimeMillis());
-		String execDate = formatter.format(date);*/
-		String query = "INSERT INTO EXECUTION_DATA (REQUEST_ID, REQUEST_XML, RESPONSE_XML) VALUES ("+darId+", "+requestXML+", "+responseXML+")";
-		db_prep_obj = db_con_obj.prepareStatement(query);
-		db_prep_obj.execute();
-	}
-	
-	private static String readLineByLineJava8(String filePath) 
-	{
-	    StringBuilder contentBuilder = new StringBuilder();
-	    try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.UTF_8)) 
-	    {
-	        stream.forEach(s -> contentBuilder.append(s).append("\n"));
-	    }
-	    catch (IOException e) 
-	    {
-	        e.printStackTrace();
-	    }
-	    return contentBuilder.toString();
 	}
 	
 	public static String getDataFromDB(String getQueryStatement) throws SQLException {

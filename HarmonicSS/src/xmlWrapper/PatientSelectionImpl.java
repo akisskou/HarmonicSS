@@ -1,6 +1,7 @@
 package xmlWrapper;
 
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 
 import javax.servlet.ServletException;
@@ -32,12 +33,11 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 //import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
-import com.google.gson.Gson;
-
 import jsonProcess.*;
 import criterionManager.*;
 import criterionManager.Criterion;
 
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
 
@@ -48,12 +48,14 @@ import static queries.SQL_aux_functions.Make_specific_date_query;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
+import java.net.URLConnection;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
 import java.nio.file.Paths;
@@ -71,6 +73,7 @@ import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
 import java.util.logging.Level;
@@ -175,9 +178,51 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		}	
     	return narrowTerms;
     }
+    
+    private String getXMLS2(String requestID, String username, String password) {
+    	 String myXML = "";
+    	try {
+	        String webPage = "https://private.harmonicss.eu/index.php/apps/coh/api/1.0/s2?darId="+requestID;
+
+	        String authString = username + ":" + password;
+	        System.out.println("auth string: " + authString);
+	        byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
+	        String authStringEnc = new String(authEncBytes);
+	        System.out.println("Base64 encoded auth string: " + authStringEnc);
+
+	        URL url = new URL(webPage);
+	        URLConnection urlConnection = url.openConnection();
+	        urlConnection.setRequestProperty("Authorization", "Basic " + authStringEnc);
+	        InputStream is = urlConnection.getInputStream();
+	        InputStreamReader isr = new InputStreamReader(is);
+
+	        int numCharsRead;
+	        char[] charArray = new char[1024];
+	        StringBuffer sb = new StringBuffer();
+	        while ((numCharsRead = isr.read(charArray)) > 0) {
+	            sb.append(charArray, 0, numCharsRead);
+	        }
+	        String result = sb.toString();
+	        JSONArray jsonarray = new JSONArray(result);
+	        myXML = jsonarray.getJSONObject(0).get("serviceConfig").toString();
+	        
+	        
+	       /* System.out.println("*** BEGIN ***");
+	        System.out.println(result);
+	        System.out.println("*** END ***");*/
+	    } catch (MalformedURLException e) {
+	        e.printStackTrace();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    } catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
+    	return myXML;
+    }
 
     @SuppressWarnings("unchecked")
-	public String readXMLbyRequestID(String requestID){
+	public String readXMLbyRequestID(String requestID, String username, String password){
   	  	cohort_names.clear();
   	  	String result_incl = "";
   	  	String result_excl = "";
@@ -190,23 +235,23 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	    	
 	    	DBServiceCRUD.getXMLRequestFromDB(requestID);*/
 	    	
-	    	URL myXMLService = new URL("http://localhost:8080/GetXMLS2/GetXMLServlet?darId="+requestID);
+	    	/*URL myXMLService = new URL("http://localhost:8080/GetXMLS2/GetXMLServlet?darId="+requestID);
 	    	HttpURLConnection con = (HttpURLConnection) myXMLService.openConnection();
 			con.setRequestMethod("GET");
 			con.setDoOutput(true);
 			Reader in = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
 		    StringBuilder sb = new StringBuilder();
 		    for (int c; (c = in.read()) >= 0;)
-		        sb.append((char)c);
-		    String resp = sb.toString().replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"");
+		        sb.append((char)c);*/
+		    String resp = getXMLS2(requestID,username,password).toString().replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"");
 		    
 		    System.out.println(resp);
 		    
-		    FileWriter fw = new FileWriter("Request"+requestID+".xml");
+		    FileWriter fw = new FileWriter(getServletContext().getRealPath("/WEB-INF/Request"+requestID+".xml"));
 		    fw.write(resp);
 			fw.close();
 		    
-			File fXmlFile = new File("Request"+requestID+".xml");
+			File fXmlFile = new File(getServletContext().getRealPath("/WEB-INF/Request"+requestID+".xml"));
 	    	jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
   	  		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
   	  		patientsSelectionRequest = ((JAXBElement<PatientsSelectionRequest>) jaxbUnmarshaller.unmarshal(fXmlFile)).getValue();
@@ -1403,7 +1448,8 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     			patientsSelectionResponse.getCohortResponse().add(cohortResponse);
     		//}
     		if(createXML) {
-    		File fXmlFile = new File("Response"+requestID+".xml");
+    		File fXmlFile = new File(getServletContext().getRealPath("/WEB-INF/Response"+requestID+".xml"));
+    		//File fXmlFile = new File("Response"+requestID+".xml");
     		ObjectFactory objectFactory = new ObjectFactory();
     		JAXBElement<PatientsSelectionResponse> je =  objectFactory.createPatientsSelectionResponse(patientsSelectionResponse);
     		xmljaxbMarshaller.marshal(je, fXmlFile);
@@ -1414,21 +1460,59 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     	}
     }
     
-    public void accessCohorts(String darID, ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions) throws IOException, JSONException, SQLException, ClassNotFoundException{
+    private String getCohortsC4(String darID, String username, String password) {
+    	String result = "";
+    	try {
+	        String webPage = "https://private.harmonicss.eu/index.php/apps/coh/api/1.0/c4?darId="+darID;
+
+	        String authString = username + ":" + password;
+	        System.out.println("auth string: " + authString);
+	        byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
+	        String authStringEnc = new String(authEncBytes);
+	        System.out.println("Base64 encoded auth string: " + authStringEnc);
+
+	        URL url = new URL(webPage);
+	        URLConnection urlConnection = url.openConnection();
+	        urlConnection.setRequestProperty("Authorization", "Basic " + authStringEnc);
+	        InputStream is = urlConnection.getInputStream();
+	        InputStreamReader isr = new InputStreamReader(is);
+
+	        int numCharsRead;
+	        char[] charArray = new char[1024];
+	        StringBuffer sb = new StringBuffer();
+	        while ((numCharsRead = isr.read(charArray)) > 0) {
+	            sb.append(charArray, 0, numCharsRead);
+	        }
+	        result = sb.toString();
+	        /*System.out.println("*** BEGIN ***");
+	        System.out.println(result);
+	        System.out.println("*** END ***");*/
+	    } catch (MalformedURLException e) {
+	        e.printStackTrace();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+    	return result;
+    }
+    
+    public void accessCohorts(String darID, String username, String password, ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions) throws IOException, JSONException, SQLException, ClassNotFoundException{
     	//String[] cohortAccess = new String[cohort_names.size()];
-    	URL myXMLService = new URL("http://localhost:8080/GetCohortsC4New/GetCohortsServlet?darId="+darID);
+    	/*URL myXMLService = new URL("http://localhost:8080/GetCohortsC4New/GetCohortsServlet?darId="+darID);
     	HttpURLConnection con = (HttpURLConnection) myXMLService.openConnection();
 		con.setRequestMethod("GET");
 		con.setDoOutput(true);
 		Reader in = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
 	    StringBuilder sb = new StringBuilder();
 	    for (int c; (c = in.read()) >= 0;)
-	        sb.append((char)c);
-	    JSONArray cohorts = new JSONArray(sb.toString());
+	        sb.append((char)c);*/
+	    JSONArray cohorts = new JSONArray(getCohortsC4(darID, username, password));
 	    boolean createXML = false;
     	for(int i=0; i<cohorts.length(); i++){
     		JSONObject cohortResponse = new JSONObject();
-    		String cohortName = "Harm-DB-0"+cohorts.getJSONObject(i).get("cohortId");
+    		String cohortName = "";
+    		//if(cohorts.getJSONObject(i).get("cohortId").equals("2")) cohortName = "Harm-DB-09";
+    		if(cohorts.getJSONObject(i).get("cohortId").equals("3")) cohortName = "Harm-DB-09";
+    		else cohortName = "Harm-DB-0"+cohorts.getJSONObject(i).get("cohortId");
     		cohortResponse.put("cohort_name", cohortName);
     		if(cohorts.getJSONObject(i).get("statusId").equals("2")) {
     			
@@ -1463,17 +1547,19 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     	Class.forName("com.mysql.jdbc.Driver");
 		System.out.println("Congrats - Seems your MySQL JDBC Driver Registered!");
 		Connection db_con_obj = DriverManager.getConnection("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB", "emps","emps");
-		String requestXML = readLineByLineJava8("Request"+darID+".xml");
-		String responseXML = readLineByLineJava8("Response"+darID+".xml");
+		String requestXML = readLineByLineJava8(getServletContext().getRealPath("/WEB-INF/Request"+darID+".xml"));
+		String responseXML = readLineByLineJava8(getServletContext().getRealPath("/WEB-INF/Response"+darID+".xml"));
+		//String responseXML = readLineByLineJava8("Response"+darID+".xml");
 		Date date = new Date();
 		Object param = new java.sql.Timestamp(date.getTime());
 		System.out.println(darID);
-		String query = "INSERT INTO EXECUTION_DATA (REQUEST_ID, REQUEST_XML, EXECUTION_DATE, RESPONSE_XML) VALUES (?, ?, ?, ?)";
+		String query = "INSERT INTO EXECUTION_DATA (USER_ID, REQUEST_ID, REQUEST_XML, EXECUTION_DATE, RESPONSE_XML) VALUES (?, ?, ?, ?, ?)";
 		PreparedStatement db_prep_obj = db_con_obj.prepareStatement(query);
-		db_prep_obj.setString(1, darID);
-		db_prep_obj.setString(2, requestXML.replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;"));
-		db_prep_obj.setTimestamp(3, (Timestamp) param);
-		db_prep_obj.setString(4, responseXML.replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;"));
+		db_prep_obj.setString(1, username);
+		db_prep_obj.setString(2, darID);
+		db_prep_obj.setString(3, requestXML.replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;"));
+		db_prep_obj.setTimestamp(4, (Timestamp) param);
+		db_prep_obj.setString(5, responseXML.replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;"));
 		db_prep_obj.execute();
     	System.out.println("-------------------------------- Execution data saved to database -------------------------------");
     	
@@ -1500,37 +1586,37 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     	switch(crit.getCriterion()) {
     		case "demographics_gender": {
     			query = "SELECT * FROM demo_sex_data";
-    			termAndSubterms = "No gender data";
+    			termAndSubterms = "Search for gender data";
     		}
     		break;
     		case "demographics_ethnicity": {
     			query = "SELECT * FROM demo_ethnicity_data";
-    			termAndSubterms = "No ethnicity data";
+    			termAndSubterms = "Search for ethnicity data";
     		}
     		break;
     		case "demographics_education": {
     			query = "SELECT * FROM demo_education_level_data";
-    			termAndSubterms = "No education data";
+    			termAndSubterms = "Search for education data";
     		}
     		break;
     		case "demographics_weight": {
     			query = "SELECT * FROM demo_weight_data";
-    			termAndSubterms = "No weight data";
+    			termAndSubterms = "Search for weight data";
     		}
     		break;
     		case "demographics_occupation": {
     			query = "SELECT * FROM demo_occupation_data";
-    			termAndSubterms = "No occupation data";
+    			termAndSubterms = "Search for occupation data";
     		}
     		break;
     		case "demographics_pregnancy": {
     			query = "SELECT * FROM demo_pregnancy_data";
-    			termAndSubterms = "No pregnancy data";
+    			termAndSubterms = "Search for pregnancy data";
     		}
     		break;
     		case "lifestyle_smoking": {
     			query = "SELECT * FROM lifestyle_smoking";
-    			termAndSubterms = "No smoking data";
+    			termAndSubterms = "Search for smoking data";
     		}
     		break;
     		case "condition_symptom": {
@@ -1572,12 +1658,12 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     		case "intervention_chemotherapy": {
 				  //intervention_chemotherapy  crit_interv_chemotherapy_obj =  (intervention_chemotherapy)crit;
 				query = "SELECT * FROM interv_chemotherapy"; //, voc_confirmation WHERE interv_chemotherapy.DUE_TO_PSS_ID = voc_confirmation.ID AND " + Make_OR_of_CODES("voc_confirmation.CODE", crit_interv_chemotherapy_obj.getReason());
-				termAndSubterms = "No chemotherapy data";
+				termAndSubterms = "Search for chemotherapy data";
     		}
     		break;
     		case "intervention_surgery": { 
     			query = "SELECT * FROM intervention_surgery";
-    			termAndSubterms = "No surgery data";
+    			termAndSubterms = "Search for surgery data";
     		}
     		break;
     		case "examination_lab_test": {
@@ -1660,12 +1746,12 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     		break;
     		case "other_clinical_trials": { //Check if user provided the info of all the fields 
 				query = "SELECT * FROM other_clinical_trials"; 
-				termAndSubterms = "No other clinical trials data";
+				termAndSubterms = "Search for other clinical trials data";
     		}
     		break;
     		case "patient": { //Check if user provided the info of all the fields 
 				query = "SELECT * FROM patient";
-				termAndSubterms = "No patients data";
+				termAndSubterms = "Search for patients data";
     		}
     		break;
     		default: System.out.println("Undefined criterion-name in the input JSON file.");
@@ -1709,9 +1795,17 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		//cohortResponseList
 		requestID = request.getParameter("requestID");
 		if(requestID!=null){
-			all.put("requestId", requestID);
+			try {
+				all.put("requestId", requestID);
+			} catch (JSONException e2) {
+				// TODO Auto-generated catch block
+				e2.printStackTrace();
+			}
 	    	manager = OWLManager.createOWLOntologyManager();
-		    documentIRI = IRI.create("file:///C:/Users/Jason/Desktop/", "HarmonicSS-Reference-Model+Vocabularies-v.0.9.owl");
+	    	Scanner s1 = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/infos.txt"))));
+			String[] line = s1.nextLine().split(":");
+		    //documentIRI = IRI.create("file:///C:/Users/Jason/Desktop/", "HarmonicSS-Reference-Model+Vocabularies-v.0.9.owl");
+			documentIRI = IRI.create(getServletContext().getResource("/WEB-INF/"+line[1].trim()));
 		    try{
 		        ontology = manager.loadOntologyFromOntologyDocument(documentIRI);
 	            findClasses();
@@ -1721,8 +1815,12 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		        e.printStackTrace();
 				
 			}
-		    
-			String crit_incl_excl_in = readXMLbyRequestID(requestID);
+		    Scanner s = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/credentials.txt"))));
+			String[] line1 = s.nextLine().split(":");
+			String[] line2 = s.nextLine().split(":");
+		    String username = line1[1].trim();
+		    String password = line2[1].trim();
+			String crit_incl_excl_in = readXMLbyRequestID(requestID, username, password);
 			System.out.println(crit_incl_excl_in);
 			String[] crit_incl_excl=crit_incl_excl_in.split("XXX");
 			String criteria = Intermediate_Layer.preProcess_JSON(crit_incl_excl[0]);
@@ -1783,7 +1881,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			writeXMLResponse();			
 			System.out.println("End");*/
 			try {
-				accessCohorts(requestID, list_of_inclusive_criterions, list_of_exclusive_criterions);
+				accessCohorts(requestID, username, password, list_of_inclusive_criterions, list_of_exclusive_criterions);
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
 				e.printStackTrace();
@@ -1799,7 +1897,12 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			}
 			
 		}
-		all.put("cohort_response_list", cohortResponseList);
+		try {
+			all.put("cohort_response_list", cohortResponseList);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		}
 		response.setContentType("text/html; charset=UTF-8");
 		response.setCharacterEncoding("UTF-8");
 		PrintWriter pw = response.getWriter();
