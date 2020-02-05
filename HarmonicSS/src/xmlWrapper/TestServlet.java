@@ -7,6 +7,7 @@ import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
 import java.net.HttpURLConnection;
+import java.net.URI;
 import java.net.URL;
 import java.nio.charset.StandardCharsets;
 import java.nio.file.Files;
@@ -54,14 +55,13 @@ public class TestServlet extends HttpServlet {
 		// TODO Auto-generated method stub
 		//response.getWriter().append("Served at: ").append(request.getContextPath());
 		try {
-			/*Scanner s = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/config.txt"))));
+			Scanner s = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/properties.txt"))));
 			String[] line1 = s.nextLine().split(":");
-			String[] line2 = s.nextLine().split(":");
-			String[] line3 = s.nextLine().split(":");*/
 			String myRequestXML = request.getParameter("requestXML");
 			String username = request.getParameter("username");
 			String password = request.getParameter("password");
-			File fXmlFile = new File(getServletContext().getRealPath("/WEB-INF/"+myRequestXML+".xml"));
+			//File fXmlFile = new File(getServletContext().getRealPath("/WEB-INF/"+myRequestXML+".xml"));
+			File fXmlFile = new File(new URI("file:///C:"+line1[1].trim()+myRequestXML+".xml"));
 			Date date = new Date();
 			Object param = new java.sql.Timestamp(date.getTime());
 			int darId = createRequest(username, password, ((Timestamp)param).toString(), "1", "VAL_A1POSTED"); // TODO: current date
@@ -83,8 +83,9 @@ public class TestServlet extends HttpServlet {
   	  			setCohortsStatus(username, password, darId, myCohort.split("-")[2], 2, ((Timestamp)param).toString(), ((Timestamp)param).toString(), "Remarks for my service", "testfilename");
   	  			System.out.println("Cohort with id="+myCohort.split("-")[2]+" updated successfully.");
   	  		}
-			String requestXML = readLineByLineJava8(getServletContext().getRealPath("/WEB-INF/"+myRequestXML+".xml"));
-			setRequestXML(username, password, darId, requestXML);
+			//String requestXML = readLineByLineJava8(getServletContext().getRealPath("/WEB-INF/"+myRequestXML+".xml"));
+			String requestXML = readLineByLineJava8(new URI("file:///C:"+line1[1].trim()+myRequestXML+".xml"));
+  	  		setRequestXML(username, password, darId, requestXML);
 			JSONObject testResponse = new JSONObject();
 			testResponse.put("requestID", darId);
 			testResponse.put("cohortList", cohortList);
@@ -150,7 +151,7 @@ public class TestServlet extends HttpServlet {
 		return 0;
 	}
 	
-	private static String readLineByLineJava8(String filePath) 
+	private static String readLineByLineJava8(URI filePath) 
 	{
 	    StringBuilder contentBuilder = new StringBuilder();
 	    try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.UTF_8)) 

@@ -1,119 +1,99 @@
 package xmlWrapper;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-
-import javax.servlet.ServletException;
-import javax.servlet.http.HttpServlet;
-import javax.servlet.http.HttpServletRequest;
-import javax.servlet.http.HttpServletResponse;
-import javax.xml.bind.JAXBContext;
-import javax.xml.bind.JAXBElement;
-import javax.xml.bind.Marshaller;
-import javax.xml.bind.Unmarshaller;
-import javax.xml.datatype.DatatypeConstants;
-import javax.xml.datatype.DatatypeFactory;
-import javax.xml.datatype.XMLGregorianCalendar;
-
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-import org.ntua.criteria.*;
-
-import org.semanticweb.owlapi.apibinding.OWLManager;
-import org.semanticweb.owlapi.model.AxiomType;
-import org.semanticweb.owlapi.model.IRI;
-import org.semanticweb.owlapi.model.OWLAnnotationAssertionAxiom;
-import org.semanticweb.owlapi.model.OWLClass;
-import org.semanticweb.owlapi.model.OWLClassExpression;
-import org.semanticweb.owlapi.model.OWLLiteral;
-import org.semanticweb.owlapi.model.OWLOntology;
-import org.semanticweb.owlapi.model.OWLOntologyCreationException;
-import org.semanticweb.owlapi.model.OWLOntologyManager;
-//import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
-
-import com.google.gson.Gson;
-
-import jsonProcess.*;
-import criterionManager.*;
-import criterionManager.Criterion;
-
-import org.apache.tomcat.util.codec.binary.Base64;
-import org.codehaus.jackson.JsonParseException;
-import org.codehaus.jackson.map.JsonMappingException;
-
 import static queries.SQL_aux_functions.Make_OR_of_CODES;
 import static queries.SQL_aux_functions.Make_begin_end_date_query;
 import static queries.SQL_aux_functions.Make_begin_end_period_query;
 import static queries.SQL_aux_functions.Make_specific_date_query;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
-import java.io.FileWriter;
+import java.io.IOException;
 import java.io.PrintWriter;
-import java.io.Reader;
-import java.net.HttpURLConnection;
-import java.net.MalformedURLException;
-import java.net.URL;
-import java.net.URLConnection;
-import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
-import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.sql.Timestamp;
-import java.time.LocalDate;
 import java.util.ArrayList;
 import java.util.Arrays;
-import java.util.Date;
-import java.util.GregorianCalendar;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
-import java.util.logging.Level;
-import java.util.logging.Logger;
-import java.util.stream.Stream;
+
+import javax.servlet.ServletException;
+import javax.servlet.http.HttpServlet;
+import javax.servlet.http.HttpServletRequest;
+import javax.servlet.http.HttpServletResponse;
+
+import org.codehaus.jackson.JsonParseException;
+import org.codehaus.jackson.map.JsonMappingException;
+import org.json.JSONException;
+import org.json.JSONObject;
+import org.ntua.criteria.PatientsSelectionRequest;
+import org.semanticweb.owlapi.apibinding.OWLManager;
+import org.semanticweb.owlapi.model.AxiomType;
+import org.semanticweb.owlapi.model.IRI;
+import org.semanticweb.owlapi.model.OWLClass;
+import org.semanticweb.owlapi.model.OWLClassExpression;
+import org.semanticweb.owlapi.model.OWLOntology;
+import org.semanticweb.owlapi.model.OWLOntologyCreationException;
+import org.semanticweb.owlapi.model.OWLOntologyManager;
+
+import com.google.gson.Gson;
+
+import criterionManager.Criterion;
+import criterionManager.Criterions;
+import criterionManager.condition_diagnosis;
+import criterionManager.condition_symptom;
+import criterionManager.demographics_education;
+import criterionManager.demographics_ethnicity;
+import criterionManager.demographics_gender;
+import criterionManager.demographics_occupation;
+import criterionManager.demographics_pregnancy;
+import criterionManager.demographics_weight;
+import criterionManager.examination_biopsy;
+import criterionManager.examination_caci_condition;
+import criterionManager.examination_essdai_domain;
+import criterionManager.examination_lab_test;
+import criterionManager.examination_medical_imaging_test;
+import criterionManager.examination_questionnaire_score;
+import criterionManager.intervention_chemotherapy;
+import criterionManager.intervention_medication;
+import criterionManager.intervention_surgery;
+import criterionManager.lifestyle_smoking;
+import criterionManager.other_clinical_trials;
+import criterionManager.other_family_history;
+import criterionManager.other_healthcare_visit;
+import criterionManager.patient;
+import jsonProcess.Intermediate_Layer;
+
 /**
- * Servlet implementation class PatientSelectionImpl
+ * Servlet implementation class CriterionsTestServlet
  */
-public class PatientSelectionImpl extends HttpServlet implements XMLFileManager, CriterionManager{
+public class CriterionsTestServlet extends HttpServlet {
 	private static final long serialVersionUID = 1L;
-	static ArrayList<String> cohort_names = new ArrayList<String>();
-	private static List<JSONObject> inclusion_criteria = new ArrayList<JSONObject>();
-	private static List<JSONObject> exclusion_criteria = new ArrayList<JSONObject>();	
-	private static JSONObject criterionResponseInfos = new JSONObject();
-	private static String termAndSubterms = "";
-	static String requestID = "";
-	private static JAXBContext xmljaxbContext;
-	private static Marshaller xmljaxbMarshaller;
-	private static PatientsSelectionRequest patientsSelectionRequest;
-	private static PatientsSelectionResponse patientsSelectionResponse;
-	//private static File responseXML = new File("Resp01.xml");
 	private static OWLOntology ontology;
 	private static OWLOntologyManager manager;
 	private static IRI documentIRI;
 	private static List<MyOWLClass> allClasses;
+	private static Result_UIDs results;
 	private static List<String[]> UIDsDefined = new ArrayList<String[]>();
 	private static List<String[]> UIDsUndefined = new ArrayList<String[]>();
-	private static Result_UIDs results;
+	private static JSONObject criterionResponseInfos = new JSONObject();
+	private static String termAndSubterms = "";
+	private static List<JSONObject> inclusion_criteria = new ArrayList<JSONObject>();
+	private static PatientsSelectionRequest patientsSelectionRequest;
 	private static List<JSONObject> cohortResponseList = new ArrayList<JSONObject>();
-	
+       
     /**
      * @see HttpServlet#HttpServlet()
      */
-    public PatientSelectionImpl() {
+    public CriterionsTestServlet() {
         super();
         // TODO Auto-generated constructor stub
     }
-    
     
     @SuppressWarnings("deprecation")
     private static void findClasses(){
@@ -154,149 +134,48 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
             }
         }
 	}
-	
-	private static String getSubKeywords(String keywords, MyOWLClass checked){
-		if(keywords.equals("")) keywords += checked.id;			
-		else keywords += ","+checked.id;
-		for(int i=0; i<checked.subClasses.size(); i++){
-			keywords = getSubKeywords(keywords, checked.subClasses.get(i));
-		}
-		return keywords;
-	}
     
-    public String getTermsWithNarrowMeaning(String myTerm) {
-    	String narrowTerms = "";
-    	for(int i=0; i<allClasses.size(); i++){
-			if(myTerm.equals(allClasses.get(i).id)){
-				try{
-					narrowTerms = getSubKeywords(narrowTerms, allClasses.get(i));
-				}
-				catch (Exception e) {
-		   			System.out.println(e);
-		   		}
-				
-				break;	
-			}
-		}	
-    	return narrowTerms;
-    }
-    
-    private String getXMLS2(String requestID, String username, String password) {
-    	 String myXML = "";
-    	try {
-	        String webPage = "https://private.harmonicss.eu/index.php/apps/coh/api/1.0/s2?darId="+requestID;
-
-	        String authString = username + ":" + password;
-	        System.out.println("auth string: " + authString);
-	        byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
-	        String authStringEnc = new String(authEncBytes);
-	        System.out.println("Base64 encoded auth string: " + authStringEnc);
-
-	        URL url = new URL(webPage);
-	        URLConnection urlConnection = url.openConnection();
-	        urlConnection.setRequestProperty("Authorization", "Basic " + authStringEnc);
-	        InputStream is = urlConnection.getInputStream();
-	        InputStreamReader isr = new InputStreamReader(is);
-
-	        int numCharsRead;
-	        char[] charArray = new char[1024];
-	        StringBuffer sb = new StringBuffer();
-	        while ((numCharsRead = isr.read(charArray)) > 0) {
-	            sb.append(charArray, 0, numCharsRead);
-	        }
-	        String result = sb.toString();
-	        JSONArray jsonarray = new JSONArray(result);
-	        myXML = jsonarray.getJSONObject(0).get("serviceConfig").toString();
-	        
-	        
-	       /* System.out.println("*** BEGIN ***");
-	        System.out.println(result);
-	        System.out.println("*** END ***");*/
-	    } catch (MalformedURLException e) {
-	        e.printStackTrace();
-	    } catch (IOException e) {
-	        e.printStackTrace();
-	    } catch (JSONException e) {
-			// TODO Auto-generated catch block
+    /*private boolean makeJDBCConnection() {
+    	Boolean connection_succes=true;
+		try {
+			Class.forName("com.mysql.jdbc.Driver");
+			System.out.println("Congrats - Seems your MySQL JDBC Driver Registered!");
+		} catch (ClassNotFoundException e) {
+			System.out.println("Sorry, couldn't found JDBC driver. Make sure you have added JDBC Maven Dependency Correctly");
 			e.printStackTrace();
+			return false;
 		}
-    	return myXML;
-    }
-
-    @SuppressWarnings("unchecked")
-	public String readXMLbyRequestID(String requestID, String username, String password){
-  	  	cohort_names.clear();
-  	  	String result_incl = "";
-  	  	String result_excl = "";
-  	  	
-  	  	try {
-  	  		JAXBContext jaxbContext;
-	    	/*ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB","emps","emps"); //?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC","root","");
-	    	if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the ponte database failed. Check the Credentials and the DB URL.");
-	    	else System.out.println("I am ponte and I'm gooooooood");
-	    	
-	    	DBServiceCRUD.getXMLRequestFromDB(requestID);*/
-	    	
-	    	/*URL myXMLService = new URL("http://localhost:8080/GetXMLS2/GetXMLServlet?darId="+requestID);
-	    	HttpURLConnection con = (HttpURLConnection) myXMLService.openConnection();
-			con.setRequestMethod("GET");
-			con.setDoOutput(true);
-			Reader in = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
-		    StringBuilder sb = new StringBuilder();
-		    for (int c; (c = in.read()) >= 0;)
-		        sb.append((char)c);*/
-		    String resp = getXMLS2(requestID,username,password).toString().replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"");
-		    
-		    System.out.println(resp);
-		    
-		    FileWriter fw = new FileWriter(getServletContext().getRealPath("/WEB-INF/Request"+requestID+".xml"));
-		    fw.write(resp);
-			fw.close();
-		    
-			File fXmlFile = new File(getServletContext().getRealPath("/WEB-INF/Request"+requestID+".xml"));
-	    	jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
-  	  		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
-  	  		patientsSelectionRequest = ((JAXBElement<PatientsSelectionRequest>) jaxbUnmarshaller.unmarshal(fXmlFile)).getValue();
-
-  	  		System.out.println(patientsSelectionRequest.getSessionID());
-  	  		System.out.println(patientsSelectionRequest.getRequestDate());
-  	  		System.out.println(patientsSelectionRequest.getUserID());
-  	  		System.out.println(patientsSelectionRequest.getCohortID());
-  	  		System.out.println(patientsSelectionRequest.getRequestTitle());
-  	  		System.out.println(patientsSelectionRequest.getRequestID());
-  	  		
-  	  		for(org.ntua.criteria.Criterion inclCriterion: patientsSelectionRequest.getEligibilityCriteria().getInclusionCriteria().getCriterion()){
-  	  			System.out.println(inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim());
-  	  			result_incl+=inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim();
-  	  		}
-  	  		for(org.ntua.criteria.Criterion exclCriterion: patientsSelectionRequest.getEligibilityCriteria().getExclusionCriteria().getCriterion()){
-	  			System.out.println(exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim());
-	  			result_excl+=exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim();
-	  		}
-  	  		result_incl ="{\"list_of_criterions\":\n" + 
+		
+		try {
+			//System.out.println("URL: "+configureFile_obj.getDbURL()+" username: "+configureFile_obj.getUsername()+" password: "+configureFile_obj.getPassword());
+			db_con_obj = DriverManager.getConnection("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB", "emps", "emps");
+			//db_con_obj = DriverManager.getConnection("jdbc:mysql://147.102.19.66:3306/HarmonicSS","ponte", "p0nt3");
+			if (db_con_obj != null) {
+				System.out.println("Connection Successful! Enjoy. Now it's time to Store data");
+			} else {
+				System.out.println("Failed to make connection!");
+				return false;
+			}
+		} catch (SQLException e) {
+			System.out.println("MySQL Connection Failed!");
+			e.printStackTrace();
+			return false;
+		}
+		return connection_succes;
+    }*/
+    
+    private String makeCriterionList(String jsonCriteria) {
+    	String result_incl ="{\"list_of_criterions\":\n" + 
   	  			"  [\n" + 
   	  			""
-  	  			+result_incl
+  	  			+jsonCriteria
   	  			+"  ]\n" + 
   	  			"}\n" + 
   	  			"";
-
-  	  		result_excl ="{\"list_of_criterions\":\n" + 
-  	  			"  [\n" + 
-  	  			""
-  	  			+result_excl
-  	  			+"  ]\n" + 
-  	  			"}\n" + 
-  	  			"";
-  	  
-  		
-  	   } catch (Exception e) {
-  	      e.printStackTrace();
-  	   }
-  	   return result_incl+"XXX"+result_excl;
+    	return result_incl;
     }
     
-    private String createQuery(ArrayList<Criterion> list_of_criterions, boolean incl, boolean mode, String results_of_all_Criterions) throws JSONException {
+    private String createQuery(ArrayList<Criterion> list_of_criterions, boolean mode, String results_of_all_Criterions) throws JSONException {
     	String results_of_one_Criterion="";
     	for(int i=0; i<list_of_criterions.size(); i++) {
     		criterionResponseInfos = new JSONObject();
@@ -305,16 +184,15 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				System.out.println("Criterion " + current_Criterion.getCriterion() + " cannot be used.");
 				criterionResponseInfos.put("usage", "notused");
 				criterionResponseInfos.put("notes", termAndSubterms);
-				if(incl) inclusion_criteria.add(criterionResponseInfos);
-				else exclusion_criteria.add(criterionResponseInfos);
+				inclusion_criteria.add(criterionResponseInfos);
+				
 				System.out.println(criterionResponseInfos);
 				continue;
 			}
 			else System.out.println("Criterion " + current_Criterion.getCriterion() + " can be used.");
 			criterionResponseInfos.put("usage", "used");
 			criterionResponseInfos.put("notes", termAndSubterms);
-			if(incl) inclusion_criteria.add(criterionResponseInfos);
-			else exclusion_criteria.add(criterionResponseInfos);
+			inclusion_criteria.add(criterionResponseInfos);
 			System.out.println(criterionResponseInfos);
 			String query="";
 			switch(current_Criterion.getCriterion()) { //The name of the Criterion.
@@ -415,8 +293,8 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  				 "AND conf_2.CODE='"+crit_demo_pregnancy_obj.getStatement() + "'";
 				  	}
 				  	
-				  	if(incl) where_clause += " AND demo_pregnancy_data.STMT_ID=1";
-					else where_clause += " AND demo_pregnancy_data.STMT_ID=2";
+				  	where_clause += " AND demo_pregnancy_data.STMT_ID=1";
+				
 				  	
 				  	query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 				  	
@@ -468,8 +346,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					 
 				  }
 				  
-				  if(incl) where_clause += " AND lifestyle_smoking.STMT_ID=1";
-				  else where_clause += " AND lifestyle_smoking.STMT_ID=2";
+				  where_clause += " AND lifestyle_smoking.STMT_ID=1";
 					  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;		
 				  
@@ -519,8 +396,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  				 "AND voc_confirmation.CODE='"+crit_cond_symptom_obj.getStatement() + "'";
 				  }
 				  
-				  if(incl) where_clause += " AND cond_symptom.STMT_ID=1";
-				  else where_clause += " AND cond_symptom.STMT_ID=2";
+				  where_clause += " AND cond_symptom.STMT_ID=1";
 				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 			  } break;
@@ -571,8 +447,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  		query += " AND cond_diagnosis.STMT_ID=voc_confirmation.ID " +
 				  				 "AND voc_confirmation.CODE='"+condition_diagnosis_obj.getStatement() + "'";
 				  }
-				  if(incl) where_clause += " AND cond_diagnosis.STMT_ID=1";
-				  else where_clause += " AND cond_diagnosis.STMT_ID=2";
+				  where_clause += " AND cond_diagnosis.STMT_ID=1";
 				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 			  } break;
@@ -621,8 +496,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  where_clause += "AND interv_medication.STMT_ID=voc_confirmation.ID AND voc_confirmation.CODE='"+crit_interv_medication_obj.getStatement() + "'";
 				  }
 				  
-				  if(incl) where_clause += " AND interv_medication.STMT_ID=1";
-				  else where_clause += " AND interv_medication.STMT_ID=2";
+				  where_clause += " AND interv_medication.STMT_ID=1";
 				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 					
@@ -658,8 +532,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  where_clause += " AND interv_chemotherapy.STMT_ID=conf_2.ID AND conf_2.CODE='"+crit_interv_chemotherapy_obj.getStatement() + "'";
 				  }
 				  
-				  if(incl) where_clause += " AND interv_chemotherapy.STMT_ID=1";
-				  else where_clause += " AND interv_chemotherapy.STMT_ID=2";
+				  where_clause += " AND interv_chemotherapy.STMT_ID=1";
 				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
@@ -694,8 +567,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  where_clause += " AND interv_surgery.STMT_ID=conf_2.ID AND conf_2.CODE='" + crit_interv_surgery_obj.getStatement() + "'";
 				  }
 				  
-				  if(incl) where_clause += " AND interv_surgery.STMT_ID=1";
-				  else where_clause += " AND interv_surgery.STMT_ID=2";
+				  where_clause += " AND interv_surgery.STMT_ID=1";
 				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 			  } break;
@@ -1223,8 +1095,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  where_clause += "AND other_family_history.STMT_ID=voc_confirmation.ID " +
 				  				 "AND voc_confirmation.CODE='"+other_family_history_obj.getStatement() + "'";
 				  
-				  if(incl) where_clause += " AND other_family_history.STMT_ID=1";
-				  else where_clause += " AND other_family_history.STMT_ID=2";
+				  where_clause += " AND other_family_history.STMT_ID=1";
 				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 				  
@@ -1260,8 +1131,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		  		query += "AND other_clinical_trials.STMT_ID=voc_confirmation.ID " +
 		  				 "AND voc_confirmation.CODE='"+other_clinical_trials_obj.getStatement() + "'";
 			
-			if(incl) where_clause += " AND other_clinical_trials.STMT_ID=1";
-			  else where_clause += " AND other_clinical_trials.STMT_ID=2";
+			where_clause += " AND other_clinical_trials.STMT_ID=1";
 			
 			query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 
@@ -1366,23 +1236,6 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     	return results_of_all_Criterions;
     }
     
-    public void criterionDBmatching(ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions) throws JSONException{
-    	results = new Result_UIDs();
-    	Boolean mode;
-    	for (int j=0;j<2;j++) {
-			
-    		if(j==0) mode = false; //LOGGER.log(Level.INFO,"======** UIDs_defined_ALL_elements **======\n",true);}
-    		else mode = true; //LOGGER.log(Level.INFO,"======** UIDs_UNdefined_some_elements **======\n",true);}
-    		String results_of_all_Criterions="";
-    		results_of_all_Criterions = createQuery(list_of_inclusive_criterions, true, mode, results_of_all_Criterions);
-    		results_of_all_Criterions = createQuery(list_of_exclusive_criterions, false, mode, results_of_all_Criterions);
-    		results.Input_UIDs(mode,results_of_all_Criterions);
-    	}
-    	UIDsDefined.add(results.UIDs_defined_ALL_elements );
-    	UIDsUndefined.add(results.UIDs_UNdefined_some_elements);
-    	System.out.println(results.Output_JSON_UIDs());
-    }
-    
     public static String intersection_of_UIDs(String str_of_users_1, String str_of_users_2 ){
 		  Set<String> s1 = new HashSet<String>(Arrays.asList(str_of_users_1.split(" ")));
 		  Set<String> s2 = new HashSet<String>(Arrays.asList(str_of_users_2.split(" ")));
@@ -1396,422 +1249,281 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		    }
 		  return result;
 	  }
-
-    
-    public void writeXMLResponse(int cohortIndex, boolean createXML){
-    	try{
-    		if(cohortIndex==0) {
-    		xmljaxbContext = JAXBContext.newInstance(ObjectFactory.class);
-    		xmljaxbMarshaller = xmljaxbContext.createMarshaller();
-    		xmljaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
-    		patientsSelectionResponse = new PatientsSelectionResponse();
-    		//jaxbMarshaller.marshal(patientsSelectionResponse, responseXML);
-    		patientsSelectionResponse.setUserID(patientsSelectionRequest.getUserID());
-    		patientsSelectionResponse.setSessionID(patientsSelectionRequest.getSessionID());
-    		GregorianCalendar gregorianCalendar = new GregorianCalendar();
-            DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
-            XMLGregorianCalendar now = 
-                datatypeFactory.newXMLGregorianCalendar(gregorianCalendar);
-            now.setTimezone(DatatypeConstants.FIELD_UNDEFINED);
-    		patientsSelectionResponse.setResponseDate(now);
-    		//for(String cohortID: patientsSelectionRequest.getCohortID()){
-    		}
-    			CohortResponse cohortResponse = new CohortResponse();
-    			cohortResponse.setCohortID(patientsSelectionRequest.getCohortID().get(cohortIndex));
-    			cohortResponse.setQueryDate(patientsSelectionRequest.getRequestDate());
-    			if(results.UIDs_defined_ALL_elements.length==1 && results.UIDs_defined_ALL_elements[0].equals("")) cohortResponse.setEligiblePatientsNumber(0);
-    			else cohortResponse.setEligiblePatientsNumber(results.UIDs_defined_ALL_elements.length);
-    			EligibilityCriteriaUsed inclAndExclCriteriaUsed = new EligibilityCriteriaUsed();
-    			int i=0;
-    			for(org.ntua.criteria.Criterion inclCriterion: patientsSelectionRequest.getEligibilityCriteria().getInclusionCriteria().getCriterion()){
-    				CriterionUsage inclCriterionUsage = new CriterionUsage();
-    				inclCriterionUsage.setCriterionID(inclCriterion.getUID());
-    				if(inclusion_criteria.get(i).getString("usage").equals("used")) inclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.USED);
-    				else inclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.NOT_USED);
-    				System.out.println(inclusion_criteria.get(i));
-    				inclCriterionUsage.setNotesHTML(inclusion_criteria.get(i).getString("notes"));
-    				inclAndExclCriteriaUsed.getCriterionUsage().add(inclCriterionUsage);
-    				i++;
-    			}
-    			
-    			i=0;
-    			for(org.ntua.criteria.Criterion exclCriterion: patientsSelectionRequest.getEligibilityCriteria().getExclusionCriteria().getCriterion()){
-    				CriterionUsage exclCriterionUsage = new CriterionUsage();
-    				exclCriterionUsage.setCriterionID(exclCriterion.getUID());
-    				if(exclusion_criteria.get(i).getString("usage").equals("used")) exclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.USED);
-    				else exclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.NOT_USED);
-    				System.out.println(exclusion_criteria.get(i));
-    				exclCriterionUsage.setNotesHTML(exclusion_criteria.get(i).getString("notes"));
-    				inclAndExclCriteriaUsed.getCriterionUsage().add(exclCriterionUsage);
-    				i++;
-    			}
-    			
-    			cohortResponse.setEligibilityCriteriaUsed(inclAndExclCriteriaUsed);
-    			patientsSelectionResponse.getCohortResponse().add(cohortResponse);
-    		//}
-    		if(createXML) {
-    		File fXmlFile = new File(getServletContext().getRealPath("/WEB-INF/Response"+requestID+".xml"));
-    		//File fXmlFile = new File("Response"+requestID+".xml");
-    		ObjectFactory objectFactory = new ObjectFactory();
-    		JAXBElement<PatientsSelectionResponse> je =  objectFactory.createPatientsSelectionResponse(patientsSelectionResponse);
-    		xmljaxbMarshaller.marshal(je, fXmlFile);
-    		}
-    	}
-    	catch(Exception e){
-    		e.printStackTrace();
-    	}
-    }
-    
-    private String getCohortsC4(String darID, String username, String password) {
-    	String result = "";
-    	try {
-	        String webPage = "https://private.harmonicss.eu/index.php/apps/coh/api/1.0/c4?darId="+darID;
-
-	        String authString = username + ":" + password;
-	        System.out.println("auth string: " + authString);
-	        byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
-	        String authStringEnc = new String(authEncBytes);
-	        System.out.println("Base64 encoded auth string: " + authStringEnc);
-
-	        URL url = new URL(webPage);
-	        URLConnection urlConnection = url.openConnection();
-	        urlConnection.setRequestProperty("Authorization", "Basic " + authStringEnc);
-	        InputStream is = urlConnection.getInputStream();
-	        InputStreamReader isr = new InputStreamReader(is);
-
-	        int numCharsRead;
-	        char[] charArray = new char[1024];
-	        StringBuffer sb = new StringBuffer();
-	        while ((numCharsRead = isr.read(charArray)) > 0) {
-	            sb.append(charArray, 0, numCharsRead);
-	        }
-	        result = sb.toString();
-	        /*System.out.println("*** BEGIN ***");
-	        System.out.println(result);
-	        System.out.println("*** END ***");*/
-	    } catch (MalformedURLException e) {
-	        e.printStackTrace();
-	    } catch (IOException e) {
-	        e.printStackTrace();
-	    }
-    	return result;
-    }
-    
-    public void accessCohorts(String darID, String username, String password, ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions) throws IOException, JSONException, SQLException, ClassNotFoundException{
-    	//String[] cohortAccess = new String[cohort_names.size()];
-    	/*URL myXMLService = new URL("http://localhost:8080/GetCohortsC4New/GetCohortsServlet?darId="+darID);
-    	HttpURLConnection con = (HttpURLConnection) myXMLService.openConnection();
-		con.setRequestMethod("GET");
-		con.setDoOutput(true);
-		Reader in = new BufferedReader(new InputStreamReader(con.getInputStream(), "UTF-8"));
-	    StringBuilder sb = new StringBuilder();
-	    for (int c; (c = in.read()) >= 0;)
-	        sb.append((char)c);*/
-	    JSONArray cohorts = new JSONArray(getCohortsC4(darID, username, password));
-	    boolean createXML = false;
-    	for(int i=0; i<cohorts.length(); i++){
-    		JSONObject cohortResponse = new JSONObject();
-    		String cohortName = "";
-    		//if(cohorts.getJSONObject(i).get("cohortId").equals("2")) cohortName = "Harm-DB-09";
-    		//if(cohorts.getJSONObject(i).get("cohortId").equals("3")) cohortName = "Harm-DB-09";
-    		cohortName = "Harm-DB-0"+cohorts.getJSONObject(i).get("cohortId");
-    		cohortResponse.put("cohort_name", cohortName);
-    		if(cohorts.getJSONObject(i).get("statusId").equals("2")) {
-    			
-    			//String cohortName = cohorts.getJSONObject(i).get("cohortName").toString();
-    			
-    			System.out.println("-------------------------------- Execute query for cohort " + cohortName + " -------------------------------");
-    			ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/"+cohortName,"emps","emps");
-    			if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
-    	    	else System.out.println("everything's gooooooood");
-    			criterionDBmatching(list_of_inclusive_criterions,list_of_exclusive_criterions);
-    			if(i==cohorts.length()-1) createXML=true;
-    			writeXMLResponse(i, createXML);	
-    			cohortResponse.put("patients_IDs_list", results.UIDs_defined_ALL_elements);
-    			String result_incl = "";
-      	  		String result_excl = "";
-      	  		int j = 0;
-      	  		for(org.ntua.criteria.Criterion inclCriterion: patientsSelectionRequest.getEligibilityCriteria().getInclusionCriteria().getCriterion()){
-      	  			//System.out.println(inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim());
-      	  			result_incl+=inclCriterion.getDescription()+": "+inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim();
-      	  			if(inclusion_criteria.get(j).getString("usage").equals("used")) result_incl += " - USED<br>";
-      	  			else result_incl += " - NOT USED<br>";
-      	  			j++;
-      	  		}
-      	  		cohortResponse.put("inclusion_criteria", "Inclusion Criteria: <br>"+result_incl);
-      	  		j=0;
-      	  		for(org.ntua.criteria.Criterion exclCriterion: patientsSelectionRequest.getEligibilityCriteria().getExclusionCriteria().getCriterion()){
-      	  			//System.out.println(exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim());
-      	  			result_excl+=exclCriterion.getDescription()+": "+exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim();
-      	  			if(exclusion_criteria.get(j).getString("usage").equals("used")) result_excl += " - USED<br>";
-      	  			else result_excl += " - NOT USED<br>";
-      	  			j++;
-      	  		}
-      	  		cohortResponse.put("exclusion_criteria", "Exclusion Criteria: <br>"+result_excl);
-    			cohortResponseList.add(cohortResponse);
-    			inclusion_criteria.clear();
-    			exclusion_criteria.clear();
-    			DBServiceCRUD.closeJDBCConnection();
-    			System.out.println("End");
-    		}
-    		else {
-    			cohortResponse.put("cohort_notes","Cohort not available.");
-    			cohortResponseList.add(cohortResponse);
-    		}
-    			
-    		
-    	}
-    	/*ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB","emps","emps");
-    	if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
-    	else System.out.println("everything's gooooooood");
-    	DBServiceCRUD.setExecutedDataToDB(requestID);
-    	DBServiceCRUD.closeJDBCConnection();*/
-    	Class.forName("com.mysql.jdbc.Driver");
-		System.out.println("Congrats - Seems your MySQL JDBC Driver Registered!");
-		Connection db_con_obj = DriverManager.getConnection("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB", "emps","emps");
-		String requestXML = readLineByLineJava8(getServletContext().getRealPath("/WEB-INF/Request"+darID+".xml"));
-		String responseXML = readLineByLineJava8(getServletContext().getRealPath("/WEB-INF/Response"+darID+".xml"));
-		//String responseXML = readLineByLineJava8("Response"+darID+".xml");
-		Date date = new Date();
-		Object param = new java.sql.Timestamp(date.getTime());
-		System.out.println(darID);
-		String query = "INSERT INTO EXECUTION_DATA (USER_ID, REQUEST_ID, REQUEST_XML, EXECUTION_DATE, RESPONSE_XML) VALUES (?, ?, ?, ?, ?)";
-		PreparedStatement db_prep_obj = db_con_obj.prepareStatement(query);
-		db_prep_obj.setString(1, username);
-		db_prep_obj.setString(2, darID);
-		db_prep_obj.setString(3, requestXML.replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;"));
-		db_prep_obj.setTimestamp(4, (Timestamp) param);
-		db_prep_obj.setString(5, responseXML.replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;"));
-		db_prep_obj.execute();
-    	System.out.println("-------------------------------- Execution data saved to database -------------------------------");
     	
-    }
-    
-    private static String readLineByLineJava8(String filePath) 
-	{
-	    StringBuilder contentBuilder = new StringBuilder();
-	    try (Stream<String> stream = Files.lines( Paths.get(filePath), StandardCharsets.UTF_8)) 
-	    {
-	        stream.forEach(s -> contentBuilder.append(s).append("\n"));
-	    }
-	    catch (IOException e) 
-	    {
-	        e.printStackTrace();
-	    }
-	    return contentBuilder.toString();
-	}
-    
-    public boolean canUseCriterion(Criterion crit){
-    	String query="";
-    	String assistanceQuery="";
-    	boolean myresults = false;
-    	switch(crit.getCriterion()) {
-    		case "demographics_gender": {
-    			query = "SELECT * FROM demo_sex_data";
-    			termAndSubterms = "Search for gender data";
-    		}
-    		break;
-    		case "demographics_ethnicity": {
-    			query = "SELECT * FROM demo_ethnicity_data";
-    			termAndSubterms = "Search for ethnicity data";
-    		}
-    		break;
-    		case "demographics_education": {
-    			query = "SELECT * FROM demo_education_level_data";
-    			termAndSubterms = "Search for education data";
-    		}
-    		break;
-    		case "demographics_weight": {
-    			query = "SELECT * FROM demo_weight_data";
-    			termAndSubterms = "Search for weight data";
-    		}
-    		break;
-    		case "demographics_occupation": {
-    			query = "SELECT * FROM demo_occupation_data";
-    			termAndSubterms = "Search for occupation data";
-    		}
-    		break;
-    		case "demographics_pregnancy": {
-    			query = "SELECT * FROM demo_pregnancy_data";
-    			termAndSubterms = "Search for pregnancy data";
-    		}
-    		break;
-    		case "lifestyle_smoking": {
-    			query = "SELECT * FROM lifestyle_smoking";
-    			termAndSubterms = "Search for smoking data";
-    		}
-    		break;
-    		case "condition_symptom": {
-    			condition_symptom crit_cond_symptom_obj = (condition_symptom)crit;
-    			query = "SELECT * FROM cond_symptom, voc_symptom_sign WHERE cond_symptom.CONDITION_ID = voc_symptom_sign.ID AND (" + Make_OR_of_CODES("voc_symptom_sign.CODE", crit_cond_symptom_obj.getVoc_symptom_sign_CODE());
-    			String narrowTerms = getTermsWithNarrowMeaning(crit_cond_symptom_obj.getVoc_symptom_sign_CODE());
-				String[] allNarrowTerms = narrowTerms.split(",");
-				for(int c=1; c<allNarrowTerms.length; c++) {
-					query += " OR " + Make_OR_of_CODES("voc_symptom_sign.CODE", allNarrowTerms[c]);
-				}
-				query += ")";
-				assistanceQuery = "SELECT NAME FROM voc_symptom_sign WHERE" + query.split("AND")[1]; 
-    		}
-    		break;
-    		case "condition_diagnosis": {
-    			condition_diagnosis crit_cond_diagnosis_obj = (condition_diagnosis)crit;
-    			query = "SELECT * FROM cond_diagnosis, voc_medical_condition WHERE cond_diagnosis.CONDITION_ID = voc_medical_condition.ID AND (" + Make_OR_of_CODES("voc_medical_condition.CODE", crit_cond_diagnosis_obj.getCondition());
-    			String narrowTerms = getTermsWithNarrowMeaning(crit_cond_diagnosis_obj.getCondition());
-				String[] allNarrowTerms = narrowTerms.split(",");
-				for(int c=1; c<allNarrowTerms.length; c++) {
-					query += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
-				}
-				query += ")";
-				assistanceQuery = "SELECT NAME FROM voc_medical_condition WHERE" + query.split("AND")[1]; 
-    		}
-    		break;
-    		case "intervention_medication": {
-    			intervention_medication  crit_interv_medication_obj =  (intervention_medication )crit;
-				query = "SELECT * FROM interv_medication, voc_pharm_drug WHERE interv_medication.MEDICATION_ID = voc_pharm_drug.ID AND (" + Make_OR_of_CODES("voc_pharm_drug.CODE", crit_interv_medication_obj.getVoc_pharm_drug_CODE());
-				String narrowTerms = getTermsWithNarrowMeaning(crit_interv_medication_obj.getVoc_pharm_drug_CODE());
-				String[] allNarrowTerms = narrowTerms.split(",");
-				for(int c=1; c<allNarrowTerms.length; c++) {
-					query += " OR " + Make_OR_of_CODES("voc_pharm_drug.CODE", allNarrowTerms[c]);
-				}
-				query += ")";
-				assistanceQuery = "SELECT NAME FROM voc_pharm_drug WHERE" + query.split("AND")[1]; 
-    		}
-    		break;
-    		case "intervention_chemotherapy": {
-				  //intervention_chemotherapy  crit_interv_chemotherapy_obj =  (intervention_chemotherapy)crit;
-				query = "SELECT * FROM interv_chemotherapy"; //, voc_confirmation WHERE interv_chemotherapy.DUE_TO_PSS_ID = voc_confirmation.ID AND " + Make_OR_of_CODES("voc_confirmation.CODE", crit_interv_chemotherapy_obj.getReason());
-				termAndSubterms = "Search for chemotherapy data";
-    		}
-    		break;
-    		case "intervention_surgery": { 
-    			query = "SELECT * FROM intervention_surgery";
-    			termAndSubterms = "Search for surgery data";
-    		}
-    		break;
-    		case "examination_lab_test": {
-    			examination_lab_test  examination_lab_test_obj =  (examination_lab_test)crit;
-				query = "SELECT * FROM exam_lab_test, voc_lab_test WHERE exam_lab_test.TEST_ID=voc_lab_test.ID AND (" + Make_OR_of_CODES("voc_lab_test.CODE", examination_lab_test_obj.getTest_id());
-				String narrowTerms = getTermsWithNarrowMeaning(examination_lab_test_obj.getTest_id());
-				String[] allNarrowTerms = narrowTerms.split(",");
-				for(int c=1; c<allNarrowTerms.length; c++) {
-					query += " OR " + Make_OR_of_CODES("voc_lab_test.CODE", allNarrowTerms[c]);  
-				}
-				query += ") ";
-				assistanceQuery = "SELECT NAME FROM voc_lab_test WHERE" + query.split("AND")[1];
-    		}
-    		break;
-    		case "examination_biopsy": { //Check if user provided the info of all the fields 
-				examination_biopsy  examination_biopsy_obj =  (examination_biopsy)crit;
-				query = "SELECT * FROM exam_biopsy, voc_biopsy WHERE exam_biopsy.BIOPSY_ID=voc_biopsy.ID AND (voc_biopsy.CODE='"+examination_biopsy_obj.getBiopsy_type()+"'"; // ='SAL-BIO-21' Make_OR_of_CODES("voc_lab_test.CODE", examination_biopsy_obj.getBiopsy_type());				  		 
-				String narrowTerms = getTermsWithNarrowMeaning(examination_biopsy_obj.getBiopsy_type());
-				String[] allNarrowTerms = narrowTerms.split(",");
-				for(int c=1; c<allNarrowTerms.length; c++) {
-					query += " OR voc_biopsy.CODE='" + allNarrowTerms[c] + "'";
-				}
-				query += ") ";
-				assistanceQuery = "SELECT NAME FROM voc_biopsy WHERE" + query.split("AND")[1];
-    		}
-    		break;
-    		case "examination_medical_imaging_test": { //Check if user provided the info of all the fields 
-				examination_medical_imaging_test  examination_medical_imaging_test_obj =  (examination_medical_imaging_test)crit;
-				query = "SELECT * FROM exam_medical_imaging_test, voc_medical_imaging_test WHERE exam_medical_imaging_test.TEST_ID=voc_medical_imaging_test.ID AND (" + Make_OR_of_CODES("voc_medical_imaging_test.CODE", examination_medical_imaging_test_obj.getTest_id()) +" ";
-				String myNarrowTerms = getTermsWithNarrowMeaning(examination_medical_imaging_test_obj.getTest_id());
-				  String[] myAllNarrowTerms = myNarrowTerms.split(",");
-				  for(int c=1; c<myAllNarrowTerms.length; c++) {
-					  query += "OR " + Make_OR_of_CODES("voc_medical_imaging_test.CODE", myAllNarrowTerms[c]);
-				  }
-				  query += ") ";
-				  assistanceQuery = "SELECT NAME FROM voc_medical_imaging_test WHERE" + query.split("AND")[1];
-    		}
-    		break;
-    		case "examination_questionnaire_score": { //Check if user provided the info of all the fields 
-				examination_questionnaire_score  examination_questionnaire_score_obj =  (examination_questionnaire_score)crit;
-				query = "SELECT * FROM exam_questionnaire_score, voc_questionnaire WHERE exam_questionnaire_score.SCORE_ID=voc_questionnaire.ID AND (" + Make_OR_of_CODES("voc_questionnaire.CODE", examination_questionnaire_score_obj.getScore());
-				String myNarrowTerms = getTermsWithNarrowMeaning(examination_questionnaire_score_obj.getScore());
-				  String[] myAllNarrowTerms = myNarrowTerms.split(",");
-				  for(int c=1; c<myAllNarrowTerms.length; c++) {
-					  query += " OR " + Make_OR_of_CODES("voc_questionnaire.CODE", myAllNarrowTerms[c]);
-				  }
-				  query += ")";
-				  assistanceQuery = "SELECT NAME FROM voc_questionnaire WHERE" + query.split("AND")[1];
-    		}
-    		break;
-    		case "examination_essdai_domain": {
-    			examination_essdai_domain  examination_essdai_domain_obj =  (examination_essdai_domain)crit;
-				query = "SELECT * FROM exam_essdai_domain, voc_essdai_domain WHERE exam_essdai_domain.DOMAIN_ID = voc_essdai_domain.ID AND " + Make_OR_of_CODES("voc_essdai_domain.CODE", examination_essdai_domain_obj.getDomain());
-				assistanceQuery = "SELECT NAME FROM voc_essdai_domain WHERE" + query.split("AND")[1];
-    		}
-    		break;
-    		case "examination_caci_condition": { //Check if user provided the info of all the fields 
-				examination_caci_condition  examination_caci_condition_obj =  (examination_caci_condition)crit;
-				query = "SELECT * FROM exam_caci_condition, voc_caci_condition WHERE exam_caci_condition.CACI_ID = voc_caci_condition.ID AND " + Make_OR_of_CODES("voc_caci_condition.CODE", examination_caci_condition_obj.getCaci());
-				assistanceQuery = "SELECT NAME FROM voc_caci_condition WHERE" + query.split("AND")[1];
-    		}
-    		break;
-    		case "other_healthcare_visit": { //Check if user provided the info of all the fields 
-				other_healthcare_visit  other_healthcare_visit_obj =  (other_healthcare_visit)crit;
-				query = "SELECT * FROM other_healthcare_visit, voc_specialist WHERE other_healthcare_visit.SPECIALIST_ID=voc_specialist.ID AND " + Make_OR_of_CODES("voc_specialist.CODE", other_healthcare_visit_obj.getSpecialist());
-				assistanceQuery = "SELECT NAME FROM voc_specialist WHERE" + query.split("AND")[1];
-    		}
-    		break;
-    		case "other_family_history": { //Check if user provided the info of all the fields 
-				other_family_history  other_family_history_obj =  (other_family_history)crit;
-				query = "SELECT * FROM other_family_history, voc_medical_condition WHERE other_family_history.MEDICAL_CONDITION_ID=voc_medical_condition.ID AND (" + Make_OR_of_CODES("voc_medical_condition.CODE", other_family_history_obj.getMedical_condition());
-				String narrowTerms = getTermsWithNarrowMeaning(other_family_history_obj.getMedical_condition());
-				String[] allNarrowTerms = narrowTerms.split(",");
-				for(int c=1; c<allNarrowTerms.length; c++) {
-					query += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
-				}
-				query += ")";
-				assistanceQuery = "SELECT NAME FROM voc_medical_condition WHERE" + query.split("AND")[1];
-    		}
-    		break;
-    		case "other_clinical_trials": { //Check if user provided the info of all the fields 
-				query = "SELECT * FROM other_clinical_trials"; 
-				termAndSubterms = "Search for other clinical trials data";
-    		}
-    		break;
-    		case "patient": { //Check if user provided the info of all the fields 
-				query = "SELECT * FROM patient";
-				termAndSubterms = "Search for patients data";
-    		}
-    		break;
-    		default: System.out.println("Undefined criterion-name in the input JSON file.");
-    	}
-    	try { 
-    		if(!query.equals("")) myresults = DBServiceCRUD.testQuery(query);
-    		if(!assistanceQuery.equals("")) {
-    			String[] assistanceResults = DBServiceCRUD.assistanceQuery(assistanceQuery).split(",");
-    			termAndSubterms = "Search for term: " + assistanceResults[0];
-    			if(assistanceResults.length>1) {
-    				termAndSubterms += " and subterms:";
-    				for(int sub=1; sub<assistanceResults.length; sub++) {
-    					if(sub==1) termAndSubterms += assistanceResults[sub];
-    					else termAndSubterms += "," + assistanceResults[sub];
+    	public boolean canUseCriterion(Criterion crit){
+        	String query="";
+        	String assistanceQuery="";
+        	boolean myresults = false;
+        	switch(crit.getCriterion()) {
+        		case "demographics_gender": {
+        			query = "SELECT * FROM demo_sex_data";
+        			termAndSubterms = "Search for gender data";
+        		}
+        		break;
+        		case "demographics_ethnicity": {
+        			query = "SELECT * FROM demo_ethnicity_data";
+        			termAndSubterms = "Search for ethnicity data";
+        		}
+        		break;
+        		case "demographics_education": {
+        			query = "SELECT * FROM demo_education_level_data";
+        			termAndSubterms = "Search for education data";
+        		}
+        		break;
+        		case "demographics_weight": {
+        			query = "SELECT * FROM demo_weight_data";
+        			termAndSubterms = "Search for weight data";
+        		}
+        		break;
+        		case "demographics_occupation": {
+        			query = "SELECT * FROM demo_occupation_data";
+        			termAndSubterms = "Search for occupation data";
+        		}
+        		break;
+        		case "demographics_pregnancy": {
+        			query = "SELECT * FROM demo_pregnancy_data";
+        			termAndSubterms = "Search for pregnancy data";
+        		}
+        		break;
+        		case "lifestyle_smoking": {
+        			query = "SELECT * FROM lifestyle_smoking";
+        			termAndSubterms = "Search for smoking data";
+        		}
+        		break;
+        		case "condition_symptom": {
+        			condition_symptom crit_cond_symptom_obj = (condition_symptom)crit;
+        			query = "SELECT * FROM cond_symptom, voc_symptom_sign WHERE cond_symptom.CONDITION_ID = voc_symptom_sign.ID AND (" + Make_OR_of_CODES("voc_symptom_sign.CODE", crit_cond_symptom_obj.getVoc_symptom_sign_CODE());
+        			String narrowTerms = getTermsWithNarrowMeaning(crit_cond_symptom_obj.getVoc_symptom_sign_CODE());
+    				String[] allNarrowTerms = narrowTerms.split(",");
+    				for(int c=1; c<allNarrowTerms.length; c++) {
+    					query += " OR " + Make_OR_of_CODES("voc_symptom_sign.CODE", allNarrowTerms[c]);
     				}
+    				query += ")";
+    				assistanceQuery = "SELECT NAME FROM voc_symptom_sign WHERE" + query.split("AND")[1]; 
+        		}
+        		break;
+        		case "condition_diagnosis": {
+        			condition_diagnosis crit_cond_diagnosis_obj = (condition_diagnosis)crit;
+        			query = "SELECT * FROM cond_diagnosis, voc_medical_condition WHERE cond_diagnosis.CONDITION_ID = voc_medical_condition.ID AND (" + Make_OR_of_CODES("voc_medical_condition.CODE", crit_cond_diagnosis_obj.getCondition());
+        			String narrowTerms = getTermsWithNarrowMeaning(crit_cond_diagnosis_obj.getCondition());
+    				String[] allNarrowTerms = narrowTerms.split(",");
+    				for(int c=1; c<allNarrowTerms.length; c++) {
+    					query += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
+    				}
+    				query += ")";
+    				assistanceQuery = "SELECT NAME FROM voc_medical_condition WHERE" + query.split("AND")[1]; 
+        		}
+        		break;
+        		case "intervention_medication": {
+        			intervention_medication  crit_interv_medication_obj =  (intervention_medication )crit;
+    				query = "SELECT * FROM interv_medication, voc_pharm_drug WHERE interv_medication.MEDICATION_ID = voc_pharm_drug.ID AND (" + Make_OR_of_CODES("voc_pharm_drug.CODE", crit_interv_medication_obj.getVoc_pharm_drug_CODE());
+    				String narrowTerms = getTermsWithNarrowMeaning(crit_interv_medication_obj.getVoc_pharm_drug_CODE());
+    				String[] allNarrowTerms = narrowTerms.split(",");
+    				for(int c=1; c<allNarrowTerms.length; c++) {
+    					query += " OR " + Make_OR_of_CODES("voc_pharm_drug.CODE", allNarrowTerms[c]);
+    				}
+    				query += ")";
+    				assistanceQuery = "SELECT NAME FROM voc_pharm_drug WHERE" + query.split("AND")[1]; 
+        		}
+        		break;
+        		case "intervention_chemotherapy": {
+    				  //intervention_chemotherapy  crit_interv_chemotherapy_obj =  (intervention_chemotherapy)crit;
+    				query = "SELECT * FROM interv_chemotherapy"; //, voc_confirmation WHERE interv_chemotherapy.DUE_TO_PSS_ID = voc_confirmation.ID AND " + Make_OR_of_CODES("voc_confirmation.CODE", crit_interv_chemotherapy_obj.getReason());
+    				termAndSubterms = "Search for chemotherapy data";
+        		}
+        		break;
+        		case "intervention_surgery": { 
+        			query = "SELECT * FROM intervention_surgery";
+        			termAndSubterms = "Search for surgery data";
+        		}
+        		break;
+        		case "examination_lab_test": {
+        			examination_lab_test  examination_lab_test_obj =  (examination_lab_test)crit;
+    				query = "SELECT * FROM exam_lab_test, voc_lab_test WHERE exam_lab_test.TEST_ID=voc_lab_test.ID AND (" + Make_OR_of_CODES("voc_lab_test.CODE", examination_lab_test_obj.getTest_id());
+    				String narrowTerms = getTermsWithNarrowMeaning(examination_lab_test_obj.getTest_id());
+    				String[] allNarrowTerms = narrowTerms.split(",");
+    				for(int c=1; c<allNarrowTerms.length; c++) {
+    					query += " OR " + Make_OR_of_CODES("voc_lab_test.CODE", allNarrowTerms[c]);  
+    				}
+    				query += ") ";
+    				assistanceQuery = "SELECT NAME FROM voc_lab_test WHERE" + query.split("AND")[1];
+        		}
+        		break;
+        		case "examination_biopsy": { //Check if user provided the info of all the fields 
+    				examination_biopsy  examination_biopsy_obj =  (examination_biopsy)crit;
+    				query = "SELECT * FROM exam_biopsy, voc_biopsy WHERE exam_biopsy.BIOPSY_ID=voc_biopsy.ID AND (voc_biopsy.CODE='"+examination_biopsy_obj.getBiopsy_type()+"'"; // ='SAL-BIO-21' Make_OR_of_CODES("voc_lab_test.CODE", examination_biopsy_obj.getBiopsy_type());				  		 
+    				String narrowTerms = getTermsWithNarrowMeaning(examination_biopsy_obj.getBiopsy_type());
+    				String[] allNarrowTerms = narrowTerms.split(",");
+    				for(int c=1; c<allNarrowTerms.length; c++) {
+    					query += " OR voc_biopsy.CODE='" + allNarrowTerms[c] + "'";
+    				}
+    				query += ") ";
+    				assistanceQuery = "SELECT NAME FROM voc_biopsy WHERE" + query.split("AND")[1];
+        		}
+        		break;
+        		case "examination_medical_imaging_test": { //Check if user provided the info of all the fields 
+    				examination_medical_imaging_test  examination_medical_imaging_test_obj =  (examination_medical_imaging_test)crit;
+    				query = "SELECT * FROM exam_medical_imaging_test, voc_medical_imaging_test WHERE exam_medical_imaging_test.TEST_ID=voc_medical_imaging_test.ID AND (" + Make_OR_of_CODES("voc_medical_imaging_test.CODE", examination_medical_imaging_test_obj.getTest_id()) +" ";
+    				String myNarrowTerms = getTermsWithNarrowMeaning(examination_medical_imaging_test_obj.getTest_id());
+    				  String[] myAllNarrowTerms = myNarrowTerms.split(",");
+    				  for(int c=1; c<myAllNarrowTerms.length; c++) {
+    					  query += "OR " + Make_OR_of_CODES("voc_medical_imaging_test.CODE", myAllNarrowTerms[c]);
+    				  }
+    				  query += ") ";
+    				  assistanceQuery = "SELECT NAME FROM voc_medical_imaging_test WHERE" + query.split("AND")[1];
+        		}
+        		break;
+        		case "examination_questionnaire_score": { //Check if user provided the info of all the fields 
+    				examination_questionnaire_score  examination_questionnaire_score_obj =  (examination_questionnaire_score)crit;
+    				query = "SELECT * FROM exam_questionnaire_score, voc_questionnaire WHERE exam_questionnaire_score.SCORE_ID=voc_questionnaire.ID AND (" + Make_OR_of_CODES("voc_questionnaire.CODE", examination_questionnaire_score_obj.getScore());
+    				String myNarrowTerms = getTermsWithNarrowMeaning(examination_questionnaire_score_obj.getScore());
+    				  String[] myAllNarrowTerms = myNarrowTerms.split(",");
+    				  for(int c=1; c<myAllNarrowTerms.length; c++) {
+    					  query += " OR " + Make_OR_of_CODES("voc_questionnaire.CODE", myAllNarrowTerms[c]);
+    				  }
+    				  query += ")";
+    				  assistanceQuery = "SELECT NAME FROM voc_questionnaire WHERE" + query.split("AND")[1];
+        		}
+        		break;
+        		case "examination_essdai_domain": {
+        			examination_essdai_domain  examination_essdai_domain_obj =  (examination_essdai_domain)crit;
+    				query = "SELECT * FROM exam_essdai_domain, voc_essdai_domain WHERE exam_essdai_domain.DOMAIN_ID = voc_essdai_domain.ID AND " + Make_OR_of_CODES("voc_essdai_domain.CODE", examination_essdai_domain_obj.getDomain());
+    				assistanceQuery = "SELECT NAME FROM voc_essdai_domain WHERE" + query.split("AND")[1];
+        		}
+        		break;
+        		case "examination_caci_condition": { //Check if user provided the info of all the fields 
+    				examination_caci_condition  examination_caci_condition_obj =  (examination_caci_condition)crit;
+    				query = "SELECT * FROM exam_caci_condition, voc_caci_condition WHERE exam_caci_condition.CACI_ID = voc_caci_condition.ID AND " + Make_OR_of_CODES("voc_caci_condition.CODE", examination_caci_condition_obj.getCaci());
+    				assistanceQuery = "SELECT NAME FROM voc_caci_condition WHERE" + query.split("AND")[1];
+        		}
+        		break;
+        		case "other_healthcare_visit": { //Check if user provided the info of all the fields 
+    				other_healthcare_visit  other_healthcare_visit_obj =  (other_healthcare_visit)crit;
+    				query = "SELECT * FROM other_healthcare_visit, voc_specialist WHERE other_healthcare_visit.SPECIALIST_ID=voc_specialist.ID AND " + Make_OR_of_CODES("voc_specialist.CODE", other_healthcare_visit_obj.getSpecialist());
+    				assistanceQuery = "SELECT NAME FROM voc_specialist WHERE" + query.split("AND")[1];
+        		}
+        		break;
+        		case "other_family_history": { //Check if user provided the info of all the fields 
+    				other_family_history  other_family_history_obj =  (other_family_history)crit;
+    				query = "SELECT * FROM other_family_history, voc_medical_condition WHERE other_family_history.MEDICAL_CONDITION_ID=voc_medical_condition.ID AND (" + Make_OR_of_CODES("voc_medical_condition.CODE", other_family_history_obj.getMedical_condition());
+    				String narrowTerms = getTermsWithNarrowMeaning(other_family_history_obj.getMedical_condition());
+    				String[] allNarrowTerms = narrowTerms.split(",");
+    				for(int c=1; c<allNarrowTerms.length; c++) {
+    					query += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
+    				}
+    				query += ")";
+    				assistanceQuery = "SELECT NAME FROM voc_medical_condition WHERE" + query.split("AND")[1];
+        		}
+        		break;
+        		case "other_clinical_trials": { //Check if user provided the info of all the fields 
+    				query = "SELECT * FROM other_clinical_trials"; 
+    				termAndSubterms = "Search for other clinical trials data";
+        		}
+        		break;
+        		case "patient": { //Check if user provided the info of all the fields 
+    				query = "SELECT * FROM patient";
+    				termAndSubterms = "Search for patients data";
+        		}
+        		break;
+        		default: System.out.println("Undefined criterion-name in the input JSON file.");
+        	}
+        	try { 
+        		if(!query.equals("")) myresults = DBServiceCRUD.testQuery(query);
+        		if(!assistanceQuery.equals("")) {
+        			String[] assistanceResults = DBServiceCRUD.assistanceQuery(assistanceQuery).split(",");
+        			termAndSubterms = "Search for term: " + assistanceResults[0];
+        			if(assistanceResults.length>1) {
+        				termAndSubterms += " and subterms:";
+        				for(int sub=1; sub<assistanceResults.length; sub++) {
+        					if(sub==1) termAndSubterms += assistanceResults[sub];
+        					else termAndSubterms += "," + assistanceResults[sub];
+        				}
+        			}
+        		}
+        	} catch (SQLException e) {
+        		//LOGGER.log(Level.SEVERE,"Bad type query or arguments: "+query,true);
+        		//flush_handler();
+    		
+        		e.printStackTrace();
+        		//return "Bad type query or arguments: "+query;
+        	}
+        	if (!myresults) return false;
+        	else return true;
+        }
+    	
+    	public String getTermsWithNarrowMeaning(String myTerm) {
+        	String narrowTerms = "";
+        	for(int i=0; i<allClasses.size(); i++){
+    			if(myTerm.equals(allClasses.get(i).id)){
+    				try{
+    					narrowTerms = getSubKeywords(narrowTerms, allClasses.get(i));
+    				}
+    				catch (Exception e) {
+    		   			System.out.println(e);
+    		   		}
+    				
+    				break;	
     			}
+    		}	
+        	return narrowTerms;
+        }
+    	
+    	private static String getSubKeywords(String keywords, MyOWLClass checked){
+    		if(keywords.equals("")) keywords += checked.id;			
+    		else keywords += ","+checked.id;
+    		for(int i=0; i<checked.subClasses.size(); i++){
+    			keywords = getSubKeywords(keywords, checked.subClasses.get(i));
     		}
-    	} catch (SQLException e) {
-    		//LOGGER.log(Level.SEVERE,"Bad type query or arguments: "+query,true);
-    		//flush_handler();
-		
-    		e.printStackTrace();
-    		//return "Bad type query or arguments: "+query;
+    		return keywords;
     	}
-    	if (!myresults) return false;
-    	else return true;
+    
+    public void criterionDBmatching(ArrayList<Criterion> list_of_criterions) throws JSONException{
+    	results = new Result_UIDs();
+    	Boolean mode;
+    	for (int j=0;j<2;j++) {
+			
+    		if(j==0) mode = false; //LOGGER.log(Level.INFO,"======** UIDs_defined_ALL_elements **======\n",true);}
+    		else mode = true; //LOGGER.log(Level.INFO,"======** UIDs_UNdefined_some_elements **======\n",true);}
+    		String results_of_all_Criterions="";
+    		results_of_all_Criterions = createQuery(list_of_criterions, mode, results_of_all_Criterions);
+    		results.Input_UIDs(mode,results_of_all_Criterions);
+    	}
+    	UIDsDefined.add(results.UIDs_defined_ALL_elements );
+    	UIDsUndefined.add(results.UIDs_UNdefined_some_elements);
+    	System.out.println(results.Output_JSON_UIDs());
     }
     
-    public int findPatientsIds(String criterion){
-    	return 0;
+    private void accessCohort(String mycohort, ArrayList<Criterion> list_of_criterions) throws SQLException {
+    	JSONObject cohortResponse = new JSONObject();
+    	String cohortName = mycohort;
+		cohortResponse.put("cohort_name", cohortName);
+		ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/"+cohortName,"emps","emps");
+		if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
+    	else System.out.println("everything's gooooooood");
+    	criterionDBmatching(list_of_criterions);
+    	cohortResponse.put("patients_IDs_list", results.UIDs_defined_ALL_elements);
+    	String result_incl = "";
+    	
+	  	for(int i=0; i<list_of_criterions.size(); i++){
+	  		//System.out.println(inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim());
+	  		result_incl+=list_of_criterions.get(i).getCriterion();
+	  		if(inclusion_criteria.get(i).getString("usage").equals("used")) result_incl += " - USED<br>";
+	  		else result_incl += " - NOT USED<br>";
+	  	}
+	  	cohortResponse.put("inclusion_criteria", "Tested criteria: <br>"+result_incl);
+	  	cohortResponseList.add(cohortResponse);
+		inclusion_criteria.clear();
+		DBServiceCRUD.closeJDBCConnection();
+		System.out.println("End");
     }
-    
+
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		//Logger LOGGER = Util_Logger.Initialize_logger("C:/Users/Jason/eclipse-workspace/HarmonicSS/LogFile.log");
+		//response.getWriter().append("Served at: ").append(request.getContextPath());
+		
 	}
 
 	/**
@@ -1819,109 +1531,57 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		//Logger LOGGER = Util_Logger.Initialize_logger("C:/Users/Jason/eclipse-workspace/HarmonicSS/LogFile.log");
-		JSONObject all = new JSONObject();
+		//doGet(request, response);
 		cohortResponseList.clear();
-		Infos req = new Gson().fromJson(request.getReader(), Infos.class);
-		//cohortResponseList
-		requestID = req.requestID;
-		if(requestID!=null){
-			try {
-				all.put("requestId", requestID);
-			} catch (JSONException e2) {
-				// TODO Auto-generated catch block
-				e2.printStackTrace();
-			}
-	    	manager = OWLManager.createOWLOntologyManager();
-	    	Scanner s1 = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/infos.txt"))));
-			String[] line = s1.nextLine().split(":");
-		    //documentIRI = IRI.create("file:///C:/Users/Jason/Desktop/", "HarmonicSS-Reference-Model+Vocabularies-v.0.9.owl");
-			documentIRI = IRI.create(getServletContext().getResource("/WEB-INF/"+line[1].trim()));
-		    try{
-		        ontology = manager.loadOntologyFromOntologyDocument(documentIRI);
-	            findClasses();
-	            findSubclasses();
-			}
-			catch (OWLOntologyCreationException e) {
-		        e.printStackTrace();
-				
-			}
-			String crit_incl_excl_in = readXMLbyRequestID(requestID, req.username, req.password);
-			System.out.println(crit_incl_excl_in);
-			String[] crit_incl_excl=crit_incl_excl_in.split("XXX");
-			String criteria = Intermediate_Layer.preProcess_JSON(crit_incl_excl[0]);
-			System.out.println("After Criteria preprocessed:\n"+criteria);
-			ArrayList<Criterion> list_of_inclusive_criterions=null;
-			try {
-				list_of_inclusive_criterions = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
-				//findCriterion((Criterion)list_of_inclusive_criterions.get(0));
-				System.out.println(list_of_inclusive_criterions);
-				
-			} catch (JsonParseException e1) {
-				/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
-				flush_handler();*/
-				e1.printStackTrace();
-				//return "JsonParseException Bad JSON format.";
-			} catch (JsonMappingException e1) {
-				/*LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
-				flush_handler();*/
-				e1.printStackTrace();
-				//return "JsonParseException Bad JSON format.";
-			} catch (IOException e1) {
-				/*LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
-				flush_handler();*/
-				e1.printStackTrace();
-				//return "JsonParseException Bad JSON format.";
-			}
-			criteria = Intermediate_Layer.preProcess_JSON(crit_incl_excl[1]);
-			System.out.println("After Criteria preprocessed:\n"+criteria);
-			ArrayList<Criterion> list_of_exclusive_criterions=null;
-			try {
-				list_of_exclusive_criterions = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
-				//findCriterion((Criterion)list_of_exclusive_criterions.get(0));
-				System.out.println(list_of_exclusive_criterions);
-					
-			} catch (JsonParseException e1) {
-				/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
-				flush_handler();*/
-				e1.printStackTrace();
-				//return "JsonParseException Bad JSON format.";
-			} catch (JsonMappingException e1) {
-				/*LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
-				flush_handler();*/
-				e1.printStackTrace();
-				//return "JsonParseException Bad JSON format.";
-			} catch (IOException e1) {
-				/*LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
-				flush_handler();*/
-				e1.printStackTrace();
-				//return "JsonParseException Bad JSON format.";
-			}
-	    	/*ConfigureFile obj = new ConfigureFile("jdbc:mysql://localhost:3306/harmonicssdb?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC","root","");
-	    	//ConfigureFile obj = new ConfigureFile("jdbc:mysql://147.102.19.66:3306/harmonicssdb?useUnicode=true&useJDBCCompliantTimezoneShift=true&useLegacyDatetimeCode=false&serverTimezone=UTC","emps","emps");
-	    	
-			if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
-	    	else System.out.println("everything's gooooooood");
-	    	
-	    	criterionDBmatching(list_of_inclusive_criterions,list_of_exclusive_criterions);
-			writeXMLResponse();			
-			System.out.println("End");*/
-			try {
-				accessCohorts(requestID, req.username, req.password, list_of_inclusive_criterions, list_of_exclusive_criterions);
-			} catch (IOException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (JSONException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (SQLException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			} catch (ClassNotFoundException e) {
-				// TODO Auto-generated catch block
-				e.printStackTrace();
-			}
+		JSONObject all = new JSONObject();
+		manager = OWLManager.createOWLOntologyManager();
+    	Scanner s1 = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/infos.txt"))));
+		String[] line = s1.nextLine().split(":");
+	    //documentIRI = IRI.create("file:///C:/Users/Jason/Desktop/", "HarmonicSS-Reference-Model+Vocabularies-v.0.9.owl");
+		documentIRI = IRI.create(getServletContext().getResource("/WEB-INF/"+line[1].trim()));
+	    try{
+	        ontology = manager.loadOntologyFromOntologyDocument(documentIRI);
+            findClasses();
+            findSubclasses();
+		}
+		catch (OWLOntologyCreationException e) {
+	        e.printStackTrace();
 			
+		}
+	    TestInfos req = new Gson().fromJson(request.getReader(), TestInfos.class);
+		
+		String crit_incl = makeCriterionList(req.jsonCriteria);
+		String criteria = Intermediate_Layer.preProcess_JSON(crit_incl);
+		ArrayList<Criterion> list_of_criterions=null;
+		try {
+			list_of_criterions = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+			//findCriterion((Criterion)list_of_inclusive_criterions.get(0));
+			System.out.println(list_of_criterions);
+			
+		} catch (JsonParseException e1) {
+			/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
+			flush_handler();*/
+			e1.printStackTrace();
+			//return "JsonParseException Bad JSON format.";
+		} catch (JsonMappingException e1) {
+			/*LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
+			flush_handler();*/
+			e1.printStackTrace();
+			//return "JsonParseException Bad JSON format.";
+		} catch (IOException e1) {
+			/*LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
+			flush_handler();*/
+			e1.printStackTrace();
+			//return "JsonParseException Bad JSON format.";
+		}
+		try {
+			accessCohort(req.mycohort, list_of_criterions);
+		} catch (JSONException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
+		} catch (SQLException e) {
+			// TODO Auto-generated catch block
+			e.printStackTrace();
 		}
 		try {
 			all.put("cohort_response_list", cohortResponseList);
@@ -1932,7 +1592,6 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		response.setContentType("text/html; charset=UTF-8");
 		response.setCharacterEncoding("UTF-8");
 		PrintWriter pw = response.getWriter();
-		pw.flush();
 		pw.print(all.toString());
 		pw.close();
 	}

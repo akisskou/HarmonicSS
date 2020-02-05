@@ -1,22 +1,38 @@
 package xmlWrapper;
 
+import java.io.BufferedReader;
+import java.io.File;
+import java.io.FileReader;
+import java.io.FileWriter;
 import java.io.IOException;
 import java.io.PrintWriter;
+import java.net.URI;
+import java.net.URISyntaxException;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
 import java.sql.ResultSet;
 import java.sql.SQLException;
+import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Scanner;
 
 import javax.servlet.ServletException;
 import javax.servlet.annotation.WebServlet;
 import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
+import javax.xml.bind.JAXBContext;
+import javax.xml.bind.JAXBElement;
+import javax.xml.bind.JAXBException;
+import javax.xml.bind.Unmarshaller;
 
 import org.json.JSONObject;
+import org.ntua.criteria.CohortResponse;
+import org.ntua.criteria.ObjectFactory;
+import org.ntua.criteria.PatientsSelectionRequest;
+import org.ntua.criteria.PatientsSelectionResponse;
 
 
 /**
@@ -73,19 +89,115 @@ public class ReqRespList extends HttpServlet {
 		//response.getWriter().append("Served at: ").append(request.getContextPath());
 		if(!makeJDBCConnection())  System.out.println("Connection with the ponte database failed. Check the Credentials and the DB URL.");
     	else System.out.println("I am ponte and I'm gooooooood");
+		String userID = request.getParameter("userID");
+		String requestID = request.getParameter("requestID");
 		
 		String query = "SELECT * FROM EXECUTION_DATA";
+		if(userID.equals("null") || userID.trim().equals("")) {
+			if(!requestID.equals("null") && !requestID.trim().equals("")) {
+				String[] requestIDs = requestID.split(",");
+				for(int i=0; i<requestIDs.length; i++) {
+					if(!requestIDs[i].equals("null") && !requestIDs[i].trim().equals("")) {
+						if(i==0) query += " WHERE (REQUEST_ID='" + requestIDs[i].trim() +"'";
+						else query += " OR REQUEST_ID='" + requestIDs[i].trim() +"'";
+					}
+				}
+				query += ")";
+			}
+		}
+		else {
+			String[] userIDs = userID.split(",");
+			for(int i=0; i<userIDs.length; i++) {
+				if(!userIDs[i].equals("null") && !userIDs[i].trim().equals("")) {
+					if(i==0) query += " WHERE (USER_ID='" + userIDs[i].trim() +"'";
+					else query += " OR USER_ID='" + userIDs[i].trim() +"'";
+				}
+			}
+			query += ")";
+			if(!requestID.equals("null") && !requestID.trim().equals("")) {
+				String[] requestIDs = requestID.split(",");
+				for(int i=0; i<requestIDs.length; i++) {
+					if(!requestIDs[i].equals("null") && !requestIDs[i].trim().equals("")) {
+						if(i==0) query += " AND (REQUEST_ID='" + requestIDs[i].trim() +"'";
+						else query += " OR REQUEST_ID='" + requestIDs[i].trim() +"'";
+					}
+				}
+				query += ")";
+			}
+		}
 		try {
 			db_prep_obj = db_con_obj.prepareStatement(query);
 			ResultSet rs = db_prep_obj.executeQuery();
 			List<JSONObject> listJSONobj = new ArrayList<JSONObject>();
+			
 			while (rs.next()) {
 				JSONObject myjson = new JSONObject();
 				myjson.put("user_id", rs.getString("USER_ID"));
 				myjson.put("request_id", rs.getString("REQUEST_ID"));
-				myjson.put("request_XML", rs.getString("REQUEST_XML").replace("\t","").replace("\n", "").replace("\r", ""));
+				//myjson.put("request_XML", rs.getString("REQUEST_XML").replace("\t","").replace("\n", "").replace("\r", ""));
+				String requestXML = rs.getString("REQUEST_XML").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"");
+				FileWriter fw = new FileWriter(getServletContext().getRealPath("/WEB-INF/tempRequest.xml"));
+			    fw.write(requestXML);
+			    fw.close();
+			    /*String responseXML = rs.getString("RESPONSE_XML").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"");
+			    fw = new FileWriter(getServletContext().getRealPath("/WEB-INF/tempResponse.xml"));
+			    fw.write(responseXML);
+				fw.close();*/
+				File myXMLRequest = new File(getServletContext().getRealPath("/WEB-INF/tempRequest.xml"));
+				JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
+	  	  		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+	  	  		PatientsSelectionRequest patientsSelectionRequest = ((JAXBElement<PatientsSelectionRequest>) jaxbUnmarshaller.unmarshal(myXMLRequest)).getValue();
+	  	  		String result_incl = "Inclusion Criteria:<br>";
+	  	  		String result_excl = "Exclusion Criteria:<br>";
+	  	  		for(org.ntua.criteria.Criterion inclCriterion: patientsSelectionRequest.getEligibilityCriteria().getInclusionCriteria().getCriterion()){
+	  	  			result_incl+=inclCriterion.getDescription()+": "+inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim()+"<br>";
+	  	  		}
+	  	  		for(org.ntua.criteria.Criterion exclCriterion: patientsSelectionRequest.getEligibilityCriteria().getExclusionCriteria().getCriterion()){
+	  	  			result_excl+=exclCriterion.getDescription()+": "+exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim()+"<br>";
+	  	  		}
+	  	  		String cohorts = "Cohorts:<br>";
+	  	  		List<String> cohortList = patientsSelectionRequest.getCohortID();
+	  	  		for(String myCohort : cohortList) {
+	  	  			//System.out.println("Cohort with id="+myCohort.split("-")[2]+" updated successfully.");
+	  	  			cohorts += "Harm-DB-"+myCohort.split("-")[2]+"<br>";
+	  	  		}
+	  	  		String requestSynopsis = cohorts + result_incl + result_excl;
+	  	  		myjson.put("request_synopsis", requestSynopsis);
 				myjson.put("execution_date", rs.getString("EXECUTION_DATE").replace("\t","").replace("\n", "").replace("\r", ""));
-				myjson.put("response_XML", rs.getString("RESPONSE_XML").replace("\t","").replace("\n", "").replace("\r", ""));
+				
+				String responseXML = rs.getString("RESPONSE_XML").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"");
+				FileWriter pw = new FileWriter(getServletContext().getRealPath("/WEB-INF/tempResponse.xml"));
+			    pw.write(responseXML);
+			    pw.close();
+			    String responseSynopsis = "";
+			    if(!responseXML.equals("")) {
+				File myXMLResponse = new File(getServletContext().getRealPath("/WEB-INF/tempResponse.xml"));
+				jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
+	  	  		jaxbUnmarshaller = jaxbContext.createUnmarshaller();
+	  	  		PatientsSelectionResponse patientsSelectionResponse = ((JAXBElement<PatientsSelectionResponse>) jaxbUnmarshaller.unmarshal(myXMLResponse)).getValue();
+	  	  		
+	  	  		
+	  	  		for(CohortResponse cohortResponse : patientsSelectionResponse.getCohortResponse()) {
+	  	  			int i=0;
+	  	  			responseSynopsis += "Harm-DB-"+cohortResponse.getCohortID().split("-")[2]+":<br>";
+	  	  			responseSynopsis += "Number of patients found: "+cohortResponse.getEligiblePatientsNumber()+"<br>";
+	  	  			responseSynopsis += "Inclusion Criteria:<br>";
+	  	  			for (org.ntua.criteria.Criterion inclCriterion: patientsSelectionRequest.getEligibilityCriteria().getInclusionCriteria().getCriterion()) {
+	  	  				responseSynopsis += inclCriterion.getDescription()+": "+inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim()+" - ";
+	  	  				responseSynopsis += cohortResponse.getEligibilityCriteriaUsed().getCriterionUsage().get(i).getCriterionUsageStatus()+"<br>";
+	  	  				i++;
+	  	  			}
+	  	  			responseSynopsis += "Exclusion Criteria:<br>";
+	  	  			for (org.ntua.criteria.Criterion exclCriterion: patientsSelectionRequest.getEligibilityCriteria().getExclusionCriteria().getCriterion()) {
+	  	  				responseSynopsis += exclCriterion.getDescription()+": "+exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim()+" - ";
+	  	  				responseSynopsis += cohortResponse.getEligibilityCriteriaUsed().getCriterionUsage().get(i).getCriterionUsageStatus()+"<br>";
+	  	  				i++;
+	  	  			}
+	  	  			responseSynopsis += "<br>";
+	  	  		}
+			    }
+	  	  		myjson.put("response_synopsis", responseSynopsis);
+				//myjson.put("response_XML", rs.getString("RESPONSE_XML").replace("\t","").replace("\n", "").replace("\r", ""));
 				listJSONobj.add(myjson);
 			}
 			JSONObject result = new JSONObject();
@@ -104,7 +216,7 @@ public class ReqRespList extends HttpServlet {
 	        if (db_con_obj != null) {
 	        	db_con_obj.close();
 	        }
-		} catch (SQLException e) {
+		} catch (SQLException | JAXBException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
