@@ -2,43 +2,43 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html" charset="ISO-8859-1">
-<title>Execute Request</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
+<title>Test Criterion</title>
 </head>
 <body>
 	<div class="container">
+		
 		<p><a href="index.html">Home</a></p>
-		<input type="text" id="username" placeholder="username">
-		<input type="password" id="password" placeholder="password">
-		<input type="text" id="requestID" placeholder="requestID">
-        <br>
-        <br>
-        <button onclick='executeRequest()'>Execute request</button><br><br><br>
+		
+		<textarea id="jsonCriteria" rows="10" cols="100"></textarea>
+		<select id="cohortTest">
+  			<option value="Harm-DB-01">Harm-DB-01</option>
+  			<option value="Harm-DB-02">Harm-DB-02</option>
+  			<option value="Harm-DB-03">Harm-DB-03</option>
+  			<option value="Harm-DB-04">Harm-DB-04</option>
+  			<option value="Harm-DB-05">Harm-DB-05</option>
+  			<option value="Harm-DB-06">Harm-DB-06</option>
+  			<option value="Harm-DB-07">Harm-DB-07</option>
+  			<option value="Harm-DB-08">Harm-DB-08</option>
+  			<option value="Harm-DB-09">Harm-DB-09</option>
+		</select>
+        <button onclick='testCriterion()'>Test Criterions</button><br><br><br>
         <div id="data">
         </div>
     </div>
     
     <!-- 4 include the jQuery library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script> 
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-slimScroll/1.3.8/jquery.slimscroll.min.js"></script> 
-  
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>   
 	<script type="text/javascript">
 	
-	function executeRequest() {
-		$('#data').html("<h4>Executing your request...</h4>");
-		var requestID = document.getElementById("requestID");
-	 	var username = document.getElementById("username");
-	 	var password = document.getElementById("password");
-	 	if (!(username && username.value.trim()) || !(password && password.value.trim())){
-			alert("Please enter username and password!");
+	function testCriterion() {
+		$('#data').html("<h4>Testing your criterions...</h4>");
+		var jsonCriteria = document.getElementById("jsonCriteria");
+ 		var mycohort = document.getElementById("cohortTest");
+ 		if (!(jsonCriteria && jsonCriteria.value.trim())){
+			alert("Please enter at least one json criterion");
 			return false;
 		}
-	 	if(!(requestID && requestID.value.trim())){
-	 		alert("Request ID must not be null!");
-			return false;
-	 	}
- 		var HttpClient = function() {
+		var HttpClient = function() {
  			this.get = function(aUrl, aCallback) {
  				var anHttpRequest = new XMLHttpRequest();
  				anHttpRequest.onreadystatechange = function() { 
@@ -47,17 +47,15 @@
  					}
  				anHttpRequest.open( "POST", aUrl, true ); 
  				anHttpRequest.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
- 				anHttpRequest.send(JSON.stringify({"requestID": requestID.value.trim(), "username": username.value.trim(), "password": password.value.trim()})); 
+ 				anHttpRequest.send(JSON.stringify({"jsonCriteria": jsonCriteria.value.trim(), "mycohort": mycohort.value})); 
  			}
  		}
- 		var theurl;
  		
- 		
- 		theurl='PatientSelectionImpl';
+ 		var theurl='CriterionsTestServlet';
  		
  		var client = new HttpClient();
  		client.get(theurl, function(response) { 
-			var response1 = JSON.parse(response);
+ 			var response1 = JSON.parse(response);
 			//var darId = response1.cohort_response_list;
 			
 			var cohortsResponse = response1.cohort_response_list;
@@ -74,7 +72,6 @@
 					}
 				}
 				data += "<br>"+cohortsResponse[i].inclusion_criteria;
-				data += cohortsResponse[i].exclusion_criteria;
 				data += "<br><br>";
 			}
 			data += "</h4>";
