@@ -1421,14 +1421,19 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     			if (cohortID<10) cohortResponse.setCohortID("COHORT-ID-0"+cohortID);
     			else cohortResponse.setCohortID("COHORT-ID-"+cohortID);
     			cohortResponse.setQueryDate(patientsSelectionRequest.getRequestDate());
-    			if(patientsSelectionRequest.getRequestID().value().equals("ELIGIBLE_PATIENTS_NUMBER")) {
-    				System.out.println("Lathos vre malaka");
-    				if(results.UIDs_defined_ALL_elements.length==1 && results.UIDs_defined_ALL_elements[0].equals("")) cohortResponse.setEligiblePatientsNumber(0);
-    				else cohortResponse.setEligiblePatientsNumber(results.UIDs_defined_ALL_elements.length);
-    			}
-    			else {
+    			if(results.UIDs_defined_ALL_elements.length==1 && results.UIDs_defined_ALL_elements[0].equals("")) cohortResponse.setEligiblePatientsNumber(0);
+    			else cohortResponse.setEligiblePatientsNumber(results.UIDs_defined_ALL_elements.length);
+    			
+    			if(patientsSelectionRequest.getRequestID().value().equals("ELIGIBLE_PATIENTS_IDS")) {
     				if(results.UIDs_defined_ALL_elements.length==1 && results.UIDs_defined_ALL_elements[0].equals("")) cohortResponse.setEligiblePatientsIDs("");
-    				else cohortResponse.setEligiblePatientsIDs(results.UIDs_defined_ALL_elements.toString());
+    				else{
+    					String dbstring = "";
+    					for(int k=0; k<results.UIDs_defined_ALL_elements.length; k++) {
+    						if(k==0) dbstring += results.UIDs_defined_ALL_elements[k];
+    						else dbstring += ", "+results.UIDs_defined_ALL_elements[k];
+    					}
+    					cohortResponse.setEligiblePatientsIDs(dbstring);
+    				}
     			}
     			EligibilityCriteriaUsed inclAndExclCriteriaUsed = new EligibilityCriteriaUsed();
     			int i=0;
