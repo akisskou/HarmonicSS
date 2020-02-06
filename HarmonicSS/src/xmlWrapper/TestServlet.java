@@ -33,6 +33,8 @@ import org.json.JSONObject;
 import org.ntua.criteria.ObjectFactory;
 import org.ntua.criteria.PatientsSelectionRequest;
 
+import com.google.gson.Gson;
+
 /**
  * Servlet implementation class TestServlet
  */
@@ -54,12 +56,26 @@ public class TestServlet extends HttpServlet {
 	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		//response.getWriter().append("Served at: ").append(request.getContextPath());
+		
+		
+	}
+
+	/**
+	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
+	 */
+	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+		// TODO Auto-generated method stub
+		//doGet(request, response);
+		CreateRequest req = new Gson().fromJson(request.getReader(), CreateRequest.class);
 		try {
 			Scanner s = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/properties.txt"))));
 			String[] line1 = s.nextLine().split(":");
-			String myRequestXML = request.getParameter("requestXML");
-			String username = request.getParameter("username");
-			String password = request.getParameter("password");
+			String myRequestXML = req.requestXML;
+			String username = req.username;
+			String password = req.password;
+			int cohortStatus = Integer.valueOf(req.cohortStatus);
+			String[] cohortIDs = new String[req.cohortIDs.length];
+			for(int i=0; i<req.cohortIDs.length; i++) cohortIDs[i] = req.cohortIDs[i];
 			//File fXmlFile = new File(getServletContext().getRealPath("/WEB-INF/"+myRequestXML+".xml"));
 			File fXmlFile = new File(new URI("file:///C:"+line1[1].trim()+myRequestXML+".xml"));
 			Date date = new Date();
@@ -78,17 +94,17 @@ public class TestServlet extends HttpServlet {
 	  			//System.out.println(exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim());
 	  			result_excl+=exclCriterion.getDescription()+": "+exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim()+"<br>";
 	  		}
-  	  		List<String> cohortList = patientsSelectionRequest.getCohortID();
-  	  		for(String myCohort : cohortList) {
-  	  			setCohortsStatus(username, password, darId, myCohort.split("-")[2], 2, ((Timestamp)param).toString(), ((Timestamp)param).toString(), "Remarks for my service", "testfilename");
-  	  			System.out.println("Cohort with id="+myCohort.split("-")[2]+" updated successfully.");
+  	  		//List<String> cohortList = patientsSelectionRequest.getCohortID();
+  	  		for(String myCohort : cohortIDs) {
+  	  			setCohortsStatus(username, password, darId, myCohort, cohortStatus, ((Timestamp)param).toString(), ((Timestamp)param).toString(), "Remarks for my service", "testfilename");
+  	  			System.out.println("Cohort with id="+myCohort+" updated successfully.");
   	  		}
 			//String requestXML = readLineByLineJava8(getServletContext().getRealPath("/WEB-INF/"+myRequestXML+".xml"));
 			String requestXML = readLineByLineJava8(new URI("file:///C:"+line1[1].trim()+myRequestXML+".xml"));
   	  		setRequestXML(username, password, darId, requestXML);
 			JSONObject testResponse = new JSONObject();
 			testResponse.put("requestID", darId);
-			testResponse.put("cohortList", cohortList);
+			testResponse.put("cohortList", cohortIDs);
 			testResponse.put("requestXML", requestXML);
 			testResponse.put("incList", result_incl);
 			testResponse.put("excList", result_excl);
@@ -101,15 +117,6 @@ public class TestServlet extends HttpServlet {
 			System.out.println("Sorry, couldn't found JDBC driver. Make sure you have added JDBC Maven Dependency Correctly");
 			e.printStackTrace();
 		}
-		
-	}
-
-	/**
-	 * @see HttpServlet#doPost(HttpServletRequest request, HttpServletResponse response)
-	 */
-	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
-		// TODO Auto-generated method stub
-		doGet(request, response);
 	}
 	
 	// TODO: Close connections

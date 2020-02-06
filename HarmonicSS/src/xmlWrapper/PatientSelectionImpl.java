@@ -1398,7 +1398,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	  }
 
     
-    public void writeXMLResponse(int cohortIndex, boolean createXML){
+    public void writeXMLResponse(int cohortIndex, boolean createXML, int cohortID){
     	try{
     		if(cohortIndex==0) {
     		xmljaxbContext = JAXBContext.newInstance(ObjectFactory.class);
@@ -1417,10 +1417,19 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     		//for(String cohortID: patientsSelectionRequest.getCohortID()){
     		}
     			CohortResponse cohortResponse = new CohortResponse();
-    			cohortResponse.setCohortID(patientsSelectionRequest.getCohortID().get(cohortIndex));
+    			//cohortResponse.setCohortID(patientsSelectionRequest.getCohortID().get(cohortIndex));
+    			if (cohortID<10) cohortResponse.setCohortID("COHORT-ID-0"+cohortID);
+    			else cohortResponse.setCohortID("COHORT-ID-"+cohortID);
     			cohortResponse.setQueryDate(patientsSelectionRequest.getRequestDate());
-    			if(results.UIDs_defined_ALL_elements.length==1 && results.UIDs_defined_ALL_elements[0].equals("")) cohortResponse.setEligiblePatientsNumber(0);
-    			else cohortResponse.setEligiblePatientsNumber(results.UIDs_defined_ALL_elements.length);
+    			if(patientsSelectionRequest.getRequestID().value().equals("ELIGIBLE_PATIENTS_NUMBER")) {
+    				System.out.println("Lathos vre malaka");
+    				if(results.UIDs_defined_ALL_elements.length==1 && results.UIDs_defined_ALL_elements[0].equals("")) cohortResponse.setEligiblePatientsNumber(0);
+    				else cohortResponse.setEligiblePatientsNumber(results.UIDs_defined_ALL_elements.length);
+    			}
+    			else {
+    				if(results.UIDs_defined_ALL_elements.length==1 && results.UIDs_defined_ALL_elements[0].equals("")) cohortResponse.setEligiblePatientsIDs("");
+    				else cohortResponse.setEligiblePatientsIDs(results.UIDs_defined_ALL_elements.toString());
+    			}
     			EligibilityCriteriaUsed inclAndExclCriteriaUsed = new EligibilityCriteriaUsed();
     			int i=0;
     			for(org.ntua.criteria.Criterion inclCriterion: patientsSelectionRequest.getEligibilityCriteria().getInclusionCriteria().getCriterion()){
@@ -1497,6 +1506,43 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     	return result;
     }
     
+    private JSONObject getCredentials(int cohortID, String username, String password) {
+    	JSONObject credentials = new JSONObject();
+    	try {
+	        String webPage = "https://private.harmonicss.eu/index.php/apps/coh/api/1.0/cohortid?id="+cohortID;
+
+	        String authString = username + ":" + password;
+	        System.out.println("auth string: " + authString);
+	        byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
+	        String authStringEnc = new String(authEncBytes);
+	        System.out.println("Base64 encoded auth string: " + authStringEnc);
+
+	        URL url = new URL(webPage);
+	        URLConnection urlConnection = url.openConnection();
+	        urlConnection.setRequestProperty("Authorization", "Basic " + authStringEnc);
+	        InputStream is = urlConnection.getInputStream();
+	        InputStreamReader isr = new InputStreamReader(is);
+
+	        int numCharsRead;
+	        char[] charArray = new char[1024];
+	        StringBuffer sb = new StringBuffer();
+	        while ((numCharsRead = isr.read(charArray)) > 0) {
+	            sb.append(charArray, 0, numCharsRead);
+	        }
+	        String result = sb.toString();
+	        JSONArray jsonarray = new JSONArray(result);
+	        credentials = jsonarray.getJSONObject(0);
+	        /*System.out.println("*** BEGIN ***");
+	        System.out.println(result);
+	        System.out.println("*** END ***");*/
+	    } catch (MalformedURLException e) {
+	        e.printStackTrace();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+    	return credentials;
+    }
+    
     public void accessCohorts(String darID, String username, String password, ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions) throws IOException, JSONException, SQLException, ClassNotFoundException{
     	//String[] cohortAccess = new String[cohort_names.size()];
     	/*URL myXMLService = new URL("http://localhost:8080/GetCohortsC4New/GetCohortsServlet?darId="+darID);
@@ -1514,19 +1560,23 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     		String cohortName = "";
     		//if(cohorts.getJSONObject(i).get("cohortId").equals("2")) cohortName = "Harm-DB-09";
     		//if(cohorts.getJSONObject(i).get("cohortId").equals("3")) cohortName = "Harm-DB-09";
-    		cohortName = "Harm-DB-0"+cohorts.getJSONObject(i).get("cohortId");
+    		//cohortName = "Harm-DB-0"+cohorts.getJSONObject(i).get("cohortId");
+    		int mycohortid = Integer.valueOf(cohorts.getJSONObject(i).get("cohortId").toString());
+    		if(mycohortid<10) cohortName = "chdb00"+mycohortid;
+    		else cohortName = "chdb0"+mycohortid;
     		cohortResponse.put("cohort_name", cohortName);
     		if(cohorts.getJSONObject(i).get("statusId").equals("2")) {
-    			
+    			JSONObject credentials = getCredentials(mycohortid, username, password);
     			//String cohortName = cohorts.getJSONObject(i).get("cohortName").toString();
     			
     			System.out.println("-------------------------------- Execute query for cohort " + cohortName + " -------------------------------");
-    			ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/"+cohortName,"emps","emps");
+    			//ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/"+cohortName,"emps","emps");
+    			ConfigureFile obj = new ConfigureFile("jdbc:mysql://"+credentials.getString("dbserver")+":"+credentials.getString("dbport")+"/"+credentials.getString("dbarea"),credentials.getString("dbuname"),credentials.getString("dbupass"));
     			if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
     	    	else System.out.println("everything's gooooooood");
     			criterionDBmatching(list_of_inclusive_criterions,list_of_exclusive_criterions);
     			if(i==cohorts.length()-1) createXML=true;
-    			writeXMLResponse(i, createXML);	
+    			writeXMLResponse(i, createXML, mycohortid);	
     			cohortResponse.put("patients_IDs_list", results.UIDs_defined_ALL_elements);
     			String result_incl = "";
       	  		String result_excl = "";
@@ -1552,6 +1602,35 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     			inclusion_criteria.clear();
     			exclusion_criteria.clear();
     			DBServiceCRUD.closeJDBCConnection();
+    			if(patientsSelectionRequest.getRequestID().value().equals("ELIGIBLE_PATIENTS_IDS")) {
+    				int lastDigit = mycohortid%10;
+    				String ponteCohort = "Harm-DB-0"+lastDigit;
+    				Class.forName("com.mysql.jdbc.Driver");
+    				System.out.println("Congrats - Seems your MySQL JDBC Driver Registered!");
+    				Connection db_con_obj = DriverManager.getConnection("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/"+ponteCohort, "emps","emps");
+    				Date date = new Date();
+    				Object param = new java.sql.Timestamp(date.getTime());
+    				String query = "INSERT INTO Eligible_Patient_IDs (DAR_ID, EXEC_DATE, PATIENT_IDS) VALUES (?, ?, ?)";
+    				PreparedStatement db_prep_obj = db_con_obj.prepareStatement(query);
+    				db_prep_obj.setString(1, darID);
+    				db_prep_obj.setTimestamp(2, (Timestamp) param);
+    				if(results.UIDs_defined_ALL_elements.length==1 && results.UIDs_defined_ALL_elements[0].equals("")) db_prep_obj.setString(3, "");
+    				else {
+    					String dbstring = "";
+    					for(int k=0; k<results.UIDs_defined_ALL_elements.length; k++) {
+    						if(k==0) dbstring += results.UIDs_defined_ALL_elements[k];
+    						else dbstring += ", "+results.UIDs_defined_ALL_elements[k];
+    					}
+    					db_prep_obj.setString(3, dbstring);
+    				}
+    				db_prep_obj.execute();
+    				if (db_prep_obj != null) {
+    					db_prep_obj.close();
+    				}	
+    				if (db_con_obj != null) {
+    					db_con_obj.close();
+    				}
+    			}
     			System.out.println("End");
     		}
     		else {
@@ -1583,6 +1662,12 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		db_prep_obj.setTimestamp(4, (Timestamp) param);
 		db_prep_obj.setString(5, responseXML.replace("<", "&lt;").replace(">", "&gt;").replace("\"", "&quot;"));
 		db_prep_obj.execute();
+		if (db_prep_obj != null) {
+        	db_prep_obj.close();
+        }
+        if (db_con_obj != null) {
+        	db_con_obj.close();
+        }
     	System.out.println("-------------------------------- Execution data saved to database -------------------------------");
     	
     }
