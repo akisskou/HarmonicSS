@@ -8,7 +8,12 @@ import static queries.SQL_aux_functions.Make_specific_date_query;
 import java.io.BufferedReader;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
 import java.io.PrintWriter;
+import java.net.MalformedURLException;
+import java.net.URL;
+import java.net.URLConnection;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -27,8 +32,10 @@ import javax.servlet.http.HttpServlet;
 import javax.servlet.http.HttpServletRequest;
 import javax.servlet.http.HttpServletResponse;
 
+import org.apache.tomcat.util.codec.binary.Base64;
 import org.codehaus.jackson.JsonParseException;
 import org.codehaus.jackson.map.JsonMappingException;
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 import org.ntua.criteria.PatientsSelectionRequest;
@@ -134,35 +141,6 @@ public class CriterionsTestServlet extends HttpServlet {
             }
         }
 	}
-    
-    /*private boolean makeJDBCConnection() {
-    	Boolean connection_succes=true;
-		try {
-			Class.forName("com.mysql.jdbc.Driver");
-			System.out.println("Congrats - Seems your MySQL JDBC Driver Registered!");
-		} catch (ClassNotFoundException e) {
-			System.out.println("Sorry, couldn't found JDBC driver. Make sure you have added JDBC Maven Dependency Correctly");
-			e.printStackTrace();
-			return false;
-		}
-		
-		try {
-			//System.out.println("URL: "+configureFile_obj.getDbURL()+" username: "+configureFile_obj.getUsername()+" password: "+configureFile_obj.getPassword());
-			db_con_obj = DriverManager.getConnection("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB", "emps", "emps");
-			//db_con_obj = DriverManager.getConnection("jdbc:mysql://147.102.19.66:3306/HarmonicSS","ponte", "p0nt3");
-			if (db_con_obj != null) {
-				System.out.println("Connection Successful! Enjoy. Now it's time to Store data");
-			} else {
-				System.out.println("Failed to make connection!");
-				return false;
-			}
-		} catch (SQLException e) {
-			System.out.println("MySQL Connection Failed!");
-			e.printStackTrace();
-			return false;
-		}
-		return connection_succes;
-    }*/
     
     private String makeCriterionList(String jsonCriteria) {
     	String result_incl ="{\"list_of_criterions\":\n" + 
@@ -1479,7 +1457,7 @@ public class CriterionsTestServlet extends HttpServlet {
     
     public void criterionDBmatching(ArrayList<Criterion> list_of_criterions) throws JSONException{
     	results = new Result_UIDs();
-    	Boolean mode;
+    	Boolean mode = true;
     	for (int j=0;j<2;j++) {
 			
     		if(j==0) mode = false; //LOGGER.log(Level.INFO,"======** UIDs_defined_ALL_elements **======\n",true);}
@@ -1493,15 +1471,69 @@ public class CriterionsTestServlet extends HttpServlet {
     	System.out.println(results.Output_JSON_UIDs());
     }
     
+    private JSONObject getCredentials(int cohortID) {
+    	JSONObject credentials = new JSONObject();
+    	try {
+	        String webPage = "https://private.harmonicss.eu/index.php/apps/coh/api/1.0/cohortid?id="+cohortID;
+
+	        String authString = "test1:1test12!";
+	        System.out.println("auth string: " + authString);
+	        byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
+	        String authStringEnc = new String(authEncBytes);
+	        System.out.println("Base64 encoded auth string: " + authStringEnc);
+
+	        URL url = new URL(webPage);
+	        URLConnection urlConnection = url.openConnection();
+	        urlConnection.setRequestProperty("Authorization", "Basic " + authStringEnc);
+	        InputStream is = urlConnection.getInputStream();
+	        InputStreamReader isr = new InputStreamReader(is);
+
+	        int numCharsRead;
+	        char[] charArray = new char[1024];
+	        StringBuffer sb = new StringBuffer();
+	        while ((numCharsRead = isr.read(charArray)) > 0) {
+	            sb.append(charArray, 0, numCharsRead);
+	        }
+	        String result = sb.toString();
+	        JSONArray jsonarray = new JSONArray(result);
+	        credentials = jsonarray.getJSONObject(0);
+	        /*System.out.println("*** BEGIN ***");
+	        System.out.println(result);
+	        System.out.println("*** END ***");*/
+	    } catch (MalformedURLException e) {
+	        e.printStackTrace();
+	    } catch (IOException e) {
+	        e.printStackTrace();
+	    }
+    	return credentials;
+    }
+    
     private void accessCohort(String mycohort, ArrayList<Criterion> list_of_criterions) throws SQLException {
     	JSONObject cohortResponse = new JSONObject();
-    	String cohortName = mycohort;
-		cohortResponse.put("cohort_name", cohortName);
-		ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/"+cohortName,"emps","emps");
+    	int mycohortid = Integer.valueOf(mycohort);
+		if(mycohortid<10) mycohort = "chdb00"+mycohortid;
+		else mycohort = "chdb0"+mycohortid;
+    	JSONObject credentials = getCredentials(mycohortid);
+		cohortResponse.put("cohort_name", mycohort);
+		ConfigureFile obj = new ConfigureFile("jdbc:mysql://"+credentials.getString("dbserver")+":"+credentials.getString("dbport")+"/"+credentials.getString("dbarea"),credentials.getString("dbuname"),credentials.getString("dbupass"));
 		if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
     	else System.out.println("everything's gooooooood");
     	criterionDBmatching(list_of_criterions);
-    	cohortResponse.put("patients_IDs_list", results.UIDs_defined_ALL_elements);
+    	if(results.UIDs_defined_ALL_elements.length==1 && results.UIDs_defined_ALL_elements[0].equals("")) {
+    		if(results.UIDs_UNdefined_some_elements.length==1 && results.UIDs_UNdefined_some_elements[0].equals("")) {
+    			cohortResponse.put("patients_IDs_list", results.UIDs_defined_ALL_elements);
+    		}
+    		else cohortResponse.put("patients_IDs_list", results.UIDs_UNdefined_some_elements);
+    	}
+    	else {
+    		if(results.UIDs_UNdefined_some_elements.length==1 && results.UIDs_UNdefined_some_elements[0].equals("")) {
+    			cohortResponse.put("patients_IDs_list", results.UIDs_defined_ALL_elements);
+    		}
+    		else {
+    			if(results.UIDs_defined_ALL_elements.length > results.UIDs_UNdefined_some_elements.length) cohortResponse.put("patients_IDs_list", results.UIDs_defined_ALL_elements);
+    			else cohortResponse.put("patients_IDs_list", results.UIDs_UNdefined_some_elements);
+    		}
+    	}
     	String result_incl = "";
     	
 	  	for(int i=0; i<list_of_criterions.size(); i++){
