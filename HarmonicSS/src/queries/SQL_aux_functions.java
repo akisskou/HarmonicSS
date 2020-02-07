@@ -51,9 +51,10 @@ public class SQL_aux_functions {
 		if(mode) { //UNdefined some Elements.
 			
 			query+=" AND ("+Make_null_or_empty_values(mode,obj_name_Period_ID,"") +
-				   " OR ("+obj_name_Period_ID+" = dt_period_of_time.ID AND "+Make_null_or_empty_values(mode,"dt_period_of_time.START_DATE_ID","")+" AND "+Make_null_or_empty_values(mode,"dt_period_of_time.END_DATE_ID","")+")" +
+					" OR ("+obj_name_Period_ID+" = dt_period_of_time.ID AND ("+Make_null_or_empty_values(mode,"dt_period_of_time.START_DATE_ID","")+" OR "+" dt_period_of_time.START_DATE_ID = "+dt_date1+".ID) AND (" +Make_null_or_empty_values(mode,"dt_period_of_time.END_DATE_ID","")+" OR "+"dt_period_of_time.END_DATE_ID = "+dt_date2+".ID) AND (";
+				   /*" OR ("+obj_name_Period_ID+" = dt_period_of_time.ID AND "+Make_null_or_empty_values(mode,"dt_period_of_time.START_DATE_ID","")+" AND "+Make_null_or_empty_values(mode,"dt_period_of_time.END_DATE_ID","")+")" +
 				   " OR ("+" dt_period_of_time.START_DATE_ID = "+dt_date1+".ID" +" AND dt_period_of_time.END_DATE_ID = "+dt_date2+".ID) AND"
-				   + "(";
+				   + "(";*/
 
 			if(!(begin_year).isEmpty()) {query+=" ("+Make_null_or_empty_values(mode,"dt_period_of_time.END_DATE_ID","")+" AND ("+dt_date1+".YEAR < "+begin_year+"))";}
 			if(!(end_year).isEmpty()) {query+=" OR ("+Make_null_or_empty_values(mode,"dt_period_of_time.END_DATE_ID","")+" AND ("+dt_date1+".YEAR < "+end_year+"))";}
@@ -88,7 +89,7 @@ public class SQL_aux_functions {
 			if(!(end_day).isEmpty()) {query+=" OR ("+Make_null_or_empty_values(mode,"dt_period_of_time.START_DATE_ID","")+" AND ("+end_year+" = "+dt_date2+".YEAR) AND ("+dt_date2+".MONTH = "+end_month+") AND ("+dt_date2+".DAY <= "+end_day+"))";}
 			else if(!end_month.isEmpty()) {query+=" OR ("+Make_null_or_empty_values(mode,"dt_period_of_time.START_DATE_ID","")+" AND ("+end_year+" = "+dt_date2+".YEAR) AND ("+dt_date2+".MONTH = "+end_month+"))";}
 	
-			query+="))";
+			query+=")))";
 		}
 		else { //Defined all elements 
 			

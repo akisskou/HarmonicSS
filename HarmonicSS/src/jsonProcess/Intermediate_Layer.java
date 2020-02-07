@@ -581,12 +581,12 @@ public class Intermediate_Layer {
 		
 		
 		if(!input_JSON.contains("\"symptoms_onset_period_of_time_exact_year\":")) added_elements+="\"symptoms_onset_period_of_time_exact_year\":\"\",";
-		if(!input_JSON.contains("\"symptoms_onset_period_of_time_exact_month\":")) added_elements+="\"symptoms_period_of_time_exact_month\":\"\",";
-		if(!input_JSON.contains("\"symptoms_onset_period_of_time_exact_day\":")) added_elements+="\"symptoms_period_of_time_exact_day\":\"\",";
+		if(!input_JSON.contains("\"symptoms_onset_period_of_time_exact_month\":")) added_elements+="\"symptoms_onset_period_of_time_exact_month\":\"\",";
+		if(!input_JSON.contains("\"symptoms_onset_period_of_time_exact_day\":")) added_elements+="\"symptoms_onset_period_of_time_exact_day\":\"\",";
 		
 		if(!input_JSON.contains("\"symptoms_onset_period_of_time_interval_start_year\":")) added_elements+="\"symptoms_onset_period_of_time_interval_start_year\":\"\",";
-		if(!input_JSON.contains("\"symptoms_onset_period_of_time_interval_start_month\":")) added_elements+="\"symptoms_period_of_time_interval_start_month\":\"\",";
-		if(!input_JSON.contains("\"symptoms_onset_period_of_time_interval_start_day\":")) added_elements+="\"symptoms_period_of_time_interval_start_day\":\"\",";
+		if(!input_JSON.contains("\"symptoms_onset_period_of_time_interval_start_month\":")) added_elements+="\"symptoms_onset_period_of_time_interval_start_month\":\"\",";
+		if(!input_JSON.contains("\"symptoms_onset_period_of_time_interval_start_day\":")) added_elements+="\"symptoms_onset_period_of_time_interval_start_day\":\"\",";
 		
 		if(!input_JSON.contains("\"symptoms_onset_period_of_time_interval_end_year\":")) added_elements+=" \"symptoms_onset_period_of_time_interval_end_year\":\"\",";
 		if(!input_JSON.contains("\"symptoms_onset_period_of_time_interval_end_month\":")) added_elements+="\"symptoms_onset_period_of_time_interval_end_month\":\"\",";
