@@ -4,6 +4,10 @@
 <meta http-equiv="Content-Type" content="text/html" charset="ISO-8859-1">
 <title>View Execution Data</title>
 	<style>
+	body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; } 
+	.header { background-color: #e6f2ff; text-align: center; padding-top: 10px; padding-bottom: 10px; } 
+	#harmonicssLogo { height: 40px;  } 
+	#iccsntuaLogo { height: 40px; padding-left: 20px; }
 	table, th, td {
   		border: 1px solid black;
   		border-collapse: collapse;
@@ -15,8 +19,9 @@
 	</style>
 </head>
 <body onload="getDataFromDB()">
+<div class='header'><img id='harmonicssLogo' src="IMG/HarmonicSS-Logo.png" alt="HarmonicSS Logo"><img id='iccsntuaLogo' src="IMG/ICCS-NTUA-Logo.png" alt="ICCS/NTUA Logo"></div>
 	<div class="container">
-		<p><a href="index.html">Home</a></p>
+		<p><a href="home.html">Home</a></p>
 		<input type="text" id="userID" placeholder="user ID">
 		<input type="text" id="requestID" placeholder="request ID">
 		<button onclick='getDataFromDB()'>View requests</button><br><br>

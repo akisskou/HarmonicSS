@@ -29,4 +29,34 @@
     <servlet-name>CriterionsTestServlet</servlet-name>
     <url-pattern>/CriterionsTestServlet</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>LoginServlet</display-name>
+    <servlet-name>LoginServlet</servlet-name>
+    <servlet-class>xmlWrapper.LoginServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LoginServlet</servlet-name>
+    <url-pattern>/LoginServlet</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>LoginOCSServlet</display-name>
+    <servlet-name>LoginOCSServlet</servlet-name>
+    <servlet-class>xmlWrapper.LoginOCSServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>LoginOCSServlet</servlet-name>
+    <url-pattern>/LoginOCSServlet</url-pattern>
+  </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>RequestXMLfilesServlet</display-name>
+    <servlet-name>RequestXMLfilesServlet</servlet-name>
+    <servlet-class>xmlWrapper.RequestXMLfilesServlet</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>RequestXMLfilesServlet</servlet-name>
+    <url-pattern>/RequestXMLfilesServlet</url-pattern>
+  </servlet-mapping>
 </web-app>

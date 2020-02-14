@@ -14,10 +14,13 @@
 		<InclusionCriteria>
 			<!-- Medication Criterion -->
 			<Criterion UID="CRIT-ID-01" Name="-">
-				<Description>Received Glucocorticoids</Description>
+				<Description>Fatigue </Description>
 				<FormalExpression Language="JSON" ID="CRIT-ID-01-FE" Origin="-" InfoLoss="false" ProducedBy="HarmonicSS_GUI" Model="HarmonicSS_ReferenceModel">
 					<BooleanExpression>
-						{"criterion":"intervention_medication","pharmacological_drug":"CHEM-10000"}
+						{
+	"criterion":"condition_symptom",
+	"sign_coded":"SYMPT-160"
+}
 					</BooleanExpression>
 				</FormalExpression>
 			</Criterion>

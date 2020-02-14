@@ -3,21 +3,30 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html" charset="ISO-8859-1">
 <title>Create Request</title>
+<style>
+body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; } 
+.header { background-color: #e6f2ff; text-align: center; padding-top: 10px; padding-bottom: 10px; } 
+#harmonicssLogo { height: 40px;  } 
+#iccsntuaLogo { height: 40px; padding-left: 20px; }
+</style>
 </head>
-<body>
+<body onload="getRequestXMLfiles()">
+<div class='header'><img id='harmonicssLogo' src="IMG/HarmonicSS-Logo.png" alt="HarmonicSS Logo"><img id='iccsntuaLogo' src="IMG/ICCS-NTUA-Logo.png" alt="ICCS/NTUA Logo"></div>
 	<div class="container">
 		
-		<p><a href="index.html">Home</a></p>
+		<p><a href="home.html">Home</a></p>
 		
 		<input type="text" id="username" placeholder="username">
 		<input type="password" id="password" placeholder="password">
+		<!--div id="myrequestXML">
+		</div-->
 		<select id="requestXML">
-  			<option value="TestReq01">TestReq01.xml</option>
+  			<!--option value="TestReq01">TestReq01.xml</option>
   			<option value="TestReq02">TestReq02.xml</option>
   			<option value="TestReq03">TestReq03.xml</option>
   			<option value="TestReq04">TestReq04.xml</option>
   			<option value="TestReq05">TestReq05.xml</option>
-  			<option value="Request-Tim-Test">Request-Tim-Test.xml</option>
+  			<option value="Request-Tim-Test">Request-Tim-Test.xml</option-->
 		</select>
 		<select id="cohortIDs" multiple="multiple">
     		<option value="34">chdb034</option>
@@ -39,6 +48,33 @@
     <!-- 4 include the jQuery library -->
   <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>   
 	<script type="text/javascript">
+	
+	function getRequestXMLfiles() {
+		$('#requestXML').html("<h4>Retrieving xml files...</h4>");
+		var HttpClient = function() {
+ 			this.get = function(aUrl, aCallback) {
+ 				var anHttpRequest = new XMLHttpRequest();
+ 				anHttpRequest.onreadystatechange = function() { 
+ 					if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+ 						aCallback(anHttpRequest.responseText);
+ 					}
+ 				anHttpRequest.open( "GET", aUrl, true ); 
+ 				anHttpRequest.send( null ); 
+ 			}
+ 		}
+		var theurl='RequestXMLfilesServlet';
+		var client = new HttpClient();
+ 		client.get(theurl, function(response) { 
+			var response1 = JSON.parse(response);
+			var requestXMLfiles = response1.requestXMLfiles;
+			var htmldata='';
+			//var htmldata='<select id="requestXML">';
+			for(i=0; i<requestXMLfiles.length; i++){
+				htmldata += '<option value="'+requestXMLfiles[i].trim()+'">'+requestXMLfiles[i].trim()+'.xml</option>';
+			}
+			$('#requestXML').html(htmldata);
+ 		});
+	}
 	
 	function createRequest() {
 		$('#data').html("<h4>Creating your request...</h4>");

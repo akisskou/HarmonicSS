@@ -1,14 +1,69 @@
 <!DOCTYPE html>
-<html>
-<head>
-<meta charset="UTF-8">
-<title>Home</title>
-</head>
-<body>
-<h2>HarmonicSS Testing Links</h2>
-<p><a href="createRequest.html">Create a new request</a></p>
-<p><a href="executePage.html">Execute a request</a></p>
-<p><a href="viewExecutionData.html">View Execution Data</a></p>
-<p><a href="testCriterion.html">Test your criteria</a></p>
-</body>
-</html>
+<html><head><meta charset="utf-8"><title>Login Page</title><style>
+body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; } 
+.header { background-color: #e6f2ff; text-align: center; padding-top: 10px; padding-bottom: 10px; } 
+#harmonicssLogo { height: 40px;  } 
+#iccsntuaLogo { height: 40px; padding-left: 20px; } 
+h2 { text-align: center;  } 
+p { color: red; text-align: center; } 
+th, td { text-align: left; padding: 5px; } 
+table { padding: 20px 30px; margin: 5px; width:100px; text-align: center; margin-left:auto; margin-right:auto; border: 1px solid gray; border-radius: 15px; } 
+input { padding: 5px 10px; border-radius: 5px; font-size: 1.1em;} 
+form { margin-top: 20px; text-align: center; } 
+</style></head><body>
+<div class='header'><img id='harmonicssLogo' src="IMG/HarmonicSS-Logo.png" alt="HarmonicSS Logo"><img id='iccsntuaLogo' src="IMG/ICCS-NTUA-Logo.png" alt="ICCS/NTUA Logo"></div>
+<h2>Login Page</h2>
+<form method="post">
+<table>
+<tr><th>Username:</th><td><input type="text" name="username" id="username"></td></tr>
+<tr><th>Password:</th><td><input type="password" name="password" id="password"></td></tr>
+<tr><th><input type="reset" value="Reset"></th><td><input type="submit" value="Submit"  onclick="this.value='Wait ...'; this.disabled='disabled'; login();"></td></tr>
+</table>
+</form>
+<div id="data"></div>
+ <!-- 4 include the jQuery library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>  
+  
+	<script type="text/javascript">
+	
+	function login() {
+	 	var username = document.getElementById("username");
+	 	var password = document.getElementById("password");
+	 	if (!(username && username.value.trim()) || !(password && password.value.trim())){
+			alert("Please enter username and password!");
+			return false;
+		}
+ 		var HttpClient = function() {
+ 			this.get = function(aUrl, aCallback) {
+ 				var anHttpRequest = new XMLHttpRequest();
+ 				anHttpRequest.onreadystatechange = function() { 
+ 					if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+ 						aCallback(anHttpRequest.responseText);
+ 					}
+ 				anHttpRequest.open( "POST", aUrl, true ); 
+ 				anHttpRequest.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+ 				anHttpRequest.send(JSON.stringify({"username": username.value.trim(), "password": password.value.trim()})); 
+ 			}
+ 		}
+ 		var theurl;
+ 		
+ 		
+ 		theurl='LoginServlet';
+ 		
+ 		var client = new HttpClient();
+ 		client.get(theurl, function(response) { 
+			var response1 = JSON.parse(response);
+			//var darId = response1.cohort_response_list;
+			
+			var loginStatus = response1.ocs.meta.status;
+			
+			
+			if(loginStatus==="ok") location.replace("home.html");
+			else{
+				$('#data').html("<h4><font color='red'>Invalid username or password</font></h4>");	
+				
+			}
+		});
+	}
+	</script>
+</body></html>

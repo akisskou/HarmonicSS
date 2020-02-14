@@ -2,13 +2,18 @@
 <html>
 <head>
 <meta http-equiv="Content-Type" content="text/html" charset="ISO-8859-1">
-<title>Execute Request</title>
-<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/jstree/3.2.1/themes/default/style.min.css" />
+<title>Execute Request</title><style>
+body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; } 
+.header { background-color: #e6f2ff; text-align: center; padding-top: 10px; padding-bottom: 10px; } 
+#harmonicssLogo { height: 40px;  } 
+#iccsntuaLogo { height: 40px; padding-left: 20px; }
+</style>
 <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/4.7.0/css/font-awesome.min.css">
 </head>
 <body>
+<div class='header'><img id='harmonicssLogo' src="IMG/HarmonicSS-Logo.png" alt="HarmonicSS Logo"><img id='iccsntuaLogo' src="IMG/ICCS-NTUA-Logo.png" alt="ICCS/NTUA Logo"></div>
 	<div class="container">
-		<p><a href="index.html">Home</a></p>
+		<p><a href="home.html">Home</a></p>
 		<input type="text" id="username" placeholder="username">
 		<input type="password" id="password" placeholder="password">
 		<input type="text" id="requestID" placeholder="requestID">
@@ -20,8 +25,7 @@
     </div>
     
     <!-- 4 include the jQuery library -->
-  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script> 
-  <script type="text/javascript" src="https://cdnjs.cloudflare.com/ajax/libs/jQuery-slimScroll/1.3.8/jquery.slimscroll.min.js"></script> 
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>  
   
 	<script type="text/javascript">
 	
@@ -64,18 +68,23 @@
 			var data = "<h4>";
 			$('#data').html(data);
 			for(i=0; i<cohortsResponse.length; i++){
-				data += cohortsResponse[i].cohort_name+": <br>Number of patients found: ";
-				if(cohortsResponse[i].patients_IDs_list.length==1 && cohortsResponse[i].patients_IDs_list[0]==="") data += "0";
-				else{
-					data += cohortsResponse[i].patients_IDs_list.length+"<br>Patient IDs: ";
-					for(j=0; j<cohortsResponse[i].patients_IDs_list.length; j++){
-						if(j==0) data += cohortsResponse[i].patients_IDs_list[j];
-						else data += ", "+cohortsResponse[i].patients_IDs_list[j];
+				if(cohortsResponse[i].cohortStatus==="Accepted"){
+					data += cohortsResponse[i].cohort_name+": <br>Number of patients found: ";
+					if(cohortsResponse[i].patients_IDs_list.length==1 && cohortsResponse[i].patients_IDs_list[0]==="") data += "0";
+					else{
+						data += cohortsResponse[i].patients_IDs_list.length+"<br>Patient IDs: ";
+						for(j=0; j<cohortsResponse[i].patients_IDs_list.length; j++){
+							if(j==0) data += cohortsResponse[i].patients_IDs_list[j];
+							else data += ", "+cohortsResponse[i].patients_IDs_list[j];
+						}
 					}
+					data += "<br>"+cohortsResponse[i].inclusion_criteria;
+					data += cohortsResponse[i].exclusion_criteria;
+					data += "<br><br>";
 				}
-				data += "<br>"+cohortsResponse[i].inclusion_criteria;
-				data += cohortsResponse[i].exclusion_criteria;
-				data += "<br><br>";
+				else{
+					data += cohortsResponse[i].cohort_name+":<br>"+cohortsResponse[i].cohort_notes+"<br><br>";
+				}
 			}
 			data += "</h4>";
 			$('#data').html(data);

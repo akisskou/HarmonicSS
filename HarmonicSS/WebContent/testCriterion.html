@@ -3,18 +3,35 @@
 <head>
 <meta http-equiv="Content-Type" content="text/html" charset="ISO-8859-1">
 <title>Test Criterion</title>
+<style>
+body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; } 
+.header { background-color: #e6f2ff; text-align: center; padding-top: 10px; padding-bottom: 10px; } 
+#harmonicssLogo { height: 40px;  } 
+#iccsntuaLogo { height: 40px; padding-left: 20px; }
+</style>
 </head>
 <body>
+<div class='header'><img id='harmonicssLogo' src="IMG/HarmonicSS-Logo.png" alt="HarmonicSS Logo"><img id='iccsntuaLogo' src="IMG/ICCS-NTUA-Logo.png" alt="ICCS/NTUA Logo"></div>
 	<div class="container">
 		
-		<p><a href="index.html">Home</a></p>
+		<p><a href="home.html">Home</a></p>
 		
 		<textarea id="jsonCriteria" rows="10" cols="100"></textarea><br><br>
 		<select id="cohortTest">
-  			<option value="chdb034">chdb034</option>
-			<option value="chdb035">chdb035</option>  			
-			<option value="chdb036">chdb036</option>
-		</select><br><br>
+  			<option value="34">chdb034</option>
+			<option value="35">chdb035</option>  			
+			<option value="36">chdb036</option>
+			<option value="1">Harm-DB-01</option>
+			<option value="2">Harm-DB-02</option>  			
+			<option value="3">Harm-DB-03</option>
+			<option value="4">Harm-DB-04</option>
+			<option value="5">Harm-DB-05</option>
+			<option value="6">Harm-DB-06</option>
+			<option value="7">Harm-DB-07</option>
+			<option value="8">Harm-DB-08</option>
+			<option value="9">Harm-DB-09</option>
+		</select>
+		<br><br>
         <button onclick='testCriterion()'>Test Criterions</button><br><br><br>
         <div id="data">
         </div>
