@@ -80,7 +80,9 @@ public class TestServlet extends HttpServlet {
 			File fXmlFile = new File(new URI("file:///C:"+line1[1].trim()+myRequestXML+".xml"));
 			Date date = new Date();
 			Object param = new java.sql.Timestamp(date.getTime());
+			System.out.println("Ready to create new request...");
 			int darId = createRequest(username, password, ((Timestamp)param).toString(), "1", "VAL_A1POSTED"); // TODO: current date
+			System.out.println("New request with id: "+darId+" created successfully!");
 			JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
   	  		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
   	  		PatientsSelectionRequest patientsSelectionRequest = ((JAXBElement<PatientsSelectionRequest>) jaxbUnmarshaller.unmarshal(fXmlFile)).getValue();
@@ -95,13 +97,17 @@ public class TestServlet extends HttpServlet {
 	  			result_excl+=exclCriterion.getDescription()+": "+exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim()+"<br>";
 	  		}
   	  		//List<String> cohortList = patientsSelectionRequest.getCohortID();
+	  		System.out.println("Ready to update cohorts status...");
   	  		for(String myCohort : cohortIDs) {
   	  			setCohortsStatus(username, password, darId, myCohort, cohortStatus, ((Timestamp)param).toString(), ((Timestamp)param).toString(), "Remarks for my service", "testfilename");
   	  			System.out.println("Cohort with id="+myCohort+" updated successfully.");
   	  		}
+  	  		System.out.println("Status of all cohorts updated successfully!");
 			//String requestXML = readLineByLineJava8(getServletContext().getRealPath("/WEB-INF/"+myRequestXML+".xml"));
 			String requestXML = readLineByLineJava8(new URI("file:///C:"+line1[1].trim()+myRequestXML+".xml"));
+			System.out.println("Create request XML...");
   	  		setRequestXML(username, password, darId, requestXML);
+  	  		System.out.println("Request XML created successfully...");
 			JSONObject testResponse = new JSONObject();
 			testResponse.put("requestID", darId);
 			testResponse.put("cohortList", cohortIDs);

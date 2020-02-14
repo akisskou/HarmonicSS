@@ -84,13 +84,27 @@ public class DBServiceCRUD {
 			return true;
 	}
 	
-	public static String assistanceQuery(String getQueryStatement) throws SQLException {
+	public static String assistanceQuery(String getQueryStatement, boolean essdai, boolean caci) throws SQLException {
 		String termsFound = "";
 		db_prep_obj = db_con_obj.prepareStatement(getQueryStatement);
 		ResultSet rs = db_prep_obj.executeQuery();
-		while(rs.next()) {
-			if(termsFound.equals("")) termsFound = rs.getString("NAME");
-			else termsFound += ", " + rs.getString("NAME");
+		if(essdai) {
+			while(rs.next()) {
+				if(termsFound.equals("")) termsFound = rs.getString("DOMAIN_NAME");
+				else termsFound += ", " + rs.getString("DOMAIN_NAME");
+			}
+		}
+		else if(caci) {
+			while(rs.next()) {
+				if(termsFound.equals("")) termsFound = rs.getString("CONDITION");
+				else termsFound += ", " + rs.getString("CONDITION");
+			}
+		}
+		else {
+			while(rs.next()) {
+				if(termsFound.equals("")) termsFound = rs.getString("NAME");
+				else termsFound += ", " + rs.getString("NAME");
+			}
 		}
 		return termsFound;
 	}
@@ -154,6 +168,25 @@ public class DBServiceCRUD {
             fos.close();
         }*/
 		//return fXmlFile;
+	}
+	
+	public static void setPatientsIDs(String darID, Result_UIDs results) throws SQLException {
+		Date date = new Date();
+		Object param = new java.sql.Timestamp(date.getTime());
+		String query = "INSERT INTO Eligible_Patient_IDs (DAR_ID, EXEC_DATE, PATIENT_IDS) VALUES (?, ?, ?)";
+		db_prep_obj = db_con_obj.prepareStatement(query);
+		db_prep_obj.setString(1, darID);
+		db_prep_obj.setTimestamp(2, (Timestamp) param);
+		if(results.UIDs_defined_ALL_elements.length==1 && results.UIDs_defined_ALL_elements[0].equals("")) db_prep_obj.setString(3, "");
+		else {
+			String dbstring = "";
+			for(int k=0; k<results.UIDs_defined_ALL_elements.length; k++) {
+				if(k==0) dbstring += results.UIDs_defined_ALL_elements[k];
+				else dbstring += ", "+results.UIDs_defined_ALL_elements[k];
+			}
+			db_prep_obj.setString(3, dbstring);
+		}
+		db_prep_obj.execute();
 	}
 	
 	

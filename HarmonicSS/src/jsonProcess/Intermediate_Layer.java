@@ -19,7 +19,9 @@ public class Intermediate_Layer {
 		for (int i=1; i<criterions_list.length; i++) {
 			String current_criterion = "{\"criterion\":"+criterions_list[i];
 			System.out.println("position: "+i+" contents: "+ current_criterion);
-			String criterion_name = current_criterion.substring(current_criterion.indexOf("\"criterion\":\""), current_criterion.indexOf("\","));
+			String criterion_name = "";
+			if(current_criterion.contains(",")) criterion_name = current_criterion.substring(current_criterion.indexOf("\"criterion\":\""), current_criterion.indexOf("\","));
+			else criterion_name = current_criterion.substring(current_criterion.indexOf("\"criterion\":\""), current_criterion.indexOf("\"}"));
 			criterion_name=criterion_name.replace("\"criterion\":\"","");
 			//System.out.println("The name is: "+criterion_name);
 			//System.out.println("lala1: "+current_criterion);
@@ -240,7 +242,6 @@ public class Intermediate_Layer {
 	
 	public static String auto_fill_JSON_elements_condition_symptom(String input_JSON) {
 		String added_elements="";
-
 		
 		if(!input_JSON.contains("\"sign_date_exact_year\":")) added_elements+="\"sign_date_exact_year\":\"\",";
 		if(!input_JSON.contains("\"sign_date_exact_month\":")) added_elements+="\"sign_date_exact_month\":\"\",";
@@ -264,7 +265,7 @@ public class Intermediate_Layer {
 	
 	private static String auto_fill_JSON_elements_condition_diagnosis(String input_JSON) {
 		String added_elements="";
-	
+		
 		if(!input_JSON.contains("\"date_exact_year\":")) added_elements+="\"date_exact_year\":\"\",";
 		if(!input_JSON.contains("\"date_exact_month\":")) added_elements+="\"date_exact_month\":\"\",";
 		if(!input_JSON.contains("\"date_exact_day\":")) added_elements+="\"date_exact_day\":\"\",";
@@ -287,8 +288,10 @@ public class Intermediate_Layer {
 	
 	
 	public static String auto_fill_JSON_elements_demographics_pregnancy(String input_JSON) {
+		System.out.println("auto-fill");
 		String added_elements="";
 		if(!input_JSON.contains("\"outcome_ss_related\":")) added_elements+="\"outcome_ss_related\":\"\",";
+		//if(!input_JSON.contains("\"outcome_coded_value\":")) added_elements+="\"outcome_coded_value\":\"\",";
 		if(!input_JSON.contains("\"conception_exact_year\":")) added_elements+="\"conception_exact_year\":\"\",";
 		if(!input_JSON.contains("\"conception_exact_month\":")) added_elements+="\"conception_exact_month\":\"\",";
 		if(!input_JSON.contains(" \"conception_exact_day\":")) added_elements+="\"conception_exact_day\":\"\",";
@@ -562,6 +565,22 @@ public class Intermediate_Layer {
 	
 	private static String auto_fill_JSON_elements_patient(String input_JSON) {
 		String added_elements="";
+		
+		if(!input_JSON.contains("\"exact_age\":")) added_elements+="\"exact_age\":\"\",";
+		if(!input_JSON.contains("\"min_age\":")) added_elements+="\"min_age\":\"\",";
+		if(!input_JSON.contains("\"max_age\":")) added_elements+="\"max_age\":\"\",";
+		
+		if(!input_JSON.contains("\"exact_age_of_cohort_inclusion\":")) added_elements+="\"exact_age_of_cohort_inclusion\":\"\",";
+		if(!input_JSON.contains("\"min_age_of_cohort_inclusion\":")) added_elements+="\"min_age_of_cohort_inclusion\":\"\",";
+		if(!input_JSON.contains("\"max_age_of_cohort_inclusion\":")) added_elements+="\"max_age_of_cohort_inclusion\":\"\",";
+		
+		if(!input_JSON.contains("\"exact_age_of_diagnosis\":")) added_elements+="\"exact_age_of_diagnosis\":\"\",";
+		if(!input_JSON.contains("\"min_age_of_diagnosis\":")) added_elements+="\"min_age_of_diagnosis\":\"\",";
+		if(!input_JSON.contains("\"max_age_of_diagnosis\":")) added_elements+="\"max_age_of_diagnosis\":\"\",";
+		
+		if(!input_JSON.contains("\"exact_age_of_sign\":")) added_elements+="\"exact_age_of_sign\":\"\",";
+		if(!input_JSON.contains("\"min_age_of_sign\":")) added_elements+="\"min_age_of_sign\":\"\",";
+		if(!input_JSON.contains("\"max_age_of_sign\":")) added_elements+="\"max_age_of_sign\":\"\",";
 		
 		if(!input_JSON.contains("\"birth_period_of_time_exact_year\":")) added_elements+="\"birth_period_of_time_exact_year\":\"\",";
 		if(!input_JSON.contains("\"birth_period_of_time_exact_month\":")) added_elements+="\"birth_period_of_time_exact_month\":\"\",";

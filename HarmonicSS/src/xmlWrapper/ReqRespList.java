@@ -179,20 +179,26 @@ public class ReqRespList extends HttpServlet {
 	  	  		
 	  	  		for(CohortResponse cohortResponse : patientsSelectionResponse.getCohortResponse()) {
 	  	  			int i=0;
-	  	  			responseSynopsis += "Harm-DB-"+cohortResponse.getCohortID().split("-")[2]+":<br>";
-	  	  			responseSynopsis += "Number of patients found: "+cohortResponse.getEligiblePatientsNumber()+"<br>";
-	  	  			responseSynopsis += "Inclusion Criteria:<br>";
-	  	  			for (org.ntua.criteria.Criterion inclCriterion: patientsSelectionRequest.getEligibilityCriteria().getInclusionCriteria().getCriterion()) {
-	  	  				responseSynopsis += inclCriterion.getDescription()+": "+inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim()+" - ";
-	  	  				responseSynopsis += cohortResponse.getEligibilityCriteriaUsed().getCriterionUsage().get(i).getCriterionUsageStatus()+"<br>";
-	  	  				i++;
+	  	  			//String cohortID = myCohort.split("-")[2];
+	  	  			if(Integer.valueOf(cohortResponse.getCohortID().split("-")[2])<10) responseSynopsis += "Harm-DB-"+cohortResponse.getCohortID().split("-")[2]+":<br>";
+	  	  			else responseSynopsis += "chdb0"+cohortResponse.getCohortID().split("-")[2]+":<br>";
+	  	  			if(cohortResponse.getEligibilityCriteriaUsed()!=null) {
+	  	  				responseSynopsis += "Number of patients found: "+cohortResponse.getEligiblePatientsNumber()+"<br>";
+	  	  				responseSynopsis += "Inclusion Criteria:<br>";
+	  	  			
+	  	  				for (org.ntua.criteria.Criterion inclCriterion: patientsSelectionRequest.getEligibilityCriteria().getInclusionCriteria().getCriterion()) {
+	  	  					responseSynopsis += inclCriterion.getDescription()+": "+inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim()+" - ";
+	  	  					responseSynopsis += cohortResponse.getEligibilityCriteriaUsed().getCriterionUsage().get(i).getCriterionUsageStatus()+"<br>";
+	  	  					i++;
+	  	  				}
+	  	  				responseSynopsis += "Exclusion Criteria:<br>";
+	  	  				for (org.ntua.criteria.Criterion exclCriterion: patientsSelectionRequest.getEligibilityCriteria().getExclusionCriteria().getCriterion()) {
+	  	  					responseSynopsis += exclCriterion.getDescription()+": "+exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim()+" - ";
+	  	  					responseSynopsis += cohortResponse.getEligibilityCriteriaUsed().getCriterionUsage().get(i).getCriterionUsageStatus()+"<br>";
+	  	  					i++;
+	  	  				}
 	  	  			}
-	  	  			responseSynopsis += "Exclusion Criteria:<br>";
-	  	  			for (org.ntua.criteria.Criterion exclCriterion: patientsSelectionRequest.getEligibilityCriteria().getExclusionCriteria().getCriterion()) {
-	  	  				responseSynopsis += exclCriterion.getDescription()+": "+exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim()+" - ";
-	  	  				responseSynopsis += cohortResponse.getEligibilityCriteriaUsed().getCriterionUsage().get(i).getCriterionUsageStatus()+"<br>";
-	  	  				i++;
-	  	  			}
+	  	  			else responseSynopsis += "Cohort not available.<br>";
 	  	  			responseSynopsis += "<br>";
 	  	  		}
 			    }

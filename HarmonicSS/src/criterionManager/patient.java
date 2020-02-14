@@ -1,7 +1,23 @@
 package criterionManager;
 
+import java.sql.Timestamp;
+import java.util.Date;
+
 public class patient extends Criterion{
 
+	public String exact_age = "";
+	public String min_age = "";
+	public String max_age = "";
+	public String exact_age_of_cohort_inclusion = "";
+	public String min_age_of_cohort_inclusion = "";
+	public String max_age_of_cohort_inclusion = "";
+	public String exact_age_of_diagnosis = "";
+	public String min_age_of_diagnosis = "";
+	public String max_age_of_diagnosis = "";
+	public String exact_age_of_sign = "";
+	public String min_age_of_sign = "";
+	public String max_age_of_sign = "";
+	
 	public String birth_period_of_time_exact_year = "";				//dt_date				
 	public String birth_period_of_time_exact_month = "";				//dt_date		
 	public String birth_period_of_time_exact_day = "";				//dt_date				
@@ -72,7 +88,9 @@ public class patient extends Criterion{
 	
 	
 	
-	public patient(String criterion_name, String birth_period_of_time_exact_year,
+	public patient(String criterion_name, String exact_age, String min_age, String max_age, String exact_age_of_cohort_inclusion, String min_age_of_cohort_inclusion, String max_age_of_cohort_inclusion, String birth_period_of_time_exact_year,
+			String exact_age_of_diagnosis, String min_age_of_diagnosis, String max_age_of_diagnosis,
+			String exact_age_of_sign, String min_age_of_sign, String max_age_of_sign,
 			String birth_period_of_time_exact_month, String birth_period_of_time_exact_day,
 			String birth_period_of_time_interval_start_year, String birth_period_of_time_interval_start_month,
 			String birth_period_of_time_interval_start_day, String birth_period_of_time_interval_end_year,
@@ -103,6 +121,18 @@ public class patient extends Criterion{
 			String cohort_inclusion_period_of_time_interval_end_day, String cohort_inclusion_period_of_time_until_year,
 			String cohort_inclusion_period_of_time_until_month, String cohort_inclusion_period_of_time_until_day) {
 		super(criterion_name);
+		this.exact_age = exact_age;
+		this.min_age = min_age;
+		this.max_age = max_age;
+		this.exact_age_of_cohort_inclusion = exact_age_of_cohort_inclusion;
+		this.min_age_of_cohort_inclusion = min_age_of_cohort_inclusion;
+		this.max_age_of_cohort_inclusion = max_age_of_cohort_inclusion;
+		this.exact_age_of_diagnosis = exact_age_of_diagnosis;
+		this.min_age_of_diagnosis = min_age_of_diagnosis;
+		this.max_age_of_diagnosis = max_age_of_diagnosis;
+		this.exact_age_of_sign = exact_age_of_sign;
+		this.min_age_of_sign = min_age_of_sign;
+		this.max_age_of_sign = max_age_of_sign;
 		this.birth_period_of_time_exact_year = birth_period_of_time_exact_year;
 		this.birth_period_of_time_exact_month = birth_period_of_time_exact_month;
 		this.birth_period_of_time_exact_day = birth_period_of_time_exact_day;
@@ -156,6 +186,18 @@ public class patient extends Criterion{
 	
 	public patient() {
 		super("");
+		this.exact_age = "";
+		this.min_age = "";
+		this.max_age = "";
+		this.exact_age_of_cohort_inclusion = "";
+		this.min_age_of_cohort_inclusion = "";
+		this.max_age_of_cohort_inclusion = "";
+		this.exact_age_of_diagnosis = "";
+		this.min_age_of_diagnosis = "";
+		this.max_age_of_diagnosis = "";
+		this.exact_age_of_sign = "";
+		this.min_age_of_sign = "";
+		this.max_age_of_sign = "";
 		this.birth_period_of_time_exact_year = "";
 		this.birth_period_of_time_exact_month = "";
 		this.birth_period_of_time_exact_day = "";
@@ -206,6 +248,42 @@ public class patient extends Criterion{
 		this.cohort_inclusion_period_of_time_until_day = "";
 	}
 	
+	public String get_exact_age_of_diagnosis() {
+		return exact_age_of_diagnosis;
+	}
+	public String get_min_age_of_diagnosis() {
+		return min_age_of_diagnosis;
+	}
+	public String get_max_age_of_diagnosis() {
+		return max_age_of_diagnosis;
+	}
+	public String get_exact_age() {
+		return exact_age;
+	}
+	public String get_min_age() {
+		return min_age;
+	}
+	public String get_max_age() {
+		return max_age;
+	}
+	public String get_exact_age_of_cohort_inclusion() {
+		return exact_age_of_cohort_inclusion;
+	}
+	public String get_min_age_of_cohort_inclusion() {
+		return min_age_of_cohort_inclusion;
+	}
+	public String get_max_age_of_cohort_inclusion() {
+		return max_age_of_cohort_inclusion;
+	}
+	public String get_exact_age_of_sign() {
+		return exact_age_of_sign;
+	}
+	public String get_min_age_of_sign() {
+		return min_age_of_sign;
+	}
+	public String get_max_age_of_sign() {
+		return max_age_of_sign;
+	}
 	public String getBirth_period_of_time_exact_year() {
 		return birth_period_of_time_exact_year;
 	}
