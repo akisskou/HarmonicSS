@@ -3,6 +3,7 @@ package xmlWrapper;
 import java.io.IOException;
 import java.io.InputStream;
 import java.io.InputStreamReader;
+import java.util.Properties;
 
 import javax.servlet.ServletException;
 import javax.servlet.http.HttpServlet;
@@ -52,6 +53,7 @@ import static queries.SQL_aux_functions.Make_specific_date_query;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.PrintWriter;
@@ -107,6 +109,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	private static List<String[]> UIDsUndefined = new ArrayList<String[]>();
 	private static Result_UIDs results;
 	private static List<JSONObject> cohortResponseList = new ArrayList<JSONObject>();
+	private static Logger LOGGER;
 	
     /**
      * @see HttpServlet#HttpServlet()
@@ -174,6 +177,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					narrowTerms = getSubKeywords(narrowTerms, allClasses.get(i));
 				}
 				catch (Exception e) {
+			    	LOGGER.log(Level.SEVERE,"Exception while retrieving terms with narrow meaning.",true);
 		   			System.out.println(e);
 		   		}
 				
@@ -189,10 +193,10 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	        String webPage = "https://private.harmonicss.eu/index.php/apps/coh/api/1.0/s2?darId="+requestID;
 
 	        String authString = username + ":" + password;
-	        System.out.println("auth string: " + authString);
+	        //System.out.println("auth string: " + authString);
 	        byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
 	        String authStringEnc = new String(authEncBytes);
-	        System.out.println("Base64 encoded auth string: " + authStringEnc);
+	        //System.out.println("Base64 encoded auth string: " + authStringEnc);
 
 	        URL url = new URL(webPage);
 	        URLConnection urlConnection = url.openConnection();
@@ -215,11 +219,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	        System.out.println(result);
 	        System.out.println("*** END ***");*/
 	    } catch (MalformedURLException e) {
+	    	LOGGER.log(Level.SEVERE,"MalformedURLException while retrieving xml request.",true);
 	        e.printStackTrace();
 	    } catch (IOException e) {
+	    	LOGGER.log(Level.SEVERE,"IOException while retrieving xml request.",true);
 	        e.printStackTrace();
 	    } catch (JSONException e) {
 			// TODO Auto-generated catch block
+	    	LOGGER.log(Level.SEVERE,"JSONException while retrieving xml request.",true);
 			e.printStackTrace();
 		}
     	return myXML;
@@ -268,11 +275,11 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
   	  		System.out.println(patientsSelectionRequest.getRequestID());
   	  		
   	  		for(org.ntua.criteria.Criterion inclCriterion: patientsSelectionRequest.getEligibilityCriteria().getInclusionCriteria().getCriterion()){
-  	  			System.out.println(inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim());
+  	  			//System.out.println(inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim());
   	  			result_incl+=inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim();
   	  		}
   	  		for(org.ntua.criteria.Criterion exclCriterion: patientsSelectionRequest.getEligibilityCriteria().getExclusionCriteria().getCriterion()){
-	  			System.out.println(exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim());
+	  			//System.out.println(exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim());
 	  			result_excl+=exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim();
 	  		}
   	  		result_incl ="{\"list_of_criterions\":\n" + 
@@ -293,6 +300,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
   	  
   		
   	   } catch (Exception e) {
+  		  LOGGER.log(Level.SEVERE,"Unknown Exception while reading xml request.",true);
   	      e.printStackTrace();
   	   }
   	   return result_incl+"XXX"+result_excl;
@@ -309,7 +317,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				criterionResponseInfos.put("notes", termAndSubterms);
 				if(incl) inclusion_criteria.add(criterionResponseInfos);
 				else exclusion_criteria.add(criterionResponseInfos);
-				System.out.println(criterionResponseInfos);
+				//System.out.println(criterionResponseInfos);
 				continue;
 			}
 			else System.out.println("Criterion " + current_Criterion.getCriterion() + " can be used.");
@@ -317,7 +325,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			criterionResponseInfos.put("notes", termAndSubterms);
 			if(incl) inclusion_criteria.add(criterionResponseInfos);
 			else exclusion_criteria.add(criterionResponseInfos);
-			System.out.println(criterionResponseInfos);
+			//System.out.println(criterionResponseInfos);
 			String query="";
 			switch(current_Criterion.getCriterion()) { //The name of the Criterion.
 			  
@@ -1426,20 +1434,20 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 				  query=query.replace("WHERE  AND", "WHERE");
 				  query=query.replace("WHERE AND", "WHERE");
-				  System.out.println("The query is: "+query);
+				  //System.out.println("The query is: "+query);
 			  } break;
 			  
 			  default:
-				  System.out.println("Undefined criterion-name-"+(i+1)+" in the input JSON file.");
+				  //System.out.println("Undefined criterion-name-"+(i+1)+" in the input JSON file.");
 			} 
 			
-			try { System.out.println("We are ready to execute the query: "+query);
+			try { //System.out.println("We are ready to execute the query: "+query);
 				results_of_one_Criterion = DBServiceCRUD.getDataFromDB(query);
-				System.out.println("We executed the query: "+query +"\nAnd we had the result: "+results_of_one_Criterion);
+				//System.out.println("We executed the query: "+query +"\nAnd we had the result: "+results_of_one_Criterion);
 			} catch (SQLException e) {
 				//LOGGER.log(Level.SEVERE,"Bad type query or arguments: "+query,true);
 				//flush_handler();
-				
+		    	LOGGER.log(Level.SEVERE,"SQLException while executing the query: " + query+", check the query format and db url and credentials.",true);
 				e.printStackTrace();
 				//return "Bad type query or arguments: "+query;
 			}
@@ -1467,7 +1475,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     	}
     	UIDsDefined.add(results.UIDs_defined_ALL_elements );
     	UIDsUndefined.add(results.UIDs_UNdefined_some_elements);
-    	System.out.println(results.Output_JSON_UIDs());
+    	//System.out.println(results.Output_JSON_UIDs());
     }
     
     public static String intersection_of_UIDs(String str_of_users_1, String str_of_users_2 ){
@@ -1530,8 +1538,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     				inclCriterionUsage.setCriterionID(inclCriterion.getUID());
     				if(inclusion_criteria.get(i).getString("usage").equals("used")) inclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.USED);
     				else inclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.NOT_USED);
-    				System.out.println(inclusion_criteria.get(i));
-    				inclCriterionUsage.setNotesHTML(inclusion_criteria.get(i).getString("notes"));
+    				//System.out.println(inclusion_criteria.get(i));
+    				//inclCriterionUsage.setNotesHTML(inclusion_criteria.get(i).getString("notes"));
+    				inclCriterionUsage.setNotesHTML(inclCriterion.getDescription()+": "+inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim()+" - "+inclCriterionUsage.getCriterionUsageStatus());
     				inclAndExclCriteriaUsed.getCriterionUsage().add(inclCriterionUsage);
     				i++;
     			}
@@ -1542,8 +1551,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     				exclCriterionUsage.setCriterionID(exclCriterion.getUID());
     				if(exclusion_criteria.get(i).getString("usage").equals("used")) exclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.USED);
     				else exclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.NOT_USED);
-    				System.out.println(exclusion_criteria.get(i));
-    				exclCriterionUsage.setNotesHTML(exclusion_criteria.get(i).getString("notes"));
+    				//System.out.println(exclusion_criteria.get(i));
+    				//exclCriterionUsage.setNotesHTML(exclusion_criteria.get(i).getString("notes"));
+    				exclCriterionUsage.setNotesHTML(exclCriterion.getDescription()+": "+exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim()+" - "+exclCriterionUsage.getCriterionUsageStatus());
     				inclAndExclCriteriaUsed.getCriterionUsage().add(exclCriterionUsage);
     				i++;
     			}
@@ -1561,6 +1571,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     		}
     	}
     	catch(Exception e){
+	    	LOGGER.log(Level.SEVERE,"Unknown Exception while writing xml response.",true);
     		e.printStackTrace();
     	}
     }
@@ -1571,10 +1582,10 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	        String webPage = "https://private.harmonicss.eu/index.php/apps/coh/api/1.0/c4?darId="+darID;
 
 	        String authString = username + ":" + password;
-	        System.out.println("auth string: " + authString);
+	        //System.out.println("auth string: " + authString);
 	        byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
 	        String authStringEnc = new String(authEncBytes);
-	        System.out.println("Base64 encoded auth string: " + authStringEnc);
+	        //System.out.println("Base64 encoded auth string: " + authStringEnc);
 
 	        URL url = new URL(webPage);
 	        URLConnection urlConnection = url.openConnection();
@@ -1593,8 +1604,10 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	        System.out.println(result);
 	        System.out.println("*** END ***");*/
 	    } catch (MalformedURLException e) {
+	    	LOGGER.log(Level.SEVERE,"MalformedURLException, check url of service to get credentials.",true);
 	        e.printStackTrace();
 	    } catch (IOException e) {
+	    	LOGGER.log(Level.SEVERE,"IOException, check http response of service to get credentials.",true);
 	        e.printStackTrace();
 	    }
     	return result;
@@ -1606,10 +1619,10 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	        String webPage = "https://private.harmonicss.eu/index.php/apps/coh/api/1.0/cohortid?id="+cohortID;
 
 	        String authString = username + ":" + password;
-	        System.out.println("auth string: " + authString);
+	        //System.out.println("auth string: " + authString);
 	        byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
 	        String authStringEnc = new String(authEncBytes);
-	        System.out.println("Base64 encoded auth string: " + authStringEnc);
+	        //System.out.println("Base64 encoded auth string: " + authStringEnc);
 
 	        URL url = new URL(webPage);
 	        URLConnection urlConnection = url.openConnection();
@@ -1630,8 +1643,10 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	        System.out.println(result);
 	        System.out.println("*** END ***");*/
 	    } catch (MalformedURLException e) {
+	    	LOGGER.log(Level.SEVERE,"MalformedURLException, check url of service to get credentials.",true);
 	        e.printStackTrace();
 	    } catch (IOException e) {
+	    	LOGGER.log(Level.SEVERE,"IOException, check http response of service to get credentials.",true);
 	        e.printStackTrace();
 	    }
     	return credentials;
@@ -1667,7 +1682,8 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     			//ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/"+cohortName,"emps","emps");
     			ConfigureFile obj = new ConfigureFile("jdbc:mysql://"+credentials.getString("dbserver")+":"+credentials.getString("dbport")+"/"+credentials.getString("dbarea"),credentials.getString("dbuname"),credentials.getString("dbupass"));
     			if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
-    	    	else System.out.println("everything's gooooooood");
+    	    	else {
+    	    	System.out.println("everything's gooooooood");
     			criterionDBmatching(list_of_inclusive_criterions,list_of_exclusive_criterions);
     			if(i==cohorts.length()-1) createXML=true;
     			writeXMLResponse(i, createXML, mycohortid, "2");	
@@ -1728,6 +1744,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     			}
     			DBServiceCRUD.closeJDBCConnection();
     			System.out.println("End");
+    	    }
     		}
     		else {
     			if(i==cohorts.length()-1) createXML=true;
@@ -1787,6 +1804,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	    }
 	    catch (IOException e) 
 	    {
+	    	LOGGER.log(Level.SEVERE,"IOException, check file path.",true);
 	        e.printStackTrace();
 	    }
 	    return contentBuilder.toString();
@@ -1987,7 +2005,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     			}
     		}
     	} catch (SQLException e) {
-    		//LOGGER.log(Level.SEVERE,"Bad type query or arguments: "+query,true);
+    		LOGGER.log(Level.SEVERE,"SQLException, check DB url and credentials.",true);
     		//flush_handler();
 		
     		e.printStackTrace();
@@ -2014,7 +2032,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	 */
 	protected void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
-		//Logger LOGGER = Util_Logger.Initialize_logger("C:/Users/Jason/eclipse-workspace/HarmonicSS/LogFile.log");
+		LOGGER = Util_Logger.Initialize_logger(getServletContext().getRealPath("/WEB-INF/LogFile.log"));
 		JSONObject all = new JSONObject();
 		cohortResponseList.clear();
 		Infos req = new Gson().fromJson(request.getReader(), Infos.class);
@@ -2028,10 +2046,15 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				e2.printStackTrace();
 			}
 	    	manager = OWLManager.createOWLOntologyManager();
-	    	Scanner s1 = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/infos.txt"))));
-			String[] line = s1.nextLine().split(":");
+	    	InputStream input = new FileInputStream(getServletContext().getRealPath("/WEB-INF/infos.properties"));
+	    	Properties prop = new Properties();
+            // load a properties file
+            prop.load(input);
+	    	//Scanner s1 = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/infos.txt"))));
+			//String[] line = s1.nextLine().split(":");
 		    //documentIRI = IRI.create("file:///C:/Users/Jason/Desktop/", "HarmonicSS-Reference-Model+Vocabularies-v.0.9.owl");
-			documentIRI = IRI.create(getServletContext().getResource("/WEB-INF/"+line[1].trim()));
+			//documentIRI = IRI.create(getServletContext().getResource("/WEB-INF/"+line[1].trim()));
+			documentIRI = IRI.create(getServletContext().getResource("/WEB-INF/"+prop.getProperty("owlFile")));
 		    try{
 		        ontology = manager.loadOntologyFromOntologyDocument(documentIRI);
 	            findClasses();
@@ -2039,37 +2062,37 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			}
 			catch (OWLOntologyCreationException e) {
 		        e.printStackTrace();
-				
+		        LOGGER.log(Level.SEVERE,"Ontology cannot be created, check owl file path!",true);
 			}
 			String crit_incl_excl_in = readXMLbyRequestID(requestID, req.username, req.password);
-			System.out.println(crit_incl_excl_in);
+			//System.out.println(crit_incl_excl_in);
 			String[] crit_incl_excl=crit_incl_excl_in.split("XXX");
 			String criteria = Intermediate_Layer.preProcess_JSON(crit_incl_excl[0]);
-			System.out.println("After Criteria preprocessed:\n"+criteria);
+			//System.out.println("After Criteria preprocessed:\n"+criteria);
 			ArrayList<Criterion> list_of_inclusive_criterions=null;
 			try {
 				list_of_inclusive_criterions = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
 				//findCriterion((Criterion)list_of_inclusive_criterions.get(0));
-				System.out.println(list_of_inclusive_criterions);
+				//System.out.println(list_of_inclusive_criterions);
 				
 			} catch (JsonParseException e1) {
-				/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
-				flush_handler();*/
+				LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
+				//flush_handler();
 				e1.printStackTrace();
 				//return "JsonParseException Bad JSON format.";
 			} catch (JsonMappingException e1) {
-				/*LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
-				flush_handler();*/
+				LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
+				//flush_handler();
 				e1.printStackTrace();
 				//return "JsonParseException Bad JSON format.";
 			} catch (IOException e1) {
-				/*LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
-				flush_handler();*/
+				LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
+				//flush_handler();
 				e1.printStackTrace();
 				//return "JsonParseException Bad JSON format.";
 			}
 			criteria = Intermediate_Layer.preProcess_JSON(crit_incl_excl[1]);
-			System.out.println("After Criteria preprocessed:\n"+criteria);
+			//System.out.println("After Criteria preprocessed:\n"+criteria);
 			ArrayList<Criterion> list_of_exclusive_criterions=null;
 			try {
 				list_of_exclusive_criterions = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
@@ -2077,18 +2100,18 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				System.out.println(list_of_exclusive_criterions);
 					
 			} catch (JsonParseException e1) {
-				/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
-				flush_handler();*/
+				LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
+				//flush_handler();
 				e1.printStackTrace();
 				//return "JsonParseException Bad JSON format.";
 			} catch (JsonMappingException e1) {
-				/*LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
-				flush_handler();*/
+				LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
+				//flush_handler();
 				e1.printStackTrace();
 				//return "JsonParseException Bad JSON format.";
 			} catch (IOException e1) {
-				/*LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
-				flush_handler();*/
+				LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
+				//flush_handler();
 				e1.printStackTrace();
 				//return "JsonParseException Bad JSON format.";
 			}
@@ -2103,14 +2126,23 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			System.out.println("End");*/
 			try {
 				accessCohorts(requestID, req.username, req.password, list_of_inclusive_criterions, list_of_exclusive_criterions);
+			} catch (NullPointerException e1) {
+				/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
+				flush_handler();*/
+				LOGGER.log(Level.SEVERE,"NullPointerException, Error while parsing json criteria. Check your json format and all criteria fields and try again.",true);
+				e1.printStackTrace();
+				//return "JsonParseException Bad JSON format.";
 			} catch (IOException e) {
 				// TODO Auto-generated catch block
+				LOGGER.log(Level.SEVERE,"IOException, check if all needed files exist.",true);
 				e.printStackTrace();
 			} catch (JSONException e) {
 				// TODO Auto-generated catch block
+				LOGGER.log(Level.SEVERE,"JSONException Bad JSON format: "+criteria,true);
 				e.printStackTrace();
 			} catch (SQLException e) {
 				// TODO Auto-generated catch block
+				LOGGER.log(Level.SEVERE,"SQLException, Check DB URL and credentials",true);
 				e.printStackTrace();
 			} catch (ClassNotFoundException e) {
 				// TODO Auto-generated catch block
@@ -2119,7 +2151,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			
 		}
 		try {
-			all.put("cohort_response_list", cohortResponseList);
+			//all.put("cohort_response_list", cohortResponseList);
+			String responseXML = readLineByLineJava8(getServletContext().getRealPath("/WEB-INF/Response"+requestID+".xml"));
+			all.put("responseXML", responseXML.replace("\n", ""));
 		} catch (JSONException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();

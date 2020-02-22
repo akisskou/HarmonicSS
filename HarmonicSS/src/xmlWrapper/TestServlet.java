@@ -1,8 +1,10 @@
 package xmlWrapper;
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.InputStreamReader;
 import java.io.PrintWriter;
 import java.io.Reader;
@@ -16,6 +18,7 @@ import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.Date;
 import java.util.List;
+import java.util.Properties;
 import java.util.Scanner;
 import java.util.stream.Stream;
 
@@ -68,8 +71,12 @@ public class TestServlet extends HttpServlet {
 		//doGet(request, response);
 		CreateRequest req = new Gson().fromJson(request.getReader(), CreateRequest.class);
 		try {
-			Scanner s = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/properties.txt"))));
-			String[] line1 = s.nextLine().split(":");
+			/*Scanner s = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/properties.txt"))));
+			String[] line1 = s.nextLine().split(",");*/
+			InputStream input = new FileInputStream(getServletContext().getRealPath("/WEB-INF/infos.properties"));
+	    	Properties prop = new Properties();
+            // load a properties file
+            prop.load(input);
 			String myRequestXML = req.requestXML;
 			String username = req.username;
 			String password = req.password;
@@ -77,7 +84,8 @@ public class TestServlet extends HttpServlet {
 			String[] cohortIDs = new String[req.cohortIDs.length];
 			for(int i=0; i<req.cohortIDs.length; i++) cohortIDs[i] = req.cohortIDs[i];
 			//File fXmlFile = new File(getServletContext().getRealPath("/WEB-INF/"+myRequestXML+".xml"));
-			File fXmlFile = new File(new URI("file:///C:"+line1[1].trim()+myRequestXML+".xml"));
+			//File fXmlFile = new File(new URI("file:///"+line1[1].trim()+myRequestXML+".xml"));
+			File fXmlFile = new File(new URI("file:///"+prop.getProperty("pathToXML")+myRequestXML+".xml"));
 			Date date = new Date();
 			Object param = new java.sql.Timestamp(date.getTime());
 			System.out.println("Ready to create new request...");
@@ -104,7 +112,7 @@ public class TestServlet extends HttpServlet {
   	  		}
   	  		System.out.println("Status of all cohorts updated successfully!");
 			//String requestXML = readLineByLineJava8(getServletContext().getRealPath("/WEB-INF/"+myRequestXML+".xml"));
-			String requestXML = readLineByLineJava8(new URI("file:///C:"+line1[1].trim()+myRequestXML+".xml"));
+			String requestXML = readLineByLineJava8(new URI("file:///"+prop.getProperty("pathToXML")+myRequestXML+".xml"));
 			System.out.println("Create request XML...");
   	  		setRequestXML(username, password, darId, requestXML);
   	  		System.out.println("Request XML created successfully...");

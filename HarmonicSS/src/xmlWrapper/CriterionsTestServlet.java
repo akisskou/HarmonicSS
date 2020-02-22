@@ -9,6 +9,7 @@ import static queries.SQL_aux_functions.Make_specific_age_query;
 import static queries.SQL_aux_functions.Make_begin_end_age_query;
 
 import java.io.BufferedReader;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.InputStream;
@@ -28,6 +29,7 @@ import java.util.Date;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Properties;
 import java.util.Scanner;
 import java.util.Set;
 import java.util.TreeSet;
@@ -55,6 +57,7 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 
 import com.google.gson.Gson;
+import com.mysql.cj.jdbc.exceptions.CommunicationsException;
 
 import criterionManager.Criterion;
 import criterionManager.Criterions;
@@ -99,6 +102,7 @@ public class CriterionsTestServlet extends HttpServlet {
 	private static List<JSONObject> inclusion_criteria = new ArrayList<JSONObject>();
 	private static PatientsSelectionRequest patientsSelectionRequest;
 	private static List<JSONObject> cohortResponseList = new ArrayList<JSONObject>();
+	JSONObject all;
        
     /**
      * @see HttpServlet#HttpServlet()
@@ -1587,7 +1591,6 @@ public class CriterionsTestServlet extends HttpServlet {
         	} catch (SQLException e) {
         		//LOGGER.log(Level.SEVERE,"Bad type query or arguments: "+query,true);
         		//flush_handler();
-    		
         		e.printStackTrace();
         		//return "Bad type query or arguments: "+query;
         	}
@@ -1695,8 +1698,13 @@ public class CriterionsTestServlet extends HttpServlet {
 		cohortResponse.put("cohort_name", mycohort);
 		//ConfigureFile obj = new ConfigureFile("jdbc:mysql://"+credentials.getString("dbserver")+":"+credentials.getString("dbport")+"/"+credentials.getString("dbarea"),credentials.getString("dbuname"),credentials.getString("dbupass"));
     	//ConfigureFile obj = new ConfigureFile("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/Harm-DB-09", "emps", "emps");
-    	if(!DBServiceCRUD.makeJDBCConnection(obj))  System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
-    	else System.out.println("everything's gooooooood");
+    	if(!DBServiceCRUD.makeJDBCConnection(obj)) {
+    		all.put("error_message", "Error while connecting to database. Check database url and credentials and try again.");
+			all.put("status", "error");
+    		System.out.println("Connection with the Database failed. Check the Credentials and the DB URL.");
+    	}
+    	else 
+    	{System.out.println("everything's gooooooood");
     	criterionDBmatching(list_of_criterions);
     	if(results.UIDs_defined_ALL_elements.length==1 && results.UIDs_defined_ALL_elements[0].equals("")) {
     		if(results.UIDs_UNdefined_some_elements.length==1 && results.UIDs_UNdefined_some_elements[0].equals("")) {
@@ -1726,6 +1734,7 @@ public class CriterionsTestServlet extends HttpServlet {
 		inclusion_criteria.clear();
 		DBServiceCRUD.closeJDBCConnection();
 		System.out.println("End");
+    	}
     }
 
 	/**
@@ -1744,18 +1753,25 @@ public class CriterionsTestServlet extends HttpServlet {
 		// TODO Auto-generated method stub
 		//doGet(request, response);
 		cohortResponseList.clear();
-		JSONObject all = new JSONObject();
+		all = new JSONObject();
 		manager = OWLManager.createOWLOntologyManager();
-    	Scanner s1 = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/infos.txt"))));
-		String[] line = s1.nextLine().split(":");
+		InputStream input = new FileInputStream(getServletContext().getRealPath("/WEB-INF/infos.properties"));
+    	Properties prop = new Properties();
+        // load a properties file
+        prop.load(input);
+    	//Scanner s1 = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/infos.txt"))));
+		//String[] line = s1.nextLine().split(":");
 	    //documentIRI = IRI.create("file:///C:/Users/Jason/Desktop/", "HarmonicSS-Reference-Model+Vocabularies-v.0.9.owl");
-		documentIRI = IRI.create(getServletContext().getResource("/WEB-INF/"+line[1].trim()));
+		//documentIRI = IRI.create(getServletContext().getResource("/WEB-INF/"+line[1].trim()));
+		documentIRI = IRI.create(getServletContext().getResource("/WEB-INF/"+prop.getProperty("owlFile")));
 	    try{
 	        ontology = manager.loadOntologyFromOntologyDocument(documentIRI);
             findClasses();
             findSubclasses();
 		}
 		catch (OWLOntologyCreationException e) {
+			all.put("error_message", "Could not find owl file. Check file path and try again.");
+			all.put("status", "error");
 	        e.printStackTrace();
 			
 		}
@@ -1767,38 +1783,34 @@ public class CriterionsTestServlet extends HttpServlet {
 		try {
 			list_of_criterions = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
 			//findCriterion((Criterion)list_of_inclusive_criterions.get(0));
-			
-		} catch (JsonParseException e1) {
+			accessCohort(req.mycohort, list_of_criterions);
+			if(cohortResponseList.size()>0) {
+				all.put("cohort_response_list", cohortResponseList);
+				all.put("status", "ok");
+			}
+		} catch (NullPointerException e1) {
 			/*LOGGER.log(Level.SEVERE,"JsonParseException Bad JSON format: "+criteria,true);
 			flush_handler();*/
+			all.put("error_message", "Error while parsing json criteria. Check your json format and all criteria fields and try again.");
+			all.put("status", "error");
 			e1.printStackTrace();
 			//return "JsonParseException Bad JSON format.";
-		} catch (JsonMappingException e1) {
-			/*LOGGER.log(Level.SEVERE,"JsonMappingException Bad JSON format: "+criteria,true);
-			flush_handler();*/
-			e1.printStackTrace();
-			//return "JsonParseException Bad JSON format.";
-		} catch (IOException e1) {
-			/*LOGGER.log(Level.SEVERE,"IOException Bad JSON format: "+criteria,true);
-			flush_handler();*/
-			e1.printStackTrace();
-			//return "JsonParseException Bad JSON format.";
-		}
-		try {
-			accessCohort(req.mycohort, list_of_criterions);
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
 		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		try {
-			all.put("cohort_response_list", cohortResponseList);
-		} catch (JSONException e) {
+		/*try {
+			accessCohort(req.mycohort, list_of_criterions);
+			if(cohortResponseList.size()>0) {
+				all.put("cohort_response_list", cohortResponseList);
+				all.put("status", "ok");
+			}
+		} catch (Exception e) {
 			// TODO Auto-generated catch block
+			all.put("error_message", "Error while connecting to database. Check database url and credentials and try again.");
+			all.put("status", "error");
 			e.printStackTrace();
-		}
+		}*/
 		response.setContentType("text/html; charset=UTF-8");
 		response.setCharacterEncoding("UTF-8");
 		PrintWriter pw = response.getWriter();

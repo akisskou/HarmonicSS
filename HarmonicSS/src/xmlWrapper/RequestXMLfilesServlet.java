@@ -3,10 +3,13 @@ package xmlWrapper;
 import java.io.BufferedReader;
 import java.io.File;
 import java.io.FileFilter;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URI;
+import java.util.Properties;
 import java.util.Scanner;
 
 import javax.servlet.ServletException;
@@ -37,9 +40,14 @@ public class RequestXMLfilesServlet extends HttpServlet {
 		// TODO Auto-generated method stub
 		//response.getWriter().append("Served at: ").append(request.getContextPath());
 		try {
-			Scanner s = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/properties.txt"))));
-			String[] line1 = s.nextLine().split(":");
-			File folder = new File(new URI("file:///C:"+line1[1].trim()));
+			InputStream input = new FileInputStream(getServletContext().getRealPath("/WEB-INF/infos.properties"));
+	    	Properties prop = new Properties();
+            // load a properties file
+            prop.load(input);
+			/*Scanner s = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/properties.txt"))));
+			String[] line1 = s.nextLine().split(",");
+			File folder = new File(new URI("file:///"+line1[1].trim()));*/
+            File folder = new File(new URI("file:///"+prop.getProperty("pathToXML")));
 			File[] files = folder.listFiles(new FileFilter() {
 			    @Override
 			    public boolean accept(File f) {
