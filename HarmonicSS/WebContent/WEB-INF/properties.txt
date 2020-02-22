@@ -1,1 +1,1 @@
-Path to xml test files: /TOMCAT/apache-tomcat-8.5.50/MY-XML-REQUESTS/
+Path to xml test files, C:/Users/jason/XML-Requests/

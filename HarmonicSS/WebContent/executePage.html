@@ -64,10 +64,10 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
 			var response1 = JSON.parse(response);
 			//var darId = response1.cohort_response_list;
 			
-			var cohortsResponse = response1.cohort_response_list;
+			//var cohortsResponse = response1.cohort_response_list;
 			var data = "<h4>";
 			$('#data').html(data);
-			for(i=0; i<cohortsResponse.length; i++){
+			/*for(i=0; i<cohortsResponse.length; i++){
 				if(cohortsResponse[i].cohortStatus==="Accepted"){
 					data += cohortsResponse[i].cohort_name+": <br>Number of patients found: ";
 					if(cohortsResponse[i].patients_IDs_list.length==1 && cohortsResponse[i].patients_IDs_list[0]==="") data += "0";
@@ -85,7 +85,77 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
 				else{
 					data += cohortsResponse[i].cohort_name+":<br>"+cohortsResponse[i].cohort_notes+"<br><br>";
 				}
+			}*/
+			var responseXML = response1.responseXML;
+			parser = new DOMParser();
+			xmlDoc = parser.parseFromString(responseXML,"text/xml");
+			var cohorts = xmlDoc.getElementsByTagName("CohortResponse");
+			for (var i = 0; i < cohorts.length; i++) {
+				var cohortID = cohorts[i].attributes.getNamedItem("cohortID").value.split("-")[2];
+				if(cohortID==="34" || cohortID==="35" || cohortID==="36") cohortID = "chdb0"+cohortID;
+				else cohortID = "Harm-DB-"+cohortID;
+				data += cohortID + "<br>";
+			    if (cohorts[i].childNodes) {
+			        for (var j = 0; j < cohorts[i].childNodes.length; j++) {
+			            var detail = cohorts[i].childNodes[j];
+			            if (detail.nodeType === 1){
+							if(j==1)
+								data += "Eligible Patients Number: " + detail.firstChild.nodeValue + "<br>";
+							if(responseXML.includes("EligiblePatientsIDs")){
+								if(j==3 && detail.firstChild!=null)
+									data += "Eligible Patients IDs: " + detail.firstChild.nodeValue + "<br>";
+								else if(j==5){
+									if(detail.childNodes){
+										for(var k=0; k<detail.childNodes.length; k++) {
+											var criterionDetail = detail.childNodes[k];
+											if (criterionDetail.nodeType === 1){
+												if(criterionDetail.childNodes){
+													for(var n=0; n<criterionDetail.childNodes.length; n++) {
+														var finalDetail = criterionDetail.childNodes[n];
+														if (finalDetail.nodeType === 1){
+															data += finalDetail.firstChild.nodeValue + "<br>";
+														}
+													}
+												}
+												
+											}
+										}
+									}
+										
+								}
+							}
+								
+							else{
+								if(j==3){
+								if(detail.childNodes){
+									for(var k=0; k<detail.childNodes.length; k++) {
+										var criterionDetail = detail.childNodes[k];
+										if (criterionDetail.nodeType === 1){
+											if(criterionDetail.childNodes){
+												for(var n=0; n<criterionDetail.childNodes.length; n++) {
+													var finalDetail = criterionDetail.childNodes[n];
+													if (finalDetail.nodeType === 1){
+														data += finalDetail.firstChild.nodeValue + "<br>";
+													}
+												}
+											}
+											
+										}
+									}
+								}
+								}
+									
+							}
+								
+			            }
+			            
+			        }
+			    }
+			    data += "<br>";
 			}
+			//document.getElementById("data").innerHTML = x[0].childNodes[0].nodeValue;
+				//xmlDoc.getElementsByTagName("CohortResponse")[0].attributes.getNamedItem("cohortID").value;
+			
 			data += "</h4>";
 			$('#data').html(data);
 			});

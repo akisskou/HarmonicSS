@@ -7,7 +7,7 @@
 	
 	<RequestTitle>Patient Selection request for clinical study XYZ</RequestTitle>
 	
-	<RequestID>ELIGIBLE_PATIENTS_NUMBER</RequestID>	
+	<RequestID>ELIGIBLE_PATIENTS_IDs</RequestID>	
 	
 	<EligibilityCriteria>
 	

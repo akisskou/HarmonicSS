@@ -42,13 +42,14 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
 	<script type="text/javascript">
 	
 	function testCriterion() {
-		$('#data').html("<h4>Testing your criterions...</h4>");
+		
 		var jsonCriteria = document.getElementById("jsonCriteria");
  		var mycohort = document.getElementById("cohortTest");
  		if (!(jsonCriteria && jsonCriteria.value.trim())){
 			alert("Please enter at least one json criterion");
 			return false;
 		}
+ 		$('#data').html("<h4>Testing your criterions...</h4>");
 		var HttpClient = function() {
  			this.get = function(aUrl, aCallback) {
  				var anHttpRequest = new XMLHttpRequest();
@@ -68,25 +69,32 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
  		client.get(theurl, function(response) { 
  			var response1 = JSON.parse(response);
 			//var darId = response1.cohort_response_list;
-			
-			var cohortsResponse = response1.cohort_response_list;
-			var data = "<h4>";
-			$('#data').html(data);
-			for(i=0; i<cohortsResponse.length; i++){
-				data += cohortsResponse[i].cohort_name+": <br>Number of patients found: ";
-				if(cohortsResponse[i].patients_IDs_list.length==1 && cohortsResponse[i].patients_IDs_list[0]==="") data += "0";
-				else{
-					data += cohortsResponse[i].patients_IDs_list.length+"<br>Patient IDs: ";
-					for(j=0; j<cohortsResponse[i].patients_IDs_list.length; j++){
-						if(j==0) data += cohortsResponse[i].patients_IDs_list[j];
-						else data += ", "+cohortsResponse[i].patients_IDs_list[j];
+			var cohortResponse;
+			if(response1.status==="ok"){
+				cohortsResponse = response1.cohort_response_list;
+				var data = "<h4>";
+				$('#data').html(data);
+				for(i=0; i<cohortsResponse.length; i++){
+					data += cohortsResponse[i].cohort_name+": <br>Number of patients found: ";
+					if(cohortsResponse[i].patients_IDs_list.length==1 && cohortsResponse[i].patients_IDs_list[0]==="") data += "0";
+					else{
+						data += cohortsResponse[i].patients_IDs_list.length+"<br>Patient IDs: ";
+						for(j=0; j<cohortsResponse[i].patients_IDs_list.length; j++){
+							if(j==0) data += cohortsResponse[i].patients_IDs_list[j];
+							else data += ", "+cohortsResponse[i].patients_IDs_list[j];
+						}
 					}
+					data += "<br>"+cohortsResponse[i].inclusion_criteria;
+					data += "<br><br>";
 				}
-				data += "<br>"+cohortsResponse[i].inclusion_criteria;
-				data += "<br><br>";
+				data += "</h4>";
+				$('#data').html(data);
 			}
-			data += "</h4>";
-			$('#data').html(data);
+			else{
+				cohortsResponse = response1.error_message;
+				var data = "<h4>"+cohortsResponse+"</h4>";
+				$('#data').html(data);
+			}
 			});
 	}
 	</script>
