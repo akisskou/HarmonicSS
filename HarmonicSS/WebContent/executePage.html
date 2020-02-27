@@ -13,13 +13,17 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
 <body>
 <div class='header'><img id='harmonicssLogo' src="IMG/HarmonicSS-Logo.png" alt="HarmonicSS Logo"><img id='iccsntuaLogo' src="IMG/ICCS-NTUA-Logo.png" alt="ICCS/NTUA Logo"></div>
 	<div class="container">
-		<p><a href="home.html">Home</a></p>
-		<input type="text" id="username" placeholder="username">
-		<input type="password" id="password" placeholder="password">
+		<p><a href="home.html">Back to main menu</a></p>
+		
+		<p>Provide the <b>Data Access Request ID (DAR-ID)</b> and press the Execute Button.</p>
+		<p>The Patient Selection Process will be executed only to those cohorts/users already approved this Request. Nevertheless, you can execute several times the same Request.</p>
+		
+		<input type="text" id="username" placeholder="username" value="test1">
+		<input type="password" id="password" placeholder="password" value="1test12!">
 		<input type="text" id="requestID" placeholder="requestID">
         <br>
         <br>
-        <button onclick='executeRequest()'>Execute request</button><br><br><br>
+        <button id="mybutton" onclick="executeRequest()">Execute request</button><br><br><br>
         <div id="data">
         </div>
     </div>
@@ -30,7 +34,7 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
 	<script type="text/javascript">
 	
 	function executeRequest() {
-		$('#data').html("<h4>Executing your request...</h4>");
+		
 		var requestID = document.getElementById("requestID");
 	 	var username = document.getElementById("username");
 	 	var password = document.getElementById("password");
@@ -42,6 +46,8 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
 	 		alert("Request ID must not be null!");
 			return false;
 	 	}
+	 	$('#data').html("<h4>Executing your request...</h4>");
+	 	document.getElementById("mybutton").disabled = true;
  		var HttpClient = function() {
  			this.get = function(aUrl, aCallback) {
  				var anHttpRequest = new XMLHttpRequest();
@@ -86,6 +92,7 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
 					data += cohortsResponse[i].cohort_name+":<br>"+cohortsResponse[i].cohort_notes+"<br><br>";
 				}
 			}*/
+			if(response1['responseXML']){
 			var responseXML = response1.responseXML;
 			parser = new DOMParser();
 			xmlDoc = parser.parseFromString(responseXML,"text/xml");
@@ -96,6 +103,9 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
 				else cohortID = "Harm-DB-"+cohortID;
 				data += cohortID + "<br>";
 			    if (cohorts[i].childNodes) {
+			    	//alert(cohorts[i].childNodes.length);
+			    	if(cohorts[i].childNodes.length<4) data += "Cannot proccess request.<br>";
+			    	else{
 			        for (var j = 0; j < cohorts[i].childNodes.length; j++) {
 			            var detail = cohorts[i].childNodes[j];
 			            if (detail.nodeType === 1){
@@ -151,13 +161,20 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
 			            
 			        }
 			    }
+			    }
 			    data += "<br>";
+			}
+			}
+			else{
+				var errorMessage = response1.errorMessage;
+				data += errorMessage;
 			}
 			//document.getElementById("data").innerHTML = x[0].childNodes[0].nodeValue;
 				//xmlDoc.getElementsByTagName("CohortResponse")[0].attributes.getNamedItem("cohortID").value;
 			
 			data += "</h4>";
 			$('#data').html(data);
+			document.getElementById("mybutton").disabled = false;
 			});
 	}
 	</script>

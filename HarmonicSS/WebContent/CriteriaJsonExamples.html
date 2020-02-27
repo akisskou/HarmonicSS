@@ -1,0 +1,69 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Criteria Json Examples</title>
+</head>
+<body>
+<h3>Demographics</h3>
+<h4>Patient</h4>
+<p>Patients born before 1964: {"criterion":"patient", "birth_period_of_time_until_year":"1964"}</p>
+<p>Patients born after 1964: {"criterion":"patient", "birth_period_of_time_interval_start_year":"1964"}</p>
+<p>Patients born between 1950 and 1964: {"criterion":"patient", "birth_period_of_time_interval_start_year":"1950", "birth_period_of_time_interval_end_year":"1964"}</p>
+<p>Patients born in 1964: {"criterion":"patient", "birth_period_of_time_exact_year":"1964"}</p>
+<p>Patients born before 22-11-1965: {"criterion":"patient", "birth_period_of_time_until_year":"1965", "birth_period_of_time_until_month":"11", "birth_period_of_time_until_day":"22"}</p>
+<!--p>Patients over 55 years old: {"criterion":"patient", "min_age":"56"}</p>
+<p>Patients under 55 years old: {"criterion":"patient", "max_age":"54"}</p>
+<p>Patients between 45 and 60 years old: {"criterion":"patient", "min_age":"45", "max_age":"60"}</p-->
+<!--p>Patients under 55 years old when included in cohort: {"criterion":"patient", "max_age_of_cohort_inclusion":"54"}</p>
+<p>Patients over 55 years old when initially diagnosed with a disease: {"criterion":"patient", "min_age_of_diagnosis":"56"}</p>
+<p>Patients under 55 years old when first symptom appeared: {"criterion":"patient", "max_age_of_sign":"54"}</p-->
+<p>Patients included in cohort before 2014: {"criterion":"patient", "cohort_inclusion_period_of_time_until_year":"2014"}</p>
+<p>Patients initially diagnosed with a disease after 2014: {"criterion":"patient", "diagnosis_period_of_time_interval_start_year":"2014"}</p>
+<p>Patients with first symptom appeared before 2014: {"criterion":"patient", "symptoms_onset_period_of_time_until_year":"2014"}</p>
+<h4>Gender</h4>
+<p>Female patients: {"criterion":"demographics_gender", "gender":"SEX-02"}</p>
+<h4>Ethnicity</h4>
+<p>Asian patients: {"criterion":"demographics_ethnicity", "ethnicity":"ETHN-03"}</p>
+<h4>Education Level</h4>
+<p>Asian patients: {"criterion":"demographics_education", "education_level":"EDU-LEV-02"}</p>
+<h4>Occupation</h4>
+<p>Occupation - loss of work: {"criterion":"demographics_occupation", "loss_of_work_due_to_pss":"CONFIRM-02"}</p>
+<h4>Body Mass Index</h4>
+<p>Normal weight: {"criterion":"demographics_weight", "body_mass_index":"BMI-02"}</p>
+<h4>Pregnancies</h4>
+<p>There was an abortion: {"criterion":"demographics_pregnancy", "outcome_coded_value":"PREG-OUT-300"}</p>
+<h4>Smoking Status</h4>
+<p>Active Smoker with more than 200 cigarettes each year: {"criterion":"lifestyle_smoking", "status_coded_value":"SMOK-STAT-01", "amount_unit":"UNITEXP-18", "amount_range_min_value":"200"}</p>
+<br>
+<h3>Examination</h3>
+<h4>Lab Tests</h4>
+<p>Anti-Ro/SSA was true (normal): {"criterion":"examination_lab_test","test_id":"BLOOD-530","outcome_assessment":"ASSESS-10"}</p>
+<p>Presence of Anti-Ro/SSA: {"criterion":"examination_lab_test","test_id":"BLOOD-530","outcome_term":"CONFIRM-01"}
+<p>Schrimer’s Test value was abnormal: {"criterion":"examination_lab_test","test_id":"OCULAR-01","outcome_assessment":"ASSESS-20"}</p>
+<p>Leukocytes was less than 3000 mm3 before 2015: {"criterion":"examination_lab_test","test_id":"BLOOD-120","outcome_amount_range_max_value":"3000","outcome_amount_unit":"UNITEXP-01","sample_period_of_time_until_year":"2015"}</p>
+<p>ANA pattern was Nucleolar: {"criterion":"examination_lab_test","test_id":"BLOOD-523","outcome_term":"ANA-PAT-03"}</p>
+<h4>Biopsy Tests</h4>
+<p>Minor Salivary Gland Greenspan Focus Score > 5: {"criterion":"examination_biopsy","biopsy_type":"SAL-BIO-20","test_id":"BIOPSY-21","outcome_amount_range_min_value":"1"}</p>
+<h4>Imaging Tests</h4>
+<p>MRI of Major Salivary Gland (abnormal):{"criterion":"examination_medical_imaging_test","test_id":"IMG-14","assessment":"ASSESS-20"}</p>
+<h4>Questionnaire Score</h4>
+<p>ESSDAI score: {"criterion":"examination_questionnaire_score","score":"QUEST-010"}</p>
+<h4>ESSDAI Domain</h4>
+<p>Constitutional ESSDAI domain activity level HIGH before 2014: {"criterion":"examination_essdai_domain","domain":"ESSDAI-01","activity_level":"ACTLVL-03","questionnaire_period_of_time_until_year":"2014"}</p>
+<h4>CACI Condition</h4>
+<p>Caci condition: {"criterion":"examination_caci_condition","caci":"CACI-06"}</p>
+<br>
+<h3>Condition</h3>
+<h4>Symptoms/Signs</h4>
+<p>Diagnosed with dry mouth: {"criterion":"condition_symptom","sign_coded":"SYMPT-020"}</p>
+<h4>Diseases</h4>
+<p>Diagnosed with cancer: {"criterion":"condition_diagnosis","condition":"COND-140000"}</p>
+<p>Diagnosed with cancer before 2015: {"criterion":"condition_diagnosis","condition":"COND-140000","date_until_year":"2014"}</p>
+<br>
+<h3>Intervention</h3>
+<h4>Medications/Drugs</h4>
+<p>Received Glucocorticoids: {"criterion":"intervention_medication","pharmacological_drug":"CHEM-10000"}</p>
+<p>Received Glucocorticoids in the past (before now): {"criterion":"intervention_medication","pharmacological_drug":"CHEM-10000","period_of_time_until_year":"2019"}</p>
+</body>
+</html>

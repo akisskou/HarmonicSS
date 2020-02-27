@@ -14,10 +14,15 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
 <div class='header'><img id='harmonicssLogo' src="IMG/HarmonicSS-Logo.png" alt="HarmonicSS Logo"><img id='iccsntuaLogo' src="IMG/ICCS-NTUA-Logo.png" alt="ICCS/NTUA Logo"></div>
 	<div class="container">
 		
-		<p><a href="home.html">Home</a></p>
+		<p><a href="home.html">Back to main menu</a></p>
 		
-		<input type="text" id="username" placeholder="username">
-		<input type="password" id="password" placeholder="password">
+		<p>Through this Web Page the user can create a <b>new</b> Patient Selection Request.</p>
+		<p>The patients should satisfy a predefined set of Inclusion/Exclusion criteria specified in the given/selected XML document.</p>
+		<p>The patient selection request should be executed in the given Cohorts.</p>
+		<p style="color: darkblue">Since this web page has been primarily created for testing purposes, we can also specify the status of the introduced patient selection request, so that we can directly execute it in the given cohorts by specifying that the data providers have already accepted the created request.</p>
+		
+		<input type="text" id="username" placeholder="username" value="test1">
+		<input type="password" id="password" placeholder="password" value="1test12!">
 		<!--div id="myrequestXML">
 		</div-->
 		<select id="requestXML">
@@ -29,9 +34,9 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
   			<option value="Request-Tim-Test">Request-Tim-Test.xml</option-->
 		</select>
 		<select id="cohortIDs" multiple="multiple">
-    		<option value="34">chdb034</option>
-    		<option value="35">chdb035</option>
-    		<option value="36">chdb036</option>
+    		<option value="34">test1-chdb034</option>
+    		<option value="35">test2-chdb035</option>
+    		<option value="36">test3-chdb036</option>
 		</select>
 		<select id="cohortStatus">
     		<option value="1">Pending</option>
@@ -40,7 +45,7 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
 		</select>
         <br>
         <br>
-        <button onclick='createRequest()'>Create request</button><br><br><br>
+        <button id="mybutton" onclick="createRequest()">Create request</button><br><br><br>
         <div id="data">
         </div>
     </div>
@@ -77,7 +82,7 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
 	}
 	
 	function createRequest() {
-		$('#data').html("<h4>Creating your request...</h4>");
+		
 		var requestXML = document.getElementById("requestXML");
  		var username = document.getElementById("username");
  		var password = document.getElementById("password");
@@ -92,7 +97,12 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
  	    for (var i = 0; i < cohortIDs.length; i++) {
  	        if (cohortIDs.options[i].selected) selected1.push(cohortIDs.options[i].value);
  	    }
- 	    if(selected1.length==0) alert("Please select at least one cohort");
+ 	    if(selected1.length==0){
+ 	    	alert("Please select at least one cohort");
+ 	    	return false;
+ 	    }
+ 	   $('#data').html("<h4>Creating your request...</h4>");
+ 	  document.getElementById("mybutton").disabled = true;
  	    var cohortStatus = document.getElementById("cohortStatus");
  	    
  		var HttpClient = function() {
@@ -112,12 +122,20 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
  		var client = new HttpClient();
  		client.get(theurl, function(response) { 
 			var response1 = JSON.parse(response);
+			if(response1['errorMessage']){
+				var htmldata = "<h4>"+response1.errorMessage+"</h4>";
+				$('#data').html(htmldata);
+			}
+			else{
 			var darId = response1.requestID;
 			var htmldata="<h4>Request ID: "+darId+"<br><br>";
+			htmldata += response1.requestType+"<br>";
 			htmldata += "Inclusion criteria:<br>"+response1.incList+"<br>";
 			htmldata += "Exclusion criteria:<br>"+response1.excList+"<br>";
 			htmldata += "</h4>";
 			$('#data').html(htmldata);
+			}
+			document.getElementById("mybutton").disabled = false;
 			});
 	}
 	</script>

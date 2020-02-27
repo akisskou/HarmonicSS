@@ -69,4 +69,14 @@
     <servlet-name>RequestXMLfilesServlet</servlet-name>
     <url-pattern>/RequestXMLfilesServlet</url-pattern>
   </servlet-mapping>
+  <servlet>
+    <description></description>
+    <display-name>MidServiceForReqRespList</display-name>
+    <servlet-name>MidServiceForReqRespList</servlet-name>
+    <servlet-class>xmlWrapper.MidServiceForReqRespList</servlet-class>
+  </servlet>
+  <servlet-mapping>
+    <servlet-name>MidServiceForReqRespList</servlet-name>
+    <url-pattern>/MidServiceForReqRespList</url-pattern>
+  </servlet-mapping>
 </web-app>

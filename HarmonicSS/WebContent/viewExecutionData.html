@@ -18,13 +18,17 @@
 	}
 	</style>
 </head>
-<body onload="getDataFromDB()">
+<body>
 <div class='header'><img id='harmonicssLogo' src="IMG/HarmonicSS-Logo.png" alt="HarmonicSS Logo"><img id='iccsntuaLogo' src="IMG/ICCS-NTUA-Logo.png" alt="ICCS/NTUA Logo"></div>
 	<div class="container">
-		<p><a href="home.html">Home</a></p>
+		<p><a href="home.html">Back to main menu</a></p>
+		
+		<p>By default the Web Page presents all the Patient Selection Requests executed.</p>
+		<p>You can filter them by providing either the User ID or the Data Access Request ID or both of them.</p>
+		
 		<input type="text" id="userID" placeholder="user ID">
 		<input type="text" id="requestID" placeholder="request ID">
-		<button onclick='getDataFromDB()'>View requests</button><br><br>
+		<button id="mybutton" onclick="this.disabled='disabled'; getDataFromDB()">View requests</button><br><br>
         
 		<h3>Execution Data Table</h3>
         <div id="data">
@@ -50,7 +54,7 @@
  		}
  		var requestID = document.getElementById("requestID");
  		var userID = document.getElementById("userID");
- 		var theurl='ReqRespList?userID='+userID.value.trim()+'&requestID='+requestID.value.trim();
+ 		var theurl='MidServiceForReqRespList?userID='+userID.value.trim()+'&requestID='+requestID.value.trim();
  		
  		var client = new HttpClient();
  		client.get(theurl, function(response) { 
@@ -58,10 +62,11 @@
 			var htmldata='<table table-layout="auto" width="100%"><tr><th>USER ID</th><th>REQUEST ID</th><th>REQUEST SYNOPSIS</th><th>EXECUTION DATE</th><th>RESPONSE SYNOPSIS</th></tr>';
 			var dbList = response1.request_response_list;
 			for(i=0; i<dbList.length; i++){
-				htmldata += '<tr align="center"><td>'+dbList[i].user_id+'</td><td>'+dbList[i].request_id+'</td><td>'+dbList[i].request_synopsis+'</td><td>'+dbList[i].execution_date+'</td><td>'+dbList[i].response_synopsis+'</td></tr>';
+				htmldata += '<tr><td>'+dbList[i].user_id+'</td><td align="center">'+dbList[i].request_id+'</td><td align="left">'+dbList[i].request_synopsis+'</td><td align="center">'+dbList[i].execution_date+'</td><td align="left">'+dbList[i].response_synopsis+'</td></tr>';
 			}
 			htmldata += '</table>';
 			$('#data').html(htmldata);
+			document.getElementById("mybutton").disabled = false;
 		});
 	}
 	</script>
