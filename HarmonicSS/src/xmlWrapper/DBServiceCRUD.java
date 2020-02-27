@@ -15,8 +15,13 @@ import java.sql.PreparedStatement;
 import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.text.SimpleDateFormat;
+import java.util.ArrayList;
 import java.util.Date;
+import java.util.List;
 import java.util.stream.Stream;
+
+import org.json.JSONObject;
+
 import java.sql.ResultSet;
 
 
@@ -38,7 +43,7 @@ public class DBServiceCRUD {
 		}
  
 		try {
-			System.out.println("URL: "+configureFile_obj.getDbURL()+" username: "+configureFile_obj.getUsername()+" password: "+configureFile_obj.getPassword());
+			//System.out.println("URL: "+configureFile_obj.getDbURL()+" username: "+configureFile_obj.getUsername()+" password: "+configureFile_obj.getPassword());
 			db_con_obj = DriverManager.getConnection(configureFile_obj.getDbURL(), configureFile_obj.getUsername(), configureFile_obj.getPassword());
 			//db_con_obj = DriverManager.getConnection("jdbc:mysql://147.102.19.66:3306/HarmonicSS","ponte", "p0nt3");
 			if (db_con_obj != null) {
@@ -68,16 +73,16 @@ public class DBServiceCRUD {
 	public static boolean testQuery(String getQueryStatement) throws SQLException {
 		//String query_results=""; 
 		
-			System.out.println("Stage-1 Prepare statement.");
+			//System.out.println("Stage-1 Prepare statement.");
 			db_prep_obj = db_con_obj.prepareStatement(getQueryStatement);
 			
-			System.out.println("Stage-2 Ready to execute the query.");
+			//System.out.println("Stage-2 Ready to execute the query.");
 			// Execute the Query, and get a java ResultSet
 			
 			ResultSet rs = db_prep_obj.executeQuery();
 			//System.out.println("We are ready to retrieve data from DB.");
 			
-			System.out.println("Stage-3 The query is executed.");
+			//System.out.println("Stage-3 The query is executed.");
 			// Let's iterate through the java ResultSet
 			if (!rs.next()) return false;
 			
@@ -112,16 +117,16 @@ public class DBServiceCRUD {
 	public static String getDataFromDB(String getQueryStatement) throws SQLException {
 		String query_results=""; 
 		
-			System.out.println("Stage-1 Prepare statement.");
+			//System.out.println("Stage-1 Prepare statement.");
 			db_prep_obj = db_con_obj.prepareStatement(getQueryStatement);
 			
-			System.out.println("Stage-2 Ready to execute the query.");
+			//System.out.println("Stage-2 Ready to execute the query.");
 			// Execute the Query, and get a java ResultSet
 			
 			ResultSet rs = db_prep_obj.executeQuery();
 			//System.out.println("We are ready to retrieve data from DB.");
 			
-			System.out.println("Stage-3 The query is executed.");
+			//System.out.println("Stage-3 The query is executed.");
 			// Let's iterate through the java ResultSet
 			if (rs == null) return "";
 			while (rs.next()) {
@@ -131,7 +136,7 @@ public class DBServiceCRUD {
 				
 				query_results+=" "+id;//Integer.toString(id) + " ";//+Float.toString(value)+". ";
 				
-			}System.out.println("Stage-5 Finished.");
+			}//System.out.println("Stage-5 Finished.");
 			return query_results;
 	}
 	
@@ -179,12 +184,16 @@ public class DBServiceCRUD {
 		db_prep_obj.setTimestamp(2, (Timestamp) param);
 		if(results.UIDs_defined_ALL_elements.length==1 && results.UIDs_defined_ALL_elements[0].equals("")) db_prep_obj.setString(3, "");
 		else {
-			String dbstring = "";
+			//String dbstring = "";
+			String[] idstring = new String[results.UIDs_defined_ALL_elements.length];
 			for(int k=0; k<results.UIDs_defined_ALL_elements.length; k++) {
-				if(k==0) dbstring += results.UIDs_defined_ALL_elements[k];
-				else dbstring += ", "+results.UIDs_defined_ALL_elements[k];
+				/*if(k==0) dbstring += results.UIDs_defined_ALL_elements[k];
+				else dbstring += ", "+results.UIDs_defined_ALL_elements[k];*/
+				idstring[k]=results.UIDs_defined_ALL_elements[k];
 			}
-			db_prep_obj.setString(3, dbstring);
+			JSONObject dbstring = new JSONObject();
+			dbstring.put("IDs", idstring);
+			db_prep_obj.setString(3, dbstring.toString());
 		}
 		db_prep_obj.execute();
 	}

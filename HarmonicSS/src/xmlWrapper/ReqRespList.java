@@ -2,9 +2,11 @@ package xmlWrapper;
 
 import java.io.BufferedReader;
 import java.io.File;
+import java.io.FileInputStream;
 import java.io.FileReader;
 import java.io.FileWriter;
 import java.io.IOException;
+import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URI;
 import java.net.URISyntaxException;
@@ -16,6 +18,7 @@ import java.sql.SQLException;
 import java.sql.Timestamp;
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Properties;
 import java.util.Scanner;
 
 import javax.servlet.ServletException;
@@ -43,7 +46,7 @@ public class ReqRespList extends HttpServlet {
 	private static final long serialVersionUID = 1L;
 	static Connection db_con_obj = null;
 	static PreparedStatement db_prep_obj = null;
-       
+	private static Properties prop;   
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -65,8 +68,9 @@ public class ReqRespList extends HttpServlet {
 		
 		try {
 			//System.out.println("URL: "+configureFile_obj.getDbURL()+" username: "+configureFile_obj.getUsername()+" password: "+configureFile_obj.getPassword());
-			db_con_obj = DriverManager.getConnection("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB", "emps", "emps");
-			//db_con_obj = DriverManager.getConnection("jdbc:mysql://147.102.19.66:3306/HarmonicSS","ponte", "p0nt3");
+			db_con_obj = DriverManager.getConnection("jdbc:mysql://"+prop.getProperty("dbdomain").trim()+":"+prop.getProperty("dbport").trim()+"/"+prop.getProperty("dbname").trim()+"?autoReconnect=true&useSSL=false", prop.getProperty("dbusername").trim(), prop.getProperty("dbpassword").trim());
+			//db_con_obj = DriverManager.getConnection("jdbc:mysql://192.168.50.6:3306/seltool", "iccs", "11iccs22!!");
+			//db_con_obj = DriverManager.getConnection("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB", "emps", "emps");
 			if (db_con_obj != null) {
 				System.out.println("Connection Successful! Enjoy. Now it's time to Store data");
 			} else {
@@ -84,9 +88,13 @@ public class ReqRespList extends HttpServlet {
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
-	protected void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected synchronized void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		//response.getWriter().append("Served at: ").append(request.getContextPath());
+		InputStream input = new FileInputStream(getServletContext().getRealPath("/WEB-INF/infos.properties"));
+    	prop = new Properties();
+        // load a properties file
+        prop.load(input);
 		if(!makeJDBCConnection())  System.out.println("Connection with the ponte database failed. Check the Credentials and the DB URL.");
     	else System.out.println("I am ponte and I'm gooooooood");
 		String userID = request.getParameter("userID");
@@ -128,6 +136,7 @@ public class ReqRespList extends HttpServlet {
 		try {
 			db_prep_obj = db_con_obj.prepareStatement(query);
 			ResultSet rs = db_prep_obj.executeQuery();
+			
 			List<JSONObject> listJSONobj = new ArrayList<JSONObject>();
 			
 			while (rs.next()) {
@@ -135,15 +144,15 @@ public class ReqRespList extends HttpServlet {
 				myjson.put("user_id", rs.getString("USER_ID"));
 				myjson.put("request_id", rs.getString("REQUEST_ID"));
 				//myjson.put("request_XML", rs.getString("REQUEST_XML").replace("\t","").replace("\n", "").replace("\r", ""));
-				String requestXML = rs.getString("REQUEST_XML").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"");
-				FileWriter fw = new FileWriter(getServletContext().getRealPath("/WEB-INF/tempRequest.xml"));
+				String requestXML = rs.getString("REQUEST_XML").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("\t", "").replace("\n", "").replace("\r", "");
+				/*FileWriter fw = new FileWriter(getServletContext().getRealPath("/WEB-INF/tempRequest.xml"));
 			    fw.write(requestXML);
-			    fw.close();
+			    fw.close();*/
 			    /*String responseXML = rs.getString("RESPONSE_XML").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"");
 			    fw = new FileWriter(getServletContext().getRealPath("/WEB-INF/tempResponse.xml"));
 			    fw.write(responseXML);
 				fw.close();*/
-				File myXMLRequest = new File(getServletContext().getRealPath("/WEB-INF/tempRequest.xml"));
+				/*File myXMLRequest = new File(getServletContext().getRealPath("/WEB-INF/tempRequest.xml"));
 				JAXBContext jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
 	  	  		Unmarshaller jaxbUnmarshaller = jaxbContext.createUnmarshaller();
 	  	  		PatientsSelectionRequest patientsSelectionRequest = ((JAXBElement<PatientsSelectionRequest>) jaxbUnmarshaller.unmarshal(myXMLRequest)).getValue();
@@ -162,11 +171,12 @@ public class ReqRespList extends HttpServlet {
 	  	  			cohorts += "Harm-DB-"+myCohort.split("-")[2]+"<br>";
 	  	  		}
 	  	  		String requestSynopsis = cohorts + result_incl + result_excl;
-	  	  		myjson.put("request_synopsis", requestSynopsis);
+	  	  		myjson.put("request_synopsis", requestSynopsis);*/
+				myjson.put("requestXML",requestXML);
 				myjson.put("execution_date", rs.getString("EXECUTION_DATE").replace("\t","").replace("\n", "").replace("\r", ""));
 				
-				String responseXML = rs.getString("RESPONSE_XML").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"");
-				FileWriter pw = new FileWriter(getServletContext().getRealPath("/WEB-INF/tempResponse.xml"));
+				String responseXML = rs.getString("RESPONSE_XML").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("\t", "").replace("\n", "").replace("\r", "");
+				/*FileWriter pw = new FileWriter(getServletContext().getRealPath("/WEB-INF/tempResponse.xml"));
 			    pw.write(responseXML);
 			    pw.close();
 			    String responseSynopsis = "";
@@ -202,7 +212,8 @@ public class ReqRespList extends HttpServlet {
 	  	  			responseSynopsis += "<br>";
 	  	  		}
 			    }
-	  	  		myjson.put("response_synopsis", responseSynopsis);
+	  	  		myjson.put("response_synopsis", responseSynopsis);*/
+				myjson.put("responseXML", responseXML);
 				//myjson.put("response_XML", rs.getString("RESPONSE_XML").replace("\t","").replace("\n", "").replace("\r", ""));
 				listJSONobj.add(myjson);
 			}
@@ -222,7 +233,7 @@ public class ReqRespList extends HttpServlet {
 	        if (db_con_obj != null) {
 	        	db_con_obj.close();
 	        }
-		} catch (SQLException | JAXBException e) {
+		} catch (SQLException e) {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
