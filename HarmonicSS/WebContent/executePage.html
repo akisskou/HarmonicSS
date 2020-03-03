@@ -123,7 +123,8 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
 													for(var n=0; n<criterionDetail.childNodes.length; n++) {
 														var finalDetail = criterionDetail.childNodes[n];
 														if (finalDetail.nodeType === 1){
-															data += finalDetail.firstChild.nodeValue + "<br>";
+															alert(criterionDetail.attributes.getNamedItem("criterionUsageStatus").value);
+															data += finalDetail.firstChild.nodeValue +" - "+ finalDetail.attributes.getNamedItem("criterionUsageStatus").value + "<br>";
 														}
 													}
 												}
