@@ -218,9 +218,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	        }
 	        String result = sb.toString();
 	        JSONArray jsonarray = new JSONArray(result);
-	        if(jsonarray.length()>0) myXML = jsonarray.getJSONObject(0).get("serviceConfig").toString();
-	        else all.put("errorMessage", "Nothing found for request ID: "+requestID+". Check if this request exists and try again.");
-	        
+	        /*if(jsonarray.length()>0) myXML = jsonarray.getJSONObject(0).get("serviceConfig").toString();
+	        else all.put("errorMessage", "Nothing found for request ID: "+requestID+". Check if this request exists and try again.");*/
+	        myXML = jsonarray.getJSONObject(0).get("serviceConfig").toString();
 	        
 	        
 	       /* System.out.println("*** BEGIN ***");
@@ -255,7 +255,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				resp = getXMLS2(requestID,username,password).toString().replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"");
 				if(!resp.equals("")) {
 				System.out.println("User "+username+" wants to execute request "+requestID);
-		    //System.out.println(resp);
+				System.out.println("Request xml:"+resp);
 		    
 		    /*FileWriter fw = new FileWriter(getServletContext().getRealPath("/WEB-INF/Request"+requestID+".xml"));
 		    fw.write(resp);
@@ -307,6 +307,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			
     		} catch (JSONException e) {
     			// TODO Auto-generated catch block
+    			all.put("errorMessage", "Nothing found for request ID: "+requestID+". Check if this request exists and try again.");
     			e.printStackTrace();
     		}
 		    return "";
@@ -358,62 +359,87 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				   query = "SELECT patient.UID " + 
 						   "FROM patient, demo_education_level_data, voc_education_level " + 
 						   "WHERE patient.ID=demo_education_level_data.PATIENT_ID " + 
-						   "AND demo_education_level_data.EDUCATION_LEVEL_ID=voc_education_level.ID " + 
-				   		   "AND " + Make_OR_of_CODES("voc_education_level.CODE", ((demographics_education) current_Criterion).education_level);
+						   "AND demo_education_level_data.EDUCATION_LEVEL_ID=voc_education_level.ID ";
+				   if(incl) query += "AND " + Make_OR_of_CODES("voc_education_level.CODE", ((demographics_education) current_Criterion).education_level);
+				   else query += "AND NOT(" + Make_OR_of_CODES("voc_education_level.CODE", ((demographics_education) current_Criterion).education_level)+")";
 			  } break;
 				    
 			  case "demographics_weight": {
 				  query = "SELECT patient.UID " + 
 						  "FROM patient, demo_weight_data, voc_bmi_class " + 
 				  		  "WHERE patient.ID=demo_weight_data.PATIENT_ID " + 
-				  		  "AND demo_weight_data.BMI_CLASS_ID=voc_bmi_class.ID " + 
-				  		  "AND " + Make_OR_of_CODES("voc_bmi_class.CODE", ((demographics_weight) current_Criterion).body_mass_index);
+				  		  "AND demo_weight_data.BMI_CLASS_ID=voc_bmi_class.ID ";
+				  if(incl) query += "AND " + Make_OR_of_CODES("voc_bmi_class.CODE", ((demographics_weight) current_Criterion).body_mass_index);
+				  else query += "AND NOT(" + Make_OR_of_CODES("voc_bmi_class.CODE", ((demographics_weight) current_Criterion).body_mass_index)+")";
 			  } break;
 			  
 			  case "demographics_occupation": {
 				  query = "SELECT patient.UID " + 
 						  "FROM patient, demo_occupation_data, voc_confirmation " + 
 						  "WHERE patient.ID=demo_occupation_data.PATIENT_ID " + 
-						  "AND demo_occupation_data.LOSS_OF_WORK_DUE_TO_PSS_ID = voc_confirmation.ID " + 
-				  		  "AND " + Make_OR_of_CODES("voc_confirmation.CODE", ((demographics_occupation) current_Criterion).loss_of_work_due_to_pss);
+						  "AND demo_occupation_data.LOSS_OF_WORK_DUE_TO_PSS_ID = voc_confirmation.ID ";
+				  if(incl) query += "AND " + Make_OR_of_CODES("voc_confirmation.CODE", ((demographics_occupation) current_Criterion).loss_of_work_due_to_pss);
+				  else query += "AND NOT(" + Make_OR_of_CODES("voc_confirmation.CODE", ((demographics_occupation) current_Criterion).loss_of_work_due_to_pss)+")";
 			  } break;
 				    
 			  case "demographics_pregnancy": { //Check if user provided the info of all the fields 
 				  demographics_pregnancy crit_demo_pregnancy_obj =  (demographics_pregnancy)current_Criterion;
-				  String tables = "patient, demo_pregnancy_data, voc_pregnancy_outcome";
-				  String where_clause = "patient.ID = demo_pregnancy_data.PATIENT_ID AND demo_pregnancy_data.OUTCOME_ID=voc_pregnancy_outcome.ID AND " + Make_OR_of_CODES("voc_pregnancy_outcome.CODE", crit_demo_pregnancy_obj.outcome_coded_value);
+				  String tables = "patient, demo_pregnancy_data";
+				  String where_clause = "patient.ID = demo_pregnancy_data.PATIENT_ID";
+				  String temp_where_clause = "";
+				  
+				  if(!crit_demo_pregnancy_obj.outcome_coded_value.isEmpty()) {
+					  tables += ", voc_pregnancy_outcome";
+					  where_clause += " AND demo_pregnancy_data.OUTCOME_ID=voc_pregnancy_outcome.ID";
+					  temp_where_clause += " AND (" + Make_OR_of_CODES("voc_pregnancy_outcome.CODE", crit_demo_pregnancy_obj.outcome_coded_value); 
+					  String codes[] = crit_demo_pregnancy_obj.getOutcome_coded_value().split(",");
+					  for(int k=0; k<codes.length; k++) {
+						  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
+						  String[] allNarrowTerms = narrowTerms.split(",");
+						  for(int c=1; c<allNarrowTerms.length; c++) {
+							  temp_where_clause += " OR " + Make_OR_of_CODES("voc_pregnancy_outcome.CODE", allNarrowTerms[c]);
+						  }
+					  }
+					  temp_where_clause += ")";
+				  }
 				  
 				  if(!(crit_demo_pregnancy_obj.conception_exact_year + crit_demo_pregnancy_obj.conception_exact_month + 
 				  	crit_demo_pregnancy_obj.conception_exact_day ).isEmpty()) {
 					  tables += ", dt_date as dt_date1";
-					  where_clause += Make_specific_date_query(incl, mode, "demo_pregnancy_data.CONCEPTION_DATE_ID","dt_date1",crit_demo_pregnancy_obj.getCONCEPTION_DATE_YEAR(),
+					  where_clause += " AND demo_pregnancy_data.CONCEPTION_DATE_ID = dt_date1.ID AND demo_pregnancy_data.CONCEPTION_DATE_ID IS NOT NULL";
+					  temp_where_clause += " AND " + Make_specific_date_query(incl, mode, "demo_pregnancy_data.CONCEPTION_DATE_ID","dt_date1",crit_demo_pregnancy_obj.getCONCEPTION_DATE_YEAR(),
 							  crit_demo_pregnancy_obj.getCONCEPTION_DATE_MONTH(),crit_demo_pregnancy_obj.getCONCEPTION_DATE_DAY());					  		
 				  
 				  } else if(!(crit_demo_pregnancy_obj.getCONCEPTION_period_begin_year() + crit_demo_pregnancy_obj.getCONCEPTION_period_begin_month() + crit_demo_pregnancy_obj.getCONCEPTION_period_begin_day()).isEmpty()) {
 					  tables += ", dt_date as dt_date1";
-					  where_clause += Make_begin_end_date_query (incl, mode,"demo_pregnancy_data.CONCEPTION_DATE_ID", "dt_date1",crit_demo_pregnancy_obj.getCONCEPTION_period_begin_year(), crit_demo_pregnancy_obj.getCONCEPTION_period_begin_month(), crit_demo_pregnancy_obj.getCONCEPTION_period_begin_day(), crit_demo_pregnancy_obj.getCONCEPTION_period_end_year(), crit_demo_pregnancy_obj.getCONCEPTION_period_end_month(),
+					  where_clause += " AND demo_pregnancy_data.CONCEPTION_DATE_ID = dt_date1.ID AND demo_pregnancy_data.CONCEPTION_DATE_ID IS NOT NULL";
+					  temp_where_clause += " AND " + Make_begin_end_date_query (incl, mode,"demo_pregnancy_data.CONCEPTION_DATE_ID", "dt_date1",crit_demo_pregnancy_obj.getCONCEPTION_period_begin_year(), crit_demo_pregnancy_obj.getCONCEPTION_period_begin_month(), crit_demo_pregnancy_obj.getCONCEPTION_period_begin_day(), crit_demo_pregnancy_obj.getCONCEPTION_period_end_year(), crit_demo_pregnancy_obj.getCONCEPTION_period_end_month(),
 							  crit_demo_pregnancy_obj.getCONCEPTION_period_end_day());			  
 				  
 				  } else if(!(crit_demo_pregnancy_obj.getCONCEPTION_until_date_year() + crit_demo_pregnancy_obj.getCONCEPTION_until_date_month() + crit_demo_pregnancy_obj.getCONCEPTION_until_date_day()).isEmpty()) {
 					  tables += ", dt_date as dt_date1";
-					  where_clause += Make_begin_end_date_query (incl, mode,"demo_pregnancy_data.CONCEPTION_DATE_ID","dt_date1", "1800", "1", "1", crit_demo_pregnancy_obj.getCONCEPTION_until_date_year(), 
+					  where_clause += " AND demo_pregnancy_data.CONCEPTION_DATE_ID = dt_date1.ID AND demo_pregnancy_data.CONCEPTION_DATE_ID IS NOT NULL";
+					  temp_where_clause += " AND " + Make_begin_end_date_query (incl, mode,"demo_pregnancy_data.CONCEPTION_DATE_ID","dt_date1", "1800", "1", "1", crit_demo_pregnancy_obj.getCONCEPTION_until_date_year(), 
 							  crit_demo_pregnancy_obj.getCONCEPTION_until_date_month(), crit_demo_pregnancy_obj.getCONCEPTION_until_date_day()); 
 				  }
 				  
 				  if(!(crit_demo_pregnancy_obj.outcome_exact_year + crit_demo_pregnancy_obj.outcome_exact_month + 
 				  	crit_demo_pregnancy_obj.outcome_exact_day).isEmpty()) {
 					  tables += ", dt_date as dt_date2";
-					  where_clause += Make_specific_date_query(incl, mode, "demo_pregnancy_data.OUTCOME_DATE_ID","dt_date2", crit_demo_pregnancy_obj.getOUTCOME_DATE_YEAR(),
+					  where_clause += " AND demo_pregnancy_data.CONCEPTION_DATE_ID = dt_date2.ID AND demo_pregnancy_data.CONCEPTION_DATE_ID IS NOT NULL";
+					  temp_where_clause += " AND " + Make_specific_date_query(incl, mode, "demo_pregnancy_data.OUTCOME_DATE_ID","dt_date2", crit_demo_pregnancy_obj.getOUTCOME_DATE_YEAR(),
 							  crit_demo_pregnancy_obj.getOUTCOME_DATE_MONTH(),crit_demo_pregnancy_obj.getOUTCOME_DATE_DAY());	
 					 
 				  	} else if(!(crit_demo_pregnancy_obj.getOUTCOME_period_begin_year() + crit_demo_pregnancy_obj.getOUTCOME_period_begin_month() + crit_demo_pregnancy_obj.getOUTCOME_period_begin_day()).isEmpty()) {
 				  		tables += ", dt_date as dt_date2"; 
-				  		where_clause += Make_begin_end_date_query (incl, mode,"demo_pregnancy_data.OUTCOME_DATE_ID", "dt_date2", crit_demo_pregnancy_obj.getOUTCOME_period_begin_year(), crit_demo_pregnancy_obj.getOUTCOME_period_begin_month(), crit_demo_pregnancy_obj.getOUTCOME_period_begin_day(), crit_demo_pregnancy_obj.getOUTCOME_period_end_year(), crit_demo_pregnancy_obj.getOUTCOME_period_end_month(),
+				  		where_clause += " AND demo_pregnancy_data.CONCEPTION_DATE_ID = dt_date2.ID AND demo_pregnancy_data.CONCEPTION_DATE_ID IS NOT NULL";
+				  		temp_where_clause += " AND " + Make_begin_end_date_query (incl, mode,"demo_pregnancy_data.OUTCOME_DATE_ID", "dt_date2", crit_demo_pregnancy_obj.getOUTCOME_period_begin_year(), crit_demo_pregnancy_obj.getOUTCOME_period_begin_month(), crit_demo_pregnancy_obj.getOUTCOME_period_begin_day(), crit_demo_pregnancy_obj.getOUTCOME_period_end_year(), crit_demo_pregnancy_obj.getOUTCOME_period_end_month(),
 								  crit_demo_pregnancy_obj.getOUTCOME_period_end_day()); 			  
 					
 				  	} else if(!(crit_demo_pregnancy_obj.getOUTCOME_until_date_year() + crit_demo_pregnancy_obj.getOUTCOME_until_date_month() + crit_demo_pregnancy_obj.getOUTCOME_until_date_day()).isEmpty()) {
-				  		tables += ", dt_date as dt_date2";  
-				  		where_clause += Make_begin_end_date_query (incl, mode,"demo_pregnancy_data.OUTCOME_DATE_ID", "dt_date2", "1800", "1", "1", crit_demo_pregnancy_obj.getOUTCOME_until_date_year(), 
+				  		tables += ", dt_date as dt_date2"; 
+				  		where_clause += " AND demo_pregnancy_data.CONCEPTION_DATE_ID = dt_date2.ID AND demo_pregnancy_data.CONCEPTION_DATE_ID IS NOT NULL";
+				  		temp_where_clause += " AND " + Make_begin_end_date_query (incl, mode,"demo_pregnancy_data.OUTCOME_DATE_ID", "dt_date2", "1800", "1", "1", crit_demo_pregnancy_obj.getOUTCOME_until_date_year(), 
 								  crit_demo_pregnancy_obj.getOUTCOME_until_date_month(), crit_demo_pregnancy_obj.getOUTCOME_until_date_day()); 
 					}
 					  
@@ -433,36 +459,94 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  				 "AND conf_2.CODE='"+crit_demo_pregnancy_obj.getStatement() + "'";
 				  	}
 				  	
-				  	if(incl) where_clause += " AND demo_pregnancy_data.STMT_ID=1";
-					else where_clause += " AND demo_pregnancy_data.STMT_ID=2";
+				  	temp_where_clause += " AND demo_pregnancy_data.STMT_ID=1";
 				  	
-				  	query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  	/*if(incl) where_clause += " AND demo_pregnancy_data.STMT_ID=1";
+					else where_clause += " AND demo_pregnancy_data.STMT_ID=2";*/
+				  	
+				  	//query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  	//if(incl) 
+				  	query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + temp_where_clause;
+					//else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + " AND NOT(" + temp_where_clause + ")";	
+				  	//try {
+						  if(!incl) {
+							  query = "SELECT DISTINCT UID FROM patient WHERE UID NOT IN (" +query+ ")";
+							  /*System.out.println("We are ready to execute the assistance query: "+assistanceQuery);
+							  String[] patientsToExclude = DBServiceCRUD.getDataFromDB(assistanceQuery).trim().split(" ");
+							  String assistance_where_clause = "NOT(";
+							  for(int j=0; j<patientsToExclude.length; j++) {
+								  if(j==0) {
+									  assistance_where_clause += "patient.UID = "+patientsToExclude[j];
+								  }
+								  else assistance_where_clause += " OR patient.UID = "+patientsToExclude[j];
+							  }
+							  assistance_where_clause += ")";
+							  where_clause = assistance_where_clause + " AND " + where_clause;*/
+						  }
+						  /*else {
+							  where_clause += temp_where_clause;
+						  }
+					  } catch (SQLException e) {
+							// TODO Auto-generated catch block
+							e.printStackTrace();
+					  }*/
 				  	
 			  } break;
 			  
 			  case "lifestyle_smoking": { //Check if user provided the info of all the fields 
 				  lifestyle_smoking crit_lifestyle_smoking_obj =  (lifestyle_smoking)current_Criterion;
 				  
-				  String tables = "patient, lifestyle_smoking, voc_smoking_status";
-				  String where_clause = "patient.ID = lifestyle_smoking.PATIENT_ID AND lifestyle_smoking.STATUS_ID = voc_smoking_status.ID AND " + Make_OR_of_CODES("voc_smoking_status.CODE", crit_lifestyle_smoking_obj.getVoc_smoking_status_CODE());  			  
-
+				  String tables = "patient, lifestyle_smoking";
+				  String where_clause = "patient.ID = lifestyle_smoking.PATIENT_ID"; 
+				  
+				 if(!crit_lifestyle_smoking_obj.getVoc_smoking_status_CODE().isEmpty()) {
+					 tables += ", voc_smoking_status";
+					 where_clause += " AND lifestyle_smoking.STATUS_ID = voc_smoking_status.ID AND "+Make_OR_of_CODES("voc_smoking_status.CODE", crit_lifestyle_smoking_obj.getVoc_smoking_status_CODE());
+				 }
+				  
+				  /*try {
+					  if(!incl) {
+						  String assistanceQuery = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + temp_where_clause;
+						  System.out.println("We are ready to execute the assistance query: "+assistanceQuery);
+						  String[] patientsToExclude = DBServiceCRUD.getDataFromDB(assistanceQuery).trim().split(" ");
+						  String assistance_where_clause = "NOT(";
+						  for(int j=0; j<patientsToExclude.length; j++) {
+							  if(j==0) {
+								  assistance_where_clause += "patient.UID = "+patientsToExclude[j];
+							  }
+							  else assistance_where_clause += " OR patient.UID = "+patientsToExclude[j];
+						  }
+						  assistance_where_clause += ")";
+						  where_clause = assistance_where_clause + " AND " + where_clause;
+					  }
+					  else {
+						  where_clause += temp_where_clause;
+					  }
+				  } catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+				  }*/
+				  
 				  if(!(crit_lifestyle_smoking_obj.getSmoking_exact_date_year()).isEmpty()) {
 					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
-					  where_clause += Make_begin_end_period_query (mode,"lifestyle_smoking.PERIOD_ID", "dt_date1", "dt_date2", crit_lifestyle_smoking_obj.getSmoking_exact_date_year(), 
+					  where_clause += " AND lifestyle_smoking.PERIOD_ID = dt_date1.ID AND lifestyle_smoking.PERIOD_ID IS NOT NULL";
+					  where_clause += " AND " + Make_begin_end_period_query (mode,"lifestyle_smoking.PERIOD_ID", "dt_date1", "dt_date2", crit_lifestyle_smoking_obj.getSmoking_exact_date_year(), 
 							  crit_lifestyle_smoking_obj.getSmoking_exact_date_month(), crit_lifestyle_smoking_obj.getSmoking_exact_date_day(),
 							  crit_lifestyle_smoking_obj.getSmoking_exact_date_year(), crit_lifestyle_smoking_obj.getSmoking_exact_date_month(),
 							  crit_lifestyle_smoking_obj.getSmoking_exact_date_day()); 
 					  	 							  
 					} else if(!(crit_lifestyle_smoking_obj.getSmoking_period_end_year()).isEmpty()) {
 						tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
-						where_clause += Make_begin_end_period_query (mode,"lifestyle_smoking.PERIOD_ID", "dt_date1", "dt_date2", crit_lifestyle_smoking_obj.getSmoking_period_begin_year(), 
+						where_clause += " AND lifestyle_smoking.PERIOD_ID = dt_date1.ID AND lifestyle_smoking.PERIOD_ID IS NOT NULL";
+						where_clause += " AND " + Make_begin_end_period_query (mode,"lifestyle_smoking.PERIOD_ID", "dt_date1", "dt_date2", crit_lifestyle_smoking_obj.getSmoking_period_begin_year(), 
 								  crit_lifestyle_smoking_obj.getSmoking_period_begin_month(), crit_lifestyle_smoking_obj.getSmoking_period_begin_day(),
 								  crit_lifestyle_smoking_obj.getSmoking_period_end_year(), crit_lifestyle_smoking_obj.getSmokimg_period_end_month(),
 								  crit_lifestyle_smoking_obj.getSmoking_period_end_day()); 
 																
 					} else if(!(crit_lifestyle_smoking_obj.getSmoking_until_date_year()).isEmpty()) {
 						tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
-						where_clause += Make_begin_end_period_query (mode,"lifestyle_smoking.PERIOD_ID", "dt_date1", "dt_date2", "1800", 
+						where_clause += " AND lifestyle_smoking.PERIOD_ID = dt_date1.ID AND lifestyle_smoking.PERIOD_ID IS NOT NULL";
+						where_clause += " AND " + Make_begin_end_period_query (mode,"lifestyle_smoking.PERIOD_ID", "dt_date1", "dt_date2", "1800", 
 								  "1", "1",crit_lifestyle_smoking_obj.getSmoking_until_date_year(), crit_lifestyle_smoking_obj.getSmoking_until_date_month(),
 								  crit_lifestyle_smoking_obj.getSmoking_until_date_day());
 						 								
@@ -470,13 +554,15 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				   
 				  if(!crit_lifestyle_smoking_obj.getAmount_exact_value().isEmpty()){
 					  	tables += ", dt_amount, voc_unit";
-					  where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND dt_amount.value='" + crit_lifestyle_smoking_obj.getAmount_exact_value() + "' AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE() + "' ";
+					  where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND dt_amount.UNIT_ID=voc_unit.ID";
+					  where_clause += " AND dt_amount.value='" + crit_lifestyle_smoking_obj.getAmount_exact_value() + "' AND voc_unit.CODE ='" + crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE() + "' ";
 					  
 				  }
 				  
 				  if(!crit_lifestyle_smoking_obj.getAmount_range_min_value().isEmpty()){
 					  	tables += ", dt_amount, voc_unit";
-					  where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND dt_amount.value>=" + crit_lifestyle_smoking_obj.getAmount_range_min_value() + " AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE() + "'";
+					  	where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND dt_amount.UNIT_ID=voc_unit.ID";
+					  	where_clause += " AND dt_amount.value>=" + crit_lifestyle_smoking_obj.getAmount_range_min_value() + " AND voc_unit.CODE ='" + crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE() + "'";
 					  
 				  }
 				  
@@ -486,11 +572,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					 
 				  }
 				  
-				  if(incl) where_clause += " AND lifestyle_smoking.STMT_ID=1";
-				  else where_clause += " AND lifestyle_smoking.STMT_ID=2";
+				  where_clause += " AND lifestyle_smoking.STMT_ID=1";
+				  /*if(incl) where_clause += " AND lifestyle_smoking.STMT_ID=1";
+				  else where_clause += " AND lifestyle_smoking.STMT_ID=2";*/
 					  
-				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;		
-				  
+				  /*if(incl) query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + " AND " + temp_where_clause;
+				  else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + " AND NOT(" + temp_where_clause + ")";*/	
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  if(!incl) query = "SELECT DISTINCT UID FROM patient WHERE UID NOT IN (" +query+ ")";
 				  //TODO 	will voc_unit.CODE take one value or more than one I also think that voc_direction_CODE() will take one value?
 				  
 				  //if(!crit_lifestyle_smoking_obj.getDt_period_of_time_voc_confirmation_CODE().isEmpty()) query += "AND dt_period_of_time.EXACT_ID = voc_confirmation.ID AND voc_confirmation.CODE='"+crit_lifestyle_smoking_obj.getDt_period_of_time_voc_confirmation_CODE()+"' "; 
@@ -501,17 +590,48 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			  case "condition_symptom": { //Check if user provided the info of all the fields 
 				  condition_symptom crit_cond_symptom_obj =  (condition_symptom)current_Criterion;
 				  
-				  String tables = "patient, cond_symptom, voc_symptom_sign";
-				  String where_clause = "patient.ID = cond_symptom.PATIENT_ID AND cond_symptom.CONDITION_ID = voc_symptom_sign.ID AND (" + Make_OR_of_CODES("voc_symptom_sign.CODE", crit_cond_symptom_obj.getVoc_symptom_sign_CODE());
-				  String codes[] = crit_cond_symptom_obj.getVoc_symptom_sign_CODE().split(",");
-				  for(int k=0; k<codes.length; k++) {
-					  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
-					  String[] allNarrowTerms = narrowTerms.split(",");
-					  for(int c=1; c<allNarrowTerms.length; c++) {
-						  where_clause += " OR " + Make_OR_of_CODES("voc_symptom_sign.CODE", allNarrowTerms[c]);
+				  String tables = "patient, cond_symptom";
+				  String where_clause = "patient.ID = cond_symptom.PATIENT_ID";
+				  
+				  if(!crit_cond_symptom_obj.getVoc_symptom_sign_CODE().isEmpty()) {
+					  tables += ", voc_symptom_sign";
+					  where_clause += " AND cond_symptom.CONDITION_ID = voc_symptom_sign.ID";
+					  where_clause += " AND (" + Make_OR_of_CODES("voc_symptom_sign.CODE", crit_cond_symptom_obj.getVoc_symptom_sign_CODE());
+					  String codes[] = crit_cond_symptom_obj.getVoc_symptom_sign_CODE().split(",");
+					  for(int k=0; k<codes.length; k++) {
+						  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
+						  String[] allNarrowTerms = narrowTerms.split(",");
+						  for(int c=1; c<allNarrowTerms.length; c++) {
+							  where_clause += " OR " + Make_OR_of_CODES("voc_symptom_sign.CODE", allNarrowTerms[c]);
+						  }
 					  }
+					  where_clause += ")";
 				  }
-					where_clause += ")";
+				  
+				  
+				  
+				  /*try {
+					  if(!incl) {
+						  String assistanceQuery = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + temp_where_clause;
+						  System.out.println("We are ready to execute the assistance query: "+assistanceQuery);
+						  String[] patientsToExclude = DBServiceCRUD.getDataFromDB(assistanceQuery).trim().split(" ");
+						  String assistance_where_clause = "NOT(";
+						  for(int j=0; j<patientsToExclude.length; j++) {
+							  if(j==0) {
+								  assistance_where_clause += "patient.UID = "+patientsToExclude[j];
+							  }
+							  else assistance_where_clause += " OR patient.UID = "+patientsToExclude[j];
+						  }
+						  assistance_where_clause += ")";
+						  where_clause = assistance_where_clause + " AND " + where_clause;
+					  }
+					  else {
+						  where_clause += temp_where_clause;
+					  }
+				  } catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+				  }*/
 				  /*query = "SELECT DISTINCT patient.UID " + 
 						  "FROM patient, cond_symptom, voc_symptom_sign, dt_date, voc_direction, voc_confirmation " + 
 						  "WHERE patient.ID = cond_symptom.PATIENT_ID " + 
@@ -520,17 +640,22 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  
 				  if(!(crit_cond_symptom_obj.getObserve_exact_date_YEAR()).isEmpty()) {
 					  tables += ", dt_date";
-					  where_clause += Make_specific_date_query(incl, mode, "cond_symptom.OBSERVE_DATE_ID","dt_date",crit_cond_symptom_obj.getObserve_exact_date_YEAR(), //check cond_symptom.OBSERVE_DATE_ID
-						crit_cond_symptom_obj.getObserve_exact_date_MONTH(), crit_cond_symptom_obj.getObserve_exact_date_DAY());
+					  where_clause +=  " AND cond_symptom.OBSERVE_DATE_ID = dt_date.ID AND cond_symptom.OBSERVE_DATE_ID IS NOT NULL";		 
+					  where_clause += " AND " + Make_specific_date_query(incl, mode, "cond_symptom.OBSERVE_DATE_ID","dt_date",crit_cond_symptom_obj.getObserve_exact_date_YEAR(),
+							  crit_cond_symptom_obj.getObserve_exact_date_MONTH(),crit_cond_symptom_obj.getObserve_exact_date_DAY());
+					  /*where_clause += Make_specific_date_query(incl, mode, "cond_symptom.OBSERVE_DATE_ID","dt_date",crit_cond_symptom_obj.getObserve_exact_date_YEAR(), //check cond_symptom.OBSERVE_DATE_ID
+						crit_cond_symptom_obj.getObserve_exact_date_MONTH(), crit_cond_symptom_obj.getObserve_exact_date_DAY());*/
 						 
 				  }else if(!(crit_cond_symptom_obj.getObserve_period_end_year()  ).isEmpty()) {
 					  tables += ", dt_date";
-					  where_clause += Make_begin_end_date_query (incl, mode,"cond_symptom.OBSERVE_DATE_ID", "dt_date",crit_cond_symptom_obj.getObserve_period_begin_year(), crit_cond_symptom_obj.getObserve_period_begin_month(), crit_cond_symptom_obj.getObserve_period_begin_day(), crit_cond_symptom_obj.getObserve_period_end_year() ,crit_cond_symptom_obj.getObserve_period_end_month(),
+					  where_clause +=  " AND cond_symptom.OBSERVE_DATE_ID = dt_date.ID AND cond_symptom.OBSERVE_DATE_ID IS NOT NULL";
+					  where_clause += " AND " + Make_begin_end_date_query (incl, mode,"cond_symptom.OBSERVE_DATE_ID", "dt_date",crit_cond_symptom_obj.getObserve_period_begin_year(), crit_cond_symptom_obj.getObserve_period_begin_month(), crit_cond_symptom_obj.getObserve_period_begin_day(), crit_cond_symptom_obj.getObserve_period_end_year() ,crit_cond_symptom_obj.getObserve_period_end_month(),
 									  crit_cond_symptom_obj.getObserve_period_end_day()); 
 							  
 				  }else if(!(crit_cond_symptom_obj.getObserve_until_date_year()).isEmpty()) {
 					  tables += ", dt_date";
-					  where_clause += Make_begin_end_date_query (incl, mode,"cond_symptom.OBSERVE_DATE_ID","dt_date", "1800", "1", "1",crit_cond_symptom_obj.getObserve_until_date_year(), 
+					  where_clause +=  " AND cond_symptom.OBSERVE_DATE_ID = dt_date.ID AND cond_symptom.OBSERVE_DATE_ID IS NOT NULL";
+					  where_clause += " AND " + Make_begin_end_date_query (incl, mode,"cond_symptom.OBSERVE_DATE_ID","dt_date", "1800", "1", "1",crit_cond_symptom_obj.getObserve_until_date_year(), 
 									  crit_cond_symptom_obj.getObserve_until_date_month(), crit_cond_symptom_obj.getObserve_until_date_day()); 
 				  }
 				  
@@ -539,32 +664,64 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  where_clause += "AND cond_symptom.STMT_ID=voc_confirmation.ID " +
 				  				 "AND voc_confirmation.CODE='"+crit_cond_symptom_obj.getStatement() + "'";
 				  }
-				  
-				  if(incl) where_clause += " AND cond_symptom.STMT_ID=1";
-				  else where_clause += " AND cond_symptom.STMT_ID=2";
-				  
+				  where_clause += " AND cond_symptom.STMT_ID=1";
+				  /*if(incl) where_clause += " AND cond_symptom.STMT_ID=1";
+				  else where_clause += " AND cond_symptom.STMT_ID=2";*/
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  if(!incl) query = "SELECT DISTINCT UID FROM patient WHERE UID NOT IN (" +query+ ")";
+				  /*if(incl) query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + " AND " + temp_where_clause;
+				  else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + " AND NOT(" + temp_where_clause + ")";*/
+				  
 			  } break;
 			  
 			  case "condition_diagnosis": { //Check if user provided the info of all the fields 
 				  condition_diagnosis condition_diagnosis_obj =  (condition_diagnosis)current_Criterion;
 				  
 				  String tables = "patient, cond_diagnosis, voc_medical_condition";
-				  String where_clause = "patient.ID = cond_diagnosis.PATIENT_ID AND cond_diagnosis.CONDITION_ID = voc_medical_condition.ID AND (" + Make_OR_of_CODES("voc_medical_condition.CODE", condition_diagnosis_obj.getCondition());
+				  String where_clause = "patient.ID = cond_diagnosis.PATIENT_ID AND cond_diagnosis.CONDITION_ID = voc_medical_condition.ID"; 
+				  //String temp_where_clause = " AND (" + Make_OR_of_CODES("voc_medical_condition.CODE", condition_diagnosis_obj.getCondition());
+				  String temp_where_clause = " AND (" + Make_OR_of_CODES("voc_medical_condition.CODE", condition_diagnosis_obj.getCondition());
+
 				  String codes[] = condition_diagnosis_obj.getCondition().split(",");
 				  for(int k=0; k<codes.length; k++) {
 					  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
 					  String[] allNarrowTerms = narrowTerms.split(",");
 					  for(int c=1; c<allNarrowTerms.length; c++) {
-						  where_clause += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
+						  temp_where_clause += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
 					  }
 				  }
-				  where_clause += ")";
+				  temp_where_clause += ")";
+				  temp_where_clause += " AND cond_diagnosis.STMT_ID=1";
+				  
+				  try {
+					  if(!incl) {
+						  String assistanceQuery = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + temp_where_clause;
+						  System.out.println("We are ready to execute the assistance query: "+assistanceQuery);
+						  String[] patientsToExclude = DBServiceCRUD.getDataFromDB(assistanceQuery).trim().split(" ");
+						  String assistance_where_clause = "NOT(";
+						  for(int j=0; j<patientsToExclude.length; j++) {
+							  if(j==0) {
+								  assistance_where_clause += "patient.UID = "+patientsToExclude[j];
+							  }
+							  else assistance_where_clause += " OR patient.UID = "+patientsToExclude[j];
+						  }
+						  assistance_where_clause += ")";
+						  where_clause = assistance_where_clause + " AND " + where_clause;
+					  }
+					  else {
+						  where_clause += temp_where_clause;
+					  }
+				  } catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+				  }
 				  
 				  if(!condition_diagnosis_obj.getStage().isEmpty()) {  // [OUTCOME_ASSESSMENT]
 					  tables += ", voc_lymphoma_stage";
-					  where_clause += " AND cond_diagnosis.STAGE_ID = voc_lymphoma_stage.ID AND " + Make_OR_of_CODES("voc_lymphoma_stage.CODE", condition_diagnosis_obj.getStage());
-					  
+					  //where_clause += " AND cond_diagnosis.STAGE_ID = voc_lymphoma_stage.ID AND " + Make_OR_of_CODES("voc_lymphoma_stage.CODE", condition_diagnosis_obj.getStage());
+					  where_clause += " AND cond_diagnosis.STAGE_ID = voc_lymphoma_stage.ID";
+					  temp_where_clause += " AND " + Make_OR_of_CODES("voc_lymphoma_stage.CODE", condition_diagnosis_obj.getStage());
+
 					  	
 				  }
 				  
@@ -576,17 +733,19 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  
 				  if(!(condition_diagnosis_obj.getDate_exact_year()).isEmpty()) {
 					  tables += ", dt_date";
-					  where_clause += Make_specific_date_query(incl, mode, "cond_diagnosis.DIAGNOSIS_DATE_ID","dt_date",condition_diagnosis_obj.getDate_exact_year(),
+					  where_clause += " AND cond_diagnosis.DIAGNOSIS_DATE_ID = dt_date.ID AND cond_diagnosis.DIAGNOSIS_DATE_ID IS NOT NULL";		 
+					  temp_where_clause += " AND " + Make_specific_date_query(incl, mode, "cond_diagnosis.DIAGNOSIS_DATE_ID","dt_date",condition_diagnosis_obj.getDate_exact_year(),
 							  condition_diagnosis_obj.getDate_exact_month(),condition_diagnosis_obj.getDate_exact_day());
-					 			  		
 				  } else if(!(condition_diagnosis_obj.getDate_interval_start_year()).isEmpty()) {
 					 tables += ", dt_date";
-					  where_clause += Make_begin_end_date_query (incl, mode,"cond_diagnosis.DIAGNOSIS_DATE_ID", "dt_date",condition_diagnosis_obj.getDate_interval_start_year(), condition_diagnosis_obj.getDate_interval_start_month(), condition_diagnosis_obj.getDate_interval_start_day(), condition_diagnosis_obj.getDate_interval_end_year(), condition_diagnosis_obj.getDate_interval_end_month(),
-							  condition_diagnosis_obj.getDate_interval_end_day());  
+					 where_clause += " AND cond_diagnosis.DIAGNOSIS_DATE_ID = dt_date.ID AND cond_diagnosis.DIAGNOSIS_DATE_ID IS NOT NULL";
+					 temp_where_clause += " AND " + Make_begin_end_date_query (incl, mode,"cond_diagnosis.DIAGNOSIS_DATE_ID", "dt_date",condition_diagnosis_obj.getDate_interval_start_year(), condition_diagnosis_obj.getDate_interval_start_month(), condition_diagnosis_obj.getDate_interval_start_day(), condition_diagnosis_obj.getDate_interval_end_year(), condition_diagnosis_obj.getDate_interval_end_month(),
+							  condition_diagnosis_obj.getDate_interval_end_day());
 				  } else if(!(condition_diagnosis_obj.getDate_until_year() ).isEmpty()) {
 					  tables += ", dt_date";
-					  where_clause += Make_begin_end_date_query (incl, mode,"cond_diagnosis.DIAGNOSIS_DATE_ID","dt_date", "1800", "1", "1", condition_diagnosis_obj.getDate_until_year(), 
-							  condition_diagnosis_obj.getDate_until_month(), condition_diagnosis_obj.getDate_until_day()); 
+					  where_clause += " AND cond_diagnosis.DIAGNOSIS_DATE_ID = dt_date.ID AND cond_diagnosis.DIAGNOSIS_DATE_ID IS NOT NULL";
+					  temp_where_clause += " AND " + Make_begin_end_date_query (incl, mode,"cond_diagnosis.DIAGNOSIS_DATE_ID","dt_date", "1800", "1", "1", condition_diagnosis_obj.getDate_until_year(), 
+							  condition_diagnosis_obj.getDate_until_month(), condition_diagnosis_obj.getDate_until_day());
 				  }
 				  
 				  if(!condition_diagnosis_obj.getStatement().isEmpty()){ 
@@ -595,9 +754,10 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  		query += " AND cond_diagnosis.STMT_ID=voc_confirmation.ID " +
 				  				 "AND voc_confirmation.CODE='"+condition_diagnosis_obj.getStatement() + "'";
 				  }
-				  if(incl) where_clause += " AND cond_diagnosis.STMT_ID=1";
-				  else where_clause += " AND cond_diagnosis.STMT_ID=2";
-				  
+				  /*if(incl) where_clause += " AND cond_diagnosis.STMT_ID=1";
+				  else where_clause += " AND cond_diagnosis.STMT_ID=2";*/
+				  /*if(incl) query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + " AND " + temp_where_clause;
+				  else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + " AND NOT(" + temp_where_clause + ")";*/
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 			  } break;
 			  
@@ -684,14 +844,41 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  else where_clause += " AND interv_medication.STMT_ID=2";*/
 				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  //if(incl) query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + " AND " + temp_where_clause;
+				  //else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + " AND NOT(" + temp_where_clause + ")";
 					
 			  } break;
 			  
 			  case "intervention_chemotherapy": { //Check if user provided the info of all the fields 
 				  intervention_chemotherapy  crit_interv_chemotherapy_obj =  (intervention_chemotherapy)current_Criterion;
 				  String tables = "patient, interv_chemotherapy, voc_confirmation AS conf_1";
-				  String where_clause = "patient.ID = interv_chemotherapy.PATIENT_ID AND interv_chemotherapy.DUE_TO_PSS_ID = conf_1.ID AND " + Make_OR_of_CODES("conf_1.CODE", crit_interv_chemotherapy_obj.getReason());
+				  String where_clause = "patient.ID = interv_chemotherapy.PATIENT_ID AND interv_chemotherapy.DUE_TO_PSS_ID = conf_1.ID";
 				 
+				  String temp_where_clause = " AND "+Make_OR_of_CODES("conf_1.CODE", crit_interv_chemotherapy_obj.getReason());
+				  temp_where_clause += " AND interv_chemotherapy.STMT_ID=1";
+				  
+				  try {
+					  if(!incl) {
+						  String assistanceQuery = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + temp_where_clause;
+						  System.out.println("We are ready to execute the assistance query: "+assistanceQuery);
+						  String[] patientsToExclude = DBServiceCRUD.getDataFromDB(assistanceQuery).trim().split(" ");
+						  String assistance_where_clause = "NOT(";
+						  for(int j=0; j<patientsToExclude.length; j++) {
+							  if(j==0) {
+								  assistance_where_clause += "patient.UID = "+patientsToExclude[j];
+							  }
+							  else assistance_where_clause += " OR patient.UID = "+patientsToExclude[j];
+						  }
+						  assistance_where_clause += ")";
+						  where_clause = assistance_where_clause + " AND " + where_clause;
+					  }
+					  else {
+						  where_clause += temp_where_clause;
+					  }
+				  } catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+				  }
 				  
 				  if(!(crit_interv_chemotherapy_obj.getChem_exact_date_year()).isEmpty()) {	
 					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
@@ -717,9 +904,10 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  where_clause += " AND interv_chemotherapy.STMT_ID=conf_2.ID AND conf_2.CODE='"+crit_interv_chemotherapy_obj.getStatement() + "'";
 				  }
 				  
-				  if(incl) where_clause += " AND interv_chemotherapy.STMT_ID=1";
-				  else where_clause += " AND interv_chemotherapy.STMT_ID=2";
-				  
+				  /*if(incl) where_clause += " AND interv_chemotherapy.STMT_ID=1";
+				  else where_clause += " AND interv_chemotherapy.STMT_ID=2";*/
+				  //if(incl) query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + " AND " + temp_where_clause;
+				  //else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + " AND NOT(" + temp_where_clause + ")";
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
 					//System.out.println("We executed: "+crit_interv_chemotherapy_obj.criterion_name+"\nThe Query is: "+query); 
@@ -729,22 +917,52 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  intervention_surgery  crit_interv_surgery_obj =  (intervention_surgery)current_Criterion;
 				  
 				  String tables = "patient, interv_Surgery, voc_confirmation AS conf_1";
-				  String where_clause = "patient.ID = interv_Surgery.PATIENT_ID AND interv_Surgery.DUE_TO_PSS_ID = conf_1.ID AND conf_1.CODE= '"+crit_interv_surgery_obj.getReason()+"'";
+				  String where_clause = "patient.ID = interv_Surgery.PATIENT_ID AND interv_Surgery.DUE_TO_PSS_ID = conf_1.ID";
+				  
+				  String temp_where_clause = " AND "+Make_OR_of_CODES("conf_1.CODE", crit_interv_surgery_obj.getReason());
+				  temp_where_clause += " AND interv_surgery.STMT_ID=1";
+				  
+				  try {
+					  if(!incl) {
+						  String assistanceQuery = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + temp_where_clause;
+						  System.out.println("We are ready to execute the assistance query: "+assistanceQuery);
+						  String[] patientsToExclude = DBServiceCRUD.getDataFromDB(assistanceQuery).trim().split(" ");
+						  String assistance_where_clause = "NOT(";
+						  for(int j=0; j<patientsToExclude.length; j++) {
+							  if(j==0) {
+								  assistance_where_clause += "patient.UID = "+patientsToExclude[j];
+							  }
+							  else assistance_where_clause += " OR patient.UID = "+patientsToExclude[j];
+						  }
+						  assistance_where_clause += ")";
+						  where_clause = assistance_where_clause + " AND " + where_clause;
+					  }
+					  else {
+						  where_clause += temp_where_clause;
+					  }
+				  } catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+				  }
+				  //AND conf_1.CODE= '"+crit_interv_surgery_obj.getReason()+"'";
 				  
 				  if(!(crit_interv_surgery_obj.getSurgery_exact_date_year()).isEmpty()) {
 					  tables += ", dt_date";
-					  where_clause += Make_specific_date_query(incl, mode, "interv_surgery.SURGERY_DATE_ID","dt_date",crit_interv_surgery_obj.getSurgery_exact_date_year(), //check cond_symptom.OBSERVE_DATE_ID
+					  where_clause += " AND interv_surgery.SURGERY_DATE_ID = dt_date.ID AND interv_surgery.SURGERY_DATE_ID IS NOT NULL";
+					  where_clause += " AND " +Make_specific_date_query(incl, mode, "interv_surgery.SURGERY_DATE_ID","dt_date",crit_interv_surgery_obj.getSurgery_exact_date_year(), //check cond_symptom.OBSERVE_DATE_ID
 							  crit_interv_surgery_obj.getSurgery_exact_date_month(), crit_interv_surgery_obj.getSurgery_exact_date_day());
 					  
 				  } else if(!(crit_interv_surgery_obj.getSurgery_period_end_year()).isEmpty()) {
 					  tables += ", dt_date";
-					  where_clause += Make_begin_end_date_query (incl, mode,"interv_surgery.SURGERY_DATE_ID", "dt_date",crit_interv_surgery_obj.getSurgery_period_begin_year(),
+					  where_clause += " AND interv_surgery.SURGERY_DATE_ID = dt_date.ID AND interv_surgery.SURGERY_DATE_ID IS NOT NULL";
+					  where_clause += " AND " + Make_begin_end_date_query (incl, mode,"interv_surgery.SURGERY_DATE_ID", "dt_date",crit_interv_surgery_obj.getSurgery_period_begin_year(),
 							  crit_interv_surgery_obj.getSurgery_period_begin_month(), crit_interv_surgery_obj.getSurgery_period_begin_day(), crit_interv_surgery_obj.getSurgery_period_end_year() , 
 							  crit_interv_surgery_obj.getSurgery_period_end_month(), crit_interv_surgery_obj.getSurgery_period_end_day()); 
 					  
 				  } else if(!(crit_interv_surgery_obj.getSurgery_until_date_year()).isEmpty()) {
 					  tables += ", dt_date";
-					  where_clause += Make_begin_end_date_query (incl, mode,"interv_surgery.SURGERY_DATE_ID","dt_date", "1800", "1", "1", crit_interv_surgery_obj.getSurgery_until_date_year(), 
+					  where_clause += " AND interv_surgery.SURGERY_DATE_ID = dt_date.ID AND interv_surgery.SURGERY_DATE_ID IS NOT NULL";
+					  where_clause += " AND " + Make_begin_end_date_query (incl, mode,"interv_surgery.SURGERY_DATE_ID","dt_date", "1800", "1", "1", crit_interv_surgery_obj.getSurgery_until_date_year(), 
 							  crit_interv_surgery_obj.getSurgery_until_date_month(), crit_interv_surgery_obj.getSurgery_until_date_day()); 
 				  }
 				  
@@ -753,9 +971,10 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  where_clause += " AND interv_surgery.STMT_ID=conf_2.ID AND conf_2.CODE='" + crit_interv_surgery_obj.getStatement() + "'";
 				  }
 				  
-				  if(incl) where_clause += " AND interv_surgery.STMT_ID=1";
-				  else where_clause += " AND interv_surgery.STMT_ID=2";
-				  
+				  /*if(incl) where_clause += " AND interv_surgery.STMT_ID=1";
+				  else where_clause += " AND interv_surgery.STMT_ID=2";*/
+				  /*if(incl) query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + " AND " + temp_where_clause;
+				  else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + " AND NOT(" + temp_where_clause + ")";*/
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 			  } break;
 			  
@@ -763,16 +982,40 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  examination_lab_test  examination_lab_test_obj =  (examination_lab_test)current_Criterion;
 				  
 				  String tables = "patient, exam_lab_test, voc_lab_test";
-				  String where_clause = "patient.ID = exam_lab_test.PATIENT_ID AND exam_lab_test.TEST_ID=voc_lab_test.ID AND (" + Make_OR_of_CODES("voc_lab_test.CODE", examination_lab_test_obj.getTest_id());
-				  				  String codes[] = examination_lab_test_obj.getTest_id().split(",");
+				  String where_clause = "patient.ID = exam_lab_test.PATIENT_ID AND exam_lab_test.TEST_ID=voc_lab_test.ID"; 
+				  String temp_where_clause = " AND (" + Make_OR_of_CODES("voc_lab_test.CODE", examination_lab_test_obj.getTest_id());
+				  String codes[] = examination_lab_test_obj.getTest_id().split(",");
 				  for(int k=0; k<codes.length; k++) {
 					  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
 					  String[] allNarrowTerms = narrowTerms.split(",");
 					  for(int c=1; c<allNarrowTerms.length; c++) {
-						  where_clause += " OR " + Make_OR_of_CODES("voc_lab_test.CODE", allNarrowTerms[c]);
+						  temp_where_clause += " OR " + Make_OR_of_CODES("voc_lab_test.CODE", allNarrowTerms[c]);
 					  }
 				  }
-				  where_clause += ") ";
+				  temp_where_clause += ")";
+				  
+				  try {
+					  if(!incl) {
+						  String assistanceQuery = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + temp_where_clause;
+						  System.out.println("We are ready to execute the assistance query: "+assistanceQuery);
+						  String[] patientsToExclude = DBServiceCRUD.getDataFromDB(assistanceQuery).trim().split(" ");
+						  String assistance_where_clause = "NOT(";
+						  for(int j=0; j<patientsToExclude.length; j++) {
+							  if(j==0) {
+								  assistance_where_clause += "patient.UID = "+patientsToExclude[j];
+							  }
+							  else assistance_where_clause += " OR patient.UID = "+patientsToExclude[j];
+						  }
+						  assistance_where_clause += ")";
+						  where_clause = assistance_where_clause + " AND " + where_clause;
+					  }
+					  else {
+						  where_clause += temp_where_clause;
+					  }
+				  } catch (SQLException e) {
+						// TODO Auto-generated catch block
+						e.printStackTrace();
+				  }
 					
 				  /*query = "SELECT DISTINCT patient.UID " +
 						  "FROM patient, exam_lab_test, voc_lab_test " +//, exam_lab_test, voc_lab_test, dt_amount, voc_unit, voc_assessment, dt_amount_range, dt_date " + //, voc_direction interv_Surgery, dt_date, voc_direction, voc_confirmation
@@ -839,7 +1082,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  
 				  if(!(examination_lab_test_obj.getOutcome_term()).isEmpty()) {
 					  String outcome_term= examination_lab_test_obj.getOutcome_term();
-					  if (outcome_term=="CONFIRM-01"||outcome_term=="CONFIRM-02") {
+					  if (outcome_term.equals("CONFIRM-01")||outcome_term.equals("CONFIRM-02")) {
 						  tables += ", voc_confirmation";
 						  where_clause += " AND exam_lab_test.OUTCOME_TERM_ID = voc_confirmation.ID " +
 								    "AND voc_confirmation.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
@@ -847,7 +1090,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  }
 					  else {
 						  switch (examination_lab_test_obj.getTest_id()) {
-						  /*case "BLOOD-310":
+						  case "BLOOD-310":
 						    System.out.println("BLOOD-310");
 						    query += "AND exam_lab_test.OUTCOME_TERM_ID = voc_cryo_type.ID " +
 									  "AND voc_cryo_type.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
@@ -856,7 +1099,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 							System.out.println("BLOOD-310");
 							query += "AND exam_lab_test.OUTCOME_TERM_ID = voc_cryo_type.ID " +
 							"AND voc_cryo_type.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
-						    break;*/
+						    break;
 						  case "BLOOD-312":
 							  tables += ", voc_cryo_type";
 							  System.out.println("BLOOD-310"); //voc_ana_pattern
@@ -869,7 +1112,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 							  where_clause += " AND exam_lab_test.OUTCOME_TERM_ID = voc_ana_pattern.ID " +
 							  "AND voc_ana_pattern.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
 						    break;
-						  /*case "BLOOD-522":
+						  case "BLOOD-522":
 							  tables += ", voc_ana_pattern";
 							  System.out.println("BLOOD-522");
 							  where_clause += " AND exam_lab_test.OUTCOME_TERM_ID = voc_ana_pattern.ID " +
@@ -880,7 +1123,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 						    System.out.println("BLOOD-523"); //voc_ana_pattern
 						    query += "AND exam_lab_test.OUTCOME_TERM_ID = voc_ana_pattern.ID " +
 							" AND voc_ana_pattern.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
-						    break;*/
+						    break;
 					  }
 					  
 					}
@@ -900,14 +1143,16 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				 	} */
 				  if(!(examination_lab_test_obj.getSample_period_of_time_exact_year()).isEmpty()) {
 					  tables += ", dt_date";
-					  where_clause += Make_specific_date_query(incl, mode, "exam_lab_test.SAMPLE_DATE_ID","dt_date",examination_lab_test_obj.getSample_period_of_time_exact_year(), 
+					  where_clause +=  " AND exam_lab_test.SAMPLE_DATE_ID = dt_date.ID AND exam_lab_test.SAMPLE_DATE_ID IS NOT NULL";
+					  temp_where_clause += " AND " +Make_specific_date_query(incl, mode, "exam_lab_test.SAMPLE_DATE_ID","dt_date",examination_lab_test_obj.getSample_period_of_time_exact_year(), 
 							  			examination_lab_test_obj.getSample_period_of_time_exact_month(), examination_lab_test_obj.getSample_period_of_time_exact_day());					  		
 				  } 
 				  
 				  else if(!(examination_lab_test_obj.getSample_period_of_time_interval_end_year()).isEmpty()) {
 							 
 					  tables += ", dt_date";
-					  where_clause += Make_begin_end_date_query (incl, mode,"exam_lab_test.SAMPLE_DATE_ID", "dt_date",examination_lab_test_obj.getSample_period_of_time_interval_start_year(), 
+					  where_clause +=  " AND exam_lab_test.SAMPLE_DATE_ID = dt_date.ID AND exam_lab_test.SAMPLE_DATE_ID IS NOT NULL";
+					  temp_where_clause += " AND " +Make_begin_end_date_query (incl, mode,"exam_lab_test.SAMPLE_DATE_ID", "dt_date",examination_lab_test_obj.getSample_period_of_time_interval_start_year(), 
 										examination_lab_test_obj.getSample_period_of_time_interval_start_month(), examination_lab_test_obj.getSample_period_of_time_interval_start_day(),
 										examination_lab_test_obj.getSample_period_of_time_interval_end_year(), examination_lab_test_obj.getSample_period_of_time_interval_end_month(),
 										examination_lab_test_obj.getSample_period_of_time_interval_end_day()); 			  
@@ -915,7 +1160,8 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  
 				  else if(!(examination_lab_test_obj.getSample_period_of_time_until_year()).isEmpty()) {
 					  tables += ", dt_date";
-					  where_clause += Make_begin_end_date_query (incl, mode,"exam_lab_test.SAMPLE_DATE_ID","dt_date", "1800", "1", "1", examination_lab_test_obj.getSample_period_of_time_until_year(), examination_lab_test_obj.getSample_period_of_time_until_month(),
+					  where_clause +=  " AND exam_lab_test.SAMPLE_DATE_ID = dt_date.ID AND exam_lab_test.SAMPLE_DATE_ID IS NOT NULL";
+					  temp_where_clause += " AND " +Make_begin_end_date_query (incl, mode,"exam_lab_test.SAMPLE_DATE_ID","dt_date", "1800", "1", "1", examination_lab_test_obj.getSample_period_of_time_until_year(), examination_lab_test_obj.getSample_period_of_time_until_month(),
 									  examination_lab_test_obj.getSample_period_of_time_until_day()); 
 						  }
 				  
@@ -940,6 +1186,8 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
 					//System.out.println("We executed: "+crit_exam_lab_test_obj.criterion_name+"\nThe Query is: "+query); 
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  /*if(incl) query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + " AND " + temp_where_clause;
+				  else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause + " AND NOT(" + temp_where_clause + ")";*/
 			  } break; 
 			  
 			  case "examination_biopsy": { //Check if user provided the info of all the fields 
@@ -1221,8 +1469,8 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  String where_clause = "patient.ID = exam_caci_condition.PATIENT_ID AND exam_caci_condition.CACI_ID = voc_caci_condition.ID AND " + Make_OR_of_CODES("voc_caci_condition.CODE", examination_caci_condition_obj.getCaci());
 				  
 				  if(!examination_caci_condition_obj.getValue().isEmpty()) {  //TODO check value
-					  tables += ", exam_questionnaire_score";
-					  where_clause += " AND " + Make_OR_of_CODES("exam_questionnaire_score.VALUE", examination_caci_condition_obj.getValue());
+					  tables += ", voc_confirmation";
+					  where_clause += " AND exam_caci_condition.VALUE_ID = voc_confirmation.ID AND " + Make_OR_of_CODES("voc_confirmation.CODE", examination_caci_condition_obj.getValue());
 				  }
 				  
 				  if(!(examination_caci_condition_obj.getQuestionnaire_period_of_time_exact_year()).isEmpty()) {
@@ -1368,7 +1616,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  String exact_year = ((Timestamp) param).toString().split("-")[0];
 					  Integer exact_birth_year = Integer.valueOf(exact_year) - Integer.valueOf(patient_obj.get_exact_age());
 					  exact_year = exact_birth_year.toString();
-					  where_clause += Make_specific_date_query(incl, mode, "patient.DATE_OF_BIRTH_ID","dt_date1",exact_year,"","");
+					  where_clause += " AND patient.DATE_OF_BIRTH_ID = dt_date1.ID AND patient.DATE_OF_BIRTH_ID IS NOT NULL AND "+Make_specific_date_query(incl, mode, "patient.DATE_OF_BIRTH_ID","dt_date1",exact_year,"","");
 				  }
 				  else if(!patient_obj.get_max_age().isEmpty()) {
 					  tables += ", dt_date as dt_date1";
@@ -1385,7 +1633,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  
 					  Integer min_birth_year = Integer.valueOf(min_year) - Integer.valueOf(patient_obj.get_max_age());
 					  min_year = min_birth_year.toString();
-					  where_clause += Make_begin_end_date_query (incl, mode,"patient.DATE_OF_BIRTH_ID", "dt_date1",min_year, "", "", max_year,"",""); 		
+					  where_clause += " AND patient.DATE_OF_BIRTH_ID = dt_date1.ID AND patient.DATE_OF_BIRTH_ID IS NOT NULL AND "+Make_begin_end_date_query (incl, mode,"patient.DATE_OF_BIRTH_ID", "dt_date1",min_year, "", "", max_year,"",""); 		
 				  }
 				  else if(!patient_obj.get_min_age().isEmpty()) {
 					  tables += ", dt_date as dt_date1";
@@ -1396,48 +1644,48 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  Integer max_birth_year = Integer.valueOf(max_year) - Integer.valueOf(patient_obj.get_min_age());
 					  max_year = max_birth_year.toString();
 					  System.out.println(max_year);
-					  where_clause += Make_begin_end_date_query (incl, mode, "patient.DATE_OF_BIRTH_ID", "dt_date1","1800", "1", "1", max_year,"",""); 		
+					  where_clause += " AND patient.DATE_OF_BIRTH_ID = dt_date1.ID AND patient.DATE_OF_BIRTH_ID IS NOT NULL AND "+Make_begin_end_date_query (incl, mode, "patient.DATE_OF_BIRTH_ID", "dt_date1","1800", "1", "1", max_year,"",""); 		
 				  }	
 				  
 				  if(!(patient_obj.getBirth_period_of_time_exact_year()).isEmpty()) {
 					  tables += ", dt_date as dt_date1";
-					  where_clause += Make_specific_date_query(incl, mode, "patient.DATE_OF_BIRTH_ID","dt_date1",patient_obj.getBirth_period_of_time_exact_year(),
+					  where_clause += " AND patient.DATE_OF_BIRTH_ID = dt_date1.ID AND patient.DATE_OF_BIRTH_ID IS NOT NULL AND "+Make_specific_date_query(incl, mode, "patient.DATE_OF_BIRTH_ID","dt_date1",patient_obj.getBirth_period_of_time_exact_year(),
 							  patient_obj.getBirth_period_of_time_exact_month(),patient_obj.getBirth_period_of_time_exact_day());					  		
 				  } else if(!(patient_obj.getBirth_period_of_time_interval_start_year()).isEmpty()) {
 					  tables += ", dt_date as dt_date1";
-					  where_clause += Make_begin_end_date_query (incl, mode,"patient.DATE_OF_BIRTH_ID", "dt_date1",patient_obj.getBirth_period_of_time_interval_start_year(), patient_obj.getBirth_period_of_time_interval_start_month(), patient_obj.getBirth_period_of_time_interval_start_day(), patient_obj.getBirth_period_of_time_interval_end_year(), patient_obj.getBirth_period_of_time_interval_end_month(),
+					  where_clause += " AND patient.DATE_OF_BIRTH_ID = dt_date1.ID AND patient.DATE_OF_BIRTH_ID IS NOT NULL AND "+Make_begin_end_date_query (incl, mode,"patient.DATE_OF_BIRTH_ID", "dt_date1",patient_obj.getBirth_period_of_time_interval_start_year(), patient_obj.getBirth_period_of_time_interval_start_month(), patient_obj.getBirth_period_of_time_interval_start_day(), patient_obj.getBirth_period_of_time_interval_end_year(), patient_obj.getBirth_period_of_time_interval_end_month(),
 							  patient_obj.getBirth_period_of_time_interval_end_day()); 			  
 				  } else if(!(patient_obj.getBirth_period_of_time_until_year()).isEmpty()) {
 					  tables += ", dt_date as dt_date1";
-					  where_clause += Make_begin_end_date_query (incl, mode,"patient.DATE_OF_BIRTH_ID","dt_date1", "1800", "1", "1", patient_obj.getBirth_period_of_time_until_year(), 
+					  where_clause += " AND patient.DATE_OF_BIRTH_ID = dt_date1.ID AND patient.DATE_OF_BIRTH_ID IS NOT NULL AND "+Make_begin_end_date_query (incl, mode,"patient.DATE_OF_BIRTH_ID","dt_date1", "1800", "1", "1", patient_obj.getBirth_period_of_time_until_year(), 
 							  patient_obj.getBirth_period_of_time_until_month(), patient_obj.getBirth_period_of_time_until_day()); 
 				  }
 				  
 				  if(!(patient_obj.getSymptoms_onset_period_of_time_exact_year()).isEmpty()) {
 					  tables += ", dt_date as dt_date2";
-					  where_clause += Make_specific_date_query(incl, mode, "patient.PSS_SYMPTOMS_ONSET_DATE_ID","dt_date2",patient_obj.getSymptoms_onset_period_of_time_exact_year(),
+					  where_clause += " AND patient.PSS_SYMPTOMS_ONSET_DATE_ID = dt_date2.ID AND patient.PSS_SYMPTOMS_ONSET_DATE_ID IS NOT NULL AND "+Make_specific_date_query(incl, mode, "patient.PSS_SYMPTOMS_ONSET_DATE_ID","dt_date2",patient_obj.getSymptoms_onset_period_of_time_exact_year(),
 							  patient_obj.getSymptoms_onset_period_of_time_exact_month(),patient_obj.getSymptoms_onset_period_of_time_exact_day());					  		
 				  } else if(!(patient_obj.getSymptoms_onset_period_of_time_interval_start_year()).isEmpty()) {
 					  tables += ", dt_date as dt_date2";
-					  where_clause += Make_begin_end_date_query (incl, mode,"patient.PSS_SYMPTOMS_ONSET_DATE_ID", "dt_date2",patient_obj.getSymptoms_onset_period_of_time_interval_start_year(), patient_obj.getSymptoms_onset_period_of_time_interval_start_month(), patient_obj.getSymptoms_onset_period_of_time_interval_start_day(), patient_obj.getSymptoms_onset_period_of_time_interval_end_year(), patient_obj.getSymptoms_onset_period_of_time_interval_end_month(),
+					  where_clause += " AND patient.PSS_SYMPTOMS_ONSET_DATE_ID = dt_date2.ID AND patient.PSS_SYMPTOMS_ONSET_DATE_ID IS NOT NULL AND "+Make_begin_end_date_query (incl, mode,"patient.PSS_SYMPTOMS_ONSET_DATE_ID", "dt_date2",patient_obj.getSymptoms_onset_period_of_time_interval_start_year(), patient_obj.getSymptoms_onset_period_of_time_interval_start_month(), patient_obj.getSymptoms_onset_period_of_time_interval_start_day(), patient_obj.getSymptoms_onset_period_of_time_interval_end_year(), patient_obj.getSymptoms_onset_period_of_time_interval_end_month(),
 							  patient_obj.getSymptoms_onset_period_of_time_interval_end_day()); 			  
 				  } else if(!(patient_obj.getSymptoms_onset_period_of_time_until_year()).isEmpty()) {
 					  tables += ", dt_date as dt_date2";
-					  where_clause += Make_begin_end_date_query (incl, mode,"patient.PSS_SYMPTOMS_ONSET_DATE_ID","dt_date2", "1800", "1", "1", patient_obj.getSymptoms_onset_period_of_time_until_year(), 
+					  where_clause += " AND patient.PSS_SYMPTOMS_ONSET_DATE_ID = dt_date2.ID AND patient.PSS_SYMPTOMS_ONSET_DATE_ID IS NOT NULL AND "+Make_begin_end_date_query (incl, mode,"patient.PSS_SYMPTOMS_ONSET_DATE_ID","dt_date2", "1800", "1", "1", patient_obj.getSymptoms_onset_period_of_time_until_year(), 
 							  patient_obj.getSymptoms_onset_period_of_time_until_month(), patient_obj.getSymptoms_onset_period_of_time_until_day()); 
 				  }
 				  
 				  if(!(patient_obj.getDiagnosis_period_of_time_exact_year()).isEmpty()) {
 					  tables += ", dt_date as dt_date3";
-					  where_clause += Make_specific_date_query(incl, mode, "patient.PSS_DIAGNOSIS_DATE_ID","dt_date3",patient_obj.getDiagnosis_period_of_time_exact_year(),
+					  where_clause += " AND patient.PSS_DIAGNOSIS_DATE_ID = dt_date3.ID AND patient.PSS_SYMPTOMS_ONSET_DATE_ID IS NOT NULL AND "+Make_specific_date_query(incl, mode, "patient.PSS_DIAGNOSIS_DATE_ID","dt_date3",patient_obj.getDiagnosis_period_of_time_exact_year(),
 							  patient_obj.getDiagnosis_period_of_time_exact_month(),patient_obj.getDiagnosis_period_of_time_exact_day());					  		
 				  } else if(!(patient_obj.getDiagnosis_period_of_time_interval_start_year()).isEmpty()) {
 					  tables += ", dt_date as dt_date3";
-					  where_clause += Make_begin_end_date_query (incl, mode,"patient.PSS_DIAGNOSIS_DATE_ID", "dt_date3",patient_obj.getDiagnosis_period_of_time_interval_start_year(), patient_obj.getDiagnosis_period_of_time_interval_start_month(), patient_obj.getDiagnosis_period_of_time_interval_start_day(), patient_obj.getDiagnosis_period_of_time_interval_end_year(), patient_obj.getDiagnosis_period_of_time_interval_end_month(),
+					  where_clause += " AND patient.PSS_DIAGNOSIS_DATE_ID = dt_date3.ID AND patient.PSS_SYMPTOMS_ONSET_DATE_ID IS NOT NULL AND "+Make_begin_end_date_query (incl, mode,"patient.PSS_DIAGNOSIS_DATE_ID", "dt_date3",patient_obj.getDiagnosis_period_of_time_interval_start_year(), patient_obj.getDiagnosis_period_of_time_interval_start_month(), patient_obj.getDiagnosis_period_of_time_interval_start_day(), patient_obj.getDiagnosis_period_of_time_interval_end_year(), patient_obj.getDiagnosis_period_of_time_interval_end_month(),
 							  patient_obj.getDiagnosis_period_of_time_interval_end_day()); 			  
 				  } else if(!(patient_obj.getDiagnosis_period_of_time_until_year()).isEmpty()) {
 					  tables += ", dt_date as dt_date3";
-					  where_clause += Make_begin_end_date_query (incl, mode,"patient.PSS_DIAGNOSIS_DATE_ID","dt_date3", "1800", "1", "1", patient_obj.getDiagnosis_period_of_time_until_year(), 
+					  where_clause += " AND patient.PSS_DIAGNOSIS_DATE_ID = dt_date3.ID AND patient.PSS_SYMPTOMS_ONSET_DATE_ID IS NOT NULL AND "+Make_begin_end_date_query (incl, mode,"patient.PSS_DIAGNOSIS_DATE_ID","dt_date3", "1800", "1", "1", patient_obj.getDiagnosis_period_of_time_until_year(), 
 							  patient_obj.getDiagnosis_period_of_time_until_month(), patient_obj.getDiagnosis_period_of_time_until_day()); 
 				  }
 				  
@@ -1491,15 +1739,15 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  
 				  if(!(patient_obj.getCohort_inclusion_period_of_time_exact_year()).isEmpty()) {
 					  tables += ", dt_date as dt_date4";
-					  where_clause += Make_specific_date_query(incl, mode, "patient.COHORT_INCLUSION_DATE_ID","dt_date4",patient_obj.getCohort_inclusion_period_of_time_exact_year(),
+					  where_clause += " AND patient.COHORT_INCLUSION_DATE_ID = dt_date4.ID AND patient.PSS_SYMPTOMS_ONSET_DATE_ID IS NOT NULL AND "+Make_specific_date_query(incl, mode, "patient.COHORT_INCLUSION_DATE_ID","dt_date4",patient_obj.getCohort_inclusion_period_of_time_exact_year(),
 							  patient_obj.getCohort_inclusion_period_of_time_exact_month(),patient_obj.getCohort_inclusion_period_of_time_exact_day());					  		
 				  } else if(!(patient_obj.getCohort_inclusion_period_of_time_interval_start_year()).isEmpty()) {
 					  tables += ", dt_date as dt_date4";
-					  where_clause += Make_begin_end_date_query (incl, mode,"patient.COHORT_INCLUSION_DATE_ID", "dt_date4",patient_obj.getCohort_inclusion_period_of_time_interval_start_year(), patient_obj.getCohort_inclusion_period_of_time_interval_start_month(), patient_obj.getCohort_inclusion_period_of_time_interval_start_day(), patient_obj.getCohort_inclusion_period_of_time_interval_end_year(), patient_obj.getCohort_inclusion_period_of_time_interval_end_month(),
+					  where_clause += " AND patient.COHORT_INCLUSION_DATE_ID = dt_date4.ID AND patient.PSS_SYMPTOMS_ONSET_DATE_ID IS NOT NULL AND "+Make_begin_end_date_query (incl, mode,"patient.COHORT_INCLUSION_DATE_ID", "dt_date4",patient_obj.getCohort_inclusion_period_of_time_interval_start_year(), patient_obj.getCohort_inclusion_period_of_time_interval_start_month(), patient_obj.getCohort_inclusion_period_of_time_interval_start_day(), patient_obj.getCohort_inclusion_period_of_time_interval_end_year(), patient_obj.getCohort_inclusion_period_of_time_interval_end_month(),
 							  patient_obj.getCohort_inclusion_period_of_time_interval_end_day()); 			  
 				  } else if(!(patient_obj.getCohort_inclusion_period_of_time_until_year()).isEmpty()) {
 					  tables += ", dt_date as dt_date4";
-					  where_clause += Make_begin_end_date_query (incl, mode,"patient.COHORT_INCLUSION_DATE_ID","dt_date4", "1800", "1", "1", patient_obj.getCohort_inclusion_period_of_time_until_year(), 
+					  where_clause += " AND patient.COHORT_INCLUSION_DATE_ID = dt_date4.ID AND patient.PSS_SYMPTOMS_ONSET_DATE_ID IS NOT NULL AND "+Make_begin_end_date_query (incl, mode,"patient.COHORT_INCLUSION_DATE_ID","dt_date4", "1800", "1", "1", patient_obj.getCohort_inclusion_period_of_time_until_year(), 
 							  patient_obj.getCohort_inclusion_period_of_time_until_month(), patient_obj.getCohort_inclusion_period_of_time_until_day()); 
 				  }
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
@@ -1612,7 +1860,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     				if(inclusion_criteria.get(i).getString("usage").equals("used")) inclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.USED);
     				else inclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.NOT_USED);
     				//System.out.println(inclusion_criteria.get(i));
-    				inclCriterionUsage.setNotesHTML(inclCriterion.getDescription()+": "+inclusion_criteria.get(i).getString("notes")+" - "+inclCriterionUsage.getCriterionUsageStatus());
+    				inclCriterionUsage.setNotesHTML(inclCriterion.getDescription()+": "+inclusion_criteria.get(i).getString("notes")); //+" - "+inclCriterionUsage.getCriterionUsageStatus());
     				//inclCriterionUsage.setNotesHTML(inclCriterion.getDescription()+": "+inclCriterion.getFormalExpression().get(0).getBooleanExpression().trim()+" - "+inclCriterionUsage.getCriterionUsageStatus());
     				inclAndExclCriteriaUsed.getCriterionUsage().add(inclCriterionUsage);
     				i++;
@@ -1625,7 +1873,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     				if(exclusion_criteria.get(i).getString("usage").equals("used")) exclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.USED);
     				else exclCriterionUsage.setCriterionUsageStatus(CriterionUsageStatus.NOT_USED);
     				//System.out.println(exclusion_criteria.get(i));
-    				exclCriterionUsage.setNotesHTML(exclCriterion.getDescription()+": "+exclusion_criteria.get(i).getString("notes")+" - "+exclCriterionUsage.getCriterionUsageStatus());
+    				exclCriterionUsage.setNotesHTML(exclCriterion.getDescription()+": "+exclusion_criteria.get(i).getString("notes")); //+" - "+exclCriterionUsage.getCriterionUsageStatus());
     				//exclCriterionUsage.setNotesHTML(exclCriterion.getDescription()+": "+exclCriterion.getFormalExpression().get(0).getBooleanExpression().trim()+" - "+exclCriterionUsage.getCriterionUsageStatus());
     				inclAndExclCriteriaUsed.getCriterionUsage().add(exclCriterionUsage);
     				i++;

@@ -101,6 +101,7 @@ public class ReqRespList extends HttpServlet {
 		String requestID = request.getParameter("requestID");
 		
 		String query = "SELECT * FROM EXECUTION_DATA";
+		System.out.println("Executed requests for user: "+userID+" and request id: "+requestID);
 		if(userID.equals("null") || userID.trim().equals("")) {
 			if(!requestID.equals("null") && !requestID.trim().equals("")) {
 				String[] requestIDs = requestID.split(",");

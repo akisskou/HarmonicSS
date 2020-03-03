@@ -9,6 +9,7 @@ import java.io.IOException;
 import java.io.InputStream;
 import java.io.PrintWriter;
 import java.net.URI;
+import java.util.Arrays;
 import java.util.Properties;
 import java.util.Scanner;
 
@@ -58,6 +59,7 @@ public class RequestXMLfilesServlet extends HttpServlet {
 			for (int i = 0; i < files.length; i++) {
 				fileNames[i] = files[i].getName().split(".xml")[0];
 			}
+			Arrays.sort(fileNames);
 			JSONObject requestXMLfiles = new JSONObject();
 			requestXMLfiles.put("requestXMLfiles", fileNames);
 			response.setContentType("text/html; charset=UTF-8");
