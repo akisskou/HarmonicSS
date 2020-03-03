@@ -42,6 +42,7 @@ public class SQL_aux_functions {
 	
 	public static String Make_specific_date_query(Boolean incl, Boolean mode, String obj_name_DATE_ID, String dt_date, String specific_year, String specific_month, String specific_day) {
 		String query=""; 
+		String assistance_where = "";
 		if(mode) { //UNdefined some Elements.   cond_symptom.OBSERVE_DATE_ID
 			query += " AND (" +
 					"("+obj_name_DATE_ID+"='' OR "+obj_name_DATE_ID+" IS NULL)"+
@@ -58,16 +59,17 @@ public class SQL_aux_functions {
 			if(!specific_month.isEmpty()) query += "AND "+ Make_null_or_empty_values(mode,dt_date+".MONTH",specific_month); //dt_date.MONTH = '" + crit_demo_pregnancy_obj.CONCEPTION_DATE_MONTH + "' ";
 			if(!specific_day.isEmpty()) query += "AND " + Make_null_or_empty_values(mode,dt_date+".DAY",specific_day); //dt_date.DAY = '" + crit_demo_pregnancy_obj.CONCEPTION_DATE_DAY + "' ";
 			query+=")";*/
-			query += " AND "+obj_name_DATE_ID+" = "+ dt_date+".ID";
-			String assistance_where = "";
-			if(!specific_year.isEmpty()) assistance_where += " AND "+dt_date+".YEAR = "+specific_year;
+			/*query += " AND "+obj_name_DATE_ID+" = "+ dt_date+".ID";
+			String assistance_where = "";*/
+			//assistance_where += " AND " + obj_name_DATE_ID+" = "+dt_date+".ID AND "+obj_name_DATE_ID+" IS NOT NULL";
+			assistance_where += dt_date+".YEAR = "+specific_year;
 			if(!specific_month.isEmpty()) assistance_where += " AND "+dt_date+".MONTH = "+specific_month;
 			if(!specific_day.isEmpty()) assistance_where += " AND "+dt_date+".DAY = "+specific_day;
-			if(incl) query += assistance_where;
+			/*if(incl) query += assistance_where;
 			else query += " AND NOT("+assistance_where+")";
-			query.replace("( AND", "(");
+			query.replace("( AND", "(");*/
 		}
-		return query;
+		return assistance_where;
 	}
 	
 	public static String Make_begin_end_period_query(Boolean mode, String obj_name_Period_ID, String dt_date1, String dt_date2, String begin_year, String begin_month, String begin_day, String end_year, String end_month,
@@ -169,6 +171,7 @@ public class SQL_aux_functions {
 		else { //ALLdefined
 			query += " AND "+obj_name_BIRTH_DATE_ID+" = "+ dt_date1+".ID AND "+obj_name_DATE_ID+" = "+ dt_date2+".ID AND ";
 			String assistance_where = dt_date2+".YEAR - "+start_age+" >= "+dt_date1+".YEAR AND "+dt_date2+".YEAR - "+end_age+" <= "+dt_date1+".YEAR";
+			//query += assistance_where;
 			if(incl) query += assistance_where;
 			else query += "NOT ("+assistance_where+")";
 		}
@@ -178,6 +181,7 @@ public class SQL_aux_functions {
 	public static String Make_begin_end_date_query(Boolean incl, Boolean mode, String obj_name_DATE_ID, String dt_date, String begin_year, String begin_month, String begin_day, String end_year, String end_month,
 			String end_day) { 
 		String query="";
+		String assistance_where = "";
 		if(mode) { //UNdefined some Elements.
 			query += "(("+obj_name_DATE_ID+" IS NULL) OR " +
 		"("+obj_name_DATE_ID+" = "+dt_date+".ID " + 
@@ -208,7 +212,7 @@ public class SQL_aux_functions {
 		
 		else { //ALLdefined 
 			//System.out.println("");
-			query += obj_name_DATE_ID+" = "+dt_date+".ID AND "+obj_name_DATE_ID+" IS NOT NULL";
+			//assistance_where += " AND " + obj_name_DATE_ID+" = "+dt_date+".ID AND "+obj_name_DATE_ID+" IS NOT NULL";
 			/*if(!begin_month.isEmpty()) query += " OR ("+dt_date+".YEAR = " + begin_year + " AND "+dt_date+".MONTH > " + begin_month +")"; 
 				else{ query += " OR "+dt_date+".YEAR = " + begin_year;}
 			if(!end_month.isEmpty()) query += " AND ("+dt_date+".YEAR = " + end_year + " AND "+dt_date+".MONTH < " + end_month +")"; 
@@ -221,7 +225,7 @@ public class SQL_aux_functions {
 				else if(!begin_month.isEmpty()) {query += " OR ("+dt_date+".YEAR = "+ begin_year +" AND "+dt_date+".MONTH = "+begin_month+")";}		
 				else {query += " OR ("+dt_date+".YEAR = "+ begin_year +")";}
 			query +=")";*/
-			String assistance_where = "";
+			//String assistance_where = "";
 			if(!begin_year.isEmpty()) {
 				if(!begin_month.isEmpty()) {
 					if(!begin_day.isEmpty()) {
@@ -248,11 +252,13 @@ public class SQL_aux_functions {
 					assistance_where += " AND ("+dt_date+".YEAR <= " + end_year+")";
 				}
 			}
-			if(incl) query += " AND " + assistance_where;
-			else query += " AND NOT("+assistance_where+")";
+			//query = " AND " + query + " AND " + assistance_where;
+			/*if(incl) query += " AND " + assistance_where;
+			else query += " AND NOT("+assistance_where+")";*/
 		}
 		
-		return query;
+		//return query;
+		return assistance_where;
 	}
 	public static String Make_begin_end_date_query_period_OR(Boolean mode, String obj_name_DATE_ID, String dt_date, String begin_year, String begin_month, String begin_day, String end_year, String end_month,
 			String end_day) { 
