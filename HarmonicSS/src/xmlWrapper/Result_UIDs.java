@@ -39,7 +39,6 @@ public class Result_UIDs {
 				this.UIDs_defined_ALL_elements=(UIDs.substring(1)).split(" ");
 			}
 		} else {
-			
 			if (mode) {
 				this.UIDs_UNdefined_some_elements=new String[1]; UIDs_UNdefined_some_elements[0]="";		
 			} else {

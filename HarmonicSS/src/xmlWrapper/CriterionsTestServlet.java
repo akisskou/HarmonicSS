@@ -101,6 +101,7 @@ public class CriterionsTestServlet extends HttpServlet {
 	private static List<JSONObject> inclusion_criteria = new ArrayList<JSONObject>();
 	private static PatientsSelectionRequest patientsSelectionRequest;
 	private static List<JSONObject> cohortResponseList = new ArrayList<JSONObject>();
+	private static boolean patients_found;
 	JSONObject all;
        
     /**
@@ -167,6 +168,7 @@ public class CriterionsTestServlet extends HttpServlet {
     	for(int i=0; i<list_of_criterions.size(); i++) {
     		criterionResponseInfos = new JSONObject();
 			Criterion current_Criterion=list_of_criterions.get(i); //current_criterion
+			if(patients_found) {
 			if(!canUseCriterion(current_Criterion)){
 				System.out.println("Criterion " + current_Criterion.getCriterion() + " cannot be used.");
 				criterionResponseInfos.put("usage", "notused");
@@ -230,7 +232,7 @@ public class CriterionsTestServlet extends HttpServlet {
 				  String tables = "patient, demo_pregnancy_data";
 				  String where_clause = "patient.ID = demo_pregnancy_data.PATIENT_ID";
 				  
-				  if(!(crit_demo_pregnancy_obj.conception_exact_year/* + crit_demo_pregnancy_obj.conception_exact_month + 
+				  if(!(crit_demo_pregnancy_obj.getCONCEPTION_DATE_YEAR()/* + crit_demo_pregnancy_obj.conception_exact_month + 
 				  	crit_demo_pregnancy_obj.conception_exact_day */).isEmpty()) {
 					  tables += ", dt_date as dt_date1";
 					  where_clause += " AND demo_pregnancy_data.OUTCOME_DATE_ID = dt_date1.ID AND demo_pregnancy_data.OUTCOME_DATE_ID IS NOT NULL" +Make_specific_date_query(true, mode, "demo_pregnancy_data.CONCEPTION_DATE_ID","dt_date1",crit_demo_pregnancy_obj.getCONCEPTION_DATE_YEAR(),
@@ -316,7 +318,7 @@ public class CriterionsTestServlet extends HttpServlet {
 							  crit_lifestyle_smoking_obj.getSmoking_exact_date_year(), crit_lifestyle_smoking_obj.getSmoking_exact_date_month(),
 							  crit_lifestyle_smoking_obj.getSmoking_exact_date_day()); 
 					  	 							  
-					} else if(!(crit_lifestyle_smoking_obj.getSmoking_period_end_year()).isEmpty()) {
+				  } else if(!(crit_lifestyle_smoking_obj.getSmoking_period_begin_year()).isEmpty() || !(crit_lifestyle_smoking_obj.getSmoking_period_end_year()).isEmpty()) {
 						tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
 						where_clause += Make_begin_end_period_query (mode,"lifestyle_smoking.PERIOD_ID", "dt_date1", "dt_date2", crit_lifestyle_smoking_obj.getSmoking_period_begin_year(), 
 								  crit_lifestyle_smoking_obj.getSmoking_period_begin_month(), crit_lifestyle_smoking_obj.getSmoking_period_begin_day(),
@@ -1369,6 +1371,18 @@ public class CriterionsTestServlet extends HttpServlet {
 			
 			if(results_of_all_Criterions.equals("")) results_of_all_Criterions = results_of_one_Criterion;
 			else results_of_all_Criterions = intersection_of_UIDs(results_of_one_Criterion, results_of_all_Criterions);
+			if(results_of_all_Criterions.equals("")) patients_found = false;
+			System.out.println("patients found: "+patients_found);
+			}
+			else {
+				System.out.println("Criterion " + current_Criterion.getCriterion() + " cannot be used.");
+				criterionResponseInfos.put("usage", "notused");
+				criterionResponseInfos.put("notes", "Criterion cannot be reached because no patients found");
+				inclusion_criteria.add(criterionResponseInfos);
+				
+				System.out.println(criterionResponseInfos);
+				continue;
+			}
     	}
     	return results_of_all_Criterions;
     }
@@ -1588,7 +1602,7 @@ public class CriterionsTestServlet extends HttpServlet {
         		break;
         		default: System.out.println("Undefined criterion-name in the input JSON file.");
         	}
-        	try { 
+        	try {
         		if(!query.equals("")) myresults = DBServiceCRUD.testQuery(query);
         		if(!assistanceQuery.equals("")) {
         			boolean essdai = false;
@@ -1605,6 +1619,7 @@ public class CriterionsTestServlet extends HttpServlet {
         				}
         			}
         		}
+        	
         	} catch (SQLException e) {
         		//LOGGER.log(Level.SEVERE,"Bad type query or arguments: "+query,true);
         		//flush_handler();
@@ -1722,7 +1737,9 @@ public class CriterionsTestServlet extends HttpServlet {
     	}
     	else 
     	{System.out.println("everything's gooooooood");
-    	criterionDBmatching(list_of_criterions);
+    	
+		criterionDBmatching(list_of_criterions);
+		
     	cohortResponse.put("patients_IDs_list", results.UIDs_defined_ALL_elements);
     	/*if(results.UIDs_defined_ALL_elements.length==1 && results.UIDs_defined_ALL_elements[0].equals("")) {
     		if(results.UIDs_UNdefined_some_elements.length==1 && results.UIDs_UNdefined_some_elements[0].equals("")) {
@@ -1771,6 +1788,7 @@ public class CriterionsTestServlet extends HttpServlet {
 		// TODO Auto-generated method stub
 		//doGet(request, response);
 		cohortResponseList.clear();
+		patients_found = true;
 		all = new JSONObject();
 		manager = OWLManager.createOWLOntologyManager();
 		InputStream input = new FileInputStream(getServletContext().getRealPath("/WEB-INF/infos.properties"));

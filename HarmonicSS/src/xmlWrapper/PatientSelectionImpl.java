@@ -117,7 +117,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	private static Properties prop;
 	private static String myReqXML;
 	private static String myRespXML;
-	
+	private static boolean patients_found;
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -318,6 +318,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     	for(int i=0; i<list_of_criterions.size(); i++) {
     		criterionResponseInfos = new JSONObject();
 			Criterion current_Criterion=list_of_criterions.get(i); //current_criterion
+			if(patients_found) {
 			if(!canUseCriterion(current_Criterion)){
 				System.out.println("Criterion " + current_Criterion.getCriterion() + " cannot be used.");
 				criterionResponseInfos.put("usage", "notused");
@@ -403,7 +404,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 					  temp_where_clause += ")";
 				  }
 				  
-				  if(!(crit_demo_pregnancy_obj.conception_exact_year/* + crit_demo_pregnancy_obj.conception_exact_month + 
+				  if(!(crit_demo_pregnancy_obj.getCONCEPTION_DATE_YEAR()/* + crit_demo_pregnancy_obj.conception_exact_month + 
 				  	crit_demo_pregnancy_obj.conception_exact_day */).isEmpty()) {
 					  tables += ", dt_date as dt_date1";
 					  where_clause += " AND demo_pregnancy_data.CONCEPTION_DATE_ID = dt_date1.ID AND demo_pregnancy_data.CONCEPTION_DATE_ID IS NOT NULL";
@@ -1765,6 +1766,18 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			
 			if(results_of_all_Criterions.equals("")) results_of_all_Criterions = results_of_one_Criterion;
 			else results_of_all_Criterions = intersection_of_UIDs(results_of_one_Criterion, results_of_all_Criterions);
+			if(results_of_all_Criterions.equals("")) patients_found = false;
+			System.out.println("patients found: "+patients_found);
+			}
+			else {
+				System.out.println("Criterion " + current_Criterion.getCriterion() + " cannot be used.");
+				criterionResponseInfos.put("usage", "notused");
+				criterionResponseInfos.put("notes", "Criterion cannot be reached because no patients found");
+				inclusion_criteria.add(criterionResponseInfos);
+				
+				System.out.println(criterionResponseInfos);
+				continue;
+			}
     	}
     	return results_of_all_Criterions;
     }
@@ -1978,6 +1991,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	    JSONArray cohorts = new JSONArray(getCohortsC4(darID, username, password));
 	    boolean createXML = false;
     	for(int i=0; i<cohorts.length(); i++){
+    		patients_found = true;
     		JSONObject cohortResponse = new JSONObject();
     		String cohortName = "";
     		//if(cohorts.getJSONObject(i).get("cohortId").equals("2")) cohortName = "Harm-DB-09";
@@ -2351,6 +2365,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	protected synchronized void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		LOGGER = Util_Logger.Initialize_logger(getServletContext().getRealPath("/WEB-INF/LogFile.log"));
+		
 		all = new JSONObject();
 		cohortResponseList.clear();
 		Infos req = new Gson().fromJson(request.getReader(), Infos.class);
