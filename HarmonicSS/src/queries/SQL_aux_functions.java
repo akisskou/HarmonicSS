@@ -61,6 +61,7 @@ public class SQL_aux_functions {
 			query+=")";*/
 			/*query += " AND "+obj_name_DATE_ID+" = "+ dt_date+".ID";
 			String assistance_where = "";*/
+			assistance_where += " AND " + obj_name_DATE_ID+" = "+dt_date+".ID AND "+obj_name_DATE_ID+" IS NOT NULL";
 			//assistance_where += " AND " + obj_name_DATE_ID+" = "+dt_date+".ID AND "+obj_name_DATE_ID+" IS NOT NULL";
 			assistance_where += " AND "+dt_date+".YEAR = "+specific_year;
 			if(!specific_month.isEmpty()) assistance_where += " AND "+dt_date+".MONTH = "+specific_month;
@@ -134,12 +135,12 @@ public class SQL_aux_functions {
 						" OR ("+begin_year+" <= "+dt_date1+".YEAR AND "+dt_date2+".YEAR <= "+end_year+")";
 			}
 			else {
-				query+=" AND ("+begin_year+" >= "+dt_date1+".YEAR AND "+dt_date2+".YEAR >= "+begin_year+"";
+				query+=" AND ("+begin_year+ " <= " + dt_date2+".YEAR"; // +begin_year+" >= "+dt_date1+".YEAR AND "+dt_date2+".YEAR >= "+begin_year+"";
 			}
 		}
 		else {
 			if(!end_year.isEmpty()) {
-				query+=" AND ("+end_year+" >= "+dt_date1+".YEAR AND "+dt_date2+".YEAR >="+end_year+"";
+				query+=" AND ("+end_year+" >= "+dt_date1+".YEAR"; // AND "+dt_date2+".YEAR >="+end_year+"";
 			}
 		}
 		
@@ -217,7 +218,7 @@ public class SQL_aux_functions {
 		
 		else { //ALLdefined 
 			//System.out.println("");
-			//assistance_where += " AND " + obj_name_DATE_ID+" = "+dt_date+".ID AND "+obj_name_DATE_ID+" IS NOT NULL";
+			assistance_where += " AND " + obj_name_DATE_ID+" = "+dt_date+".ID AND "+obj_name_DATE_ID+" IS NOT NULL";
 			/*if(!begin_month.isEmpty()) query += " OR ("+dt_date+".YEAR = " + begin_year + " AND "+dt_date+".MONTH > " + begin_month +")"; 
 				else{ query += " OR "+dt_date+".YEAR = " + begin_year;}
 			if(!end_month.isEmpty()) query += " AND ("+dt_date+".YEAR = " + end_year + " AND "+dt_date+".MONTH < " + end_month +")"; 
@@ -257,9 +258,6 @@ public class SQL_aux_functions {
 					assistance_where += " AND ("+dt_date+".YEAR <= " + end_year+")";
 				}
 			}
-			//query = " AND " + query + " AND " + assistance_where;
-			/*if(incl) query += " AND " + assistance_where;
-			else query += " AND NOT("+assistance_where+")";*/
 		}
 		
 		//return query;
