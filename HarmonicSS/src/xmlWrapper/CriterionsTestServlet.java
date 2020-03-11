@@ -335,13 +335,23 @@ public class CriterionsTestServlet extends HttpServlet {
 				   
 				  if(!crit_lifestyle_smoking_obj.getAmount_exact_value().isEmpty()){
 					  	tables += ", dt_amount, voc_unit";
-					  where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND dt_amount.value='" + crit_lifestyle_smoking_obj.getAmount_exact_value() + "' AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE() + "' ";
+					  where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND dt_amount.value=" + crit_lifestyle_smoking_obj.getAmount_exact_value() + " AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE() + "' ";
 					  
 				  }
 				  
 				  if(!crit_lifestyle_smoking_obj.getAmount_range_min_value().isEmpty()){
 					  	tables += ", dt_amount, voc_unit";
-					  where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND dt_amount.value>=" + crit_lifestyle_smoking_obj.getAmount_range_min_value() + " AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE() + "'";
+					  where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND dt_amount.value>=" + crit_lifestyle_smoking_obj.getAmount_range_min_value();
+					  if(!crit_lifestyle_smoking_obj.getAmount_range_max_value().isEmpty()){
+						  where_clause += "AND dt_amount.value<=" + crit_lifestyle_smoking_obj.getAmount_range_max_value();
+					  }
+					  where_clause += " AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE() + "'";
+					  
+				  }
+				  
+				  else if(!crit_lifestyle_smoking_obj.getAmount_range_max_value().isEmpty()){
+					  	tables += ", dt_amount, voc_unit";
+					  where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND dt_amount.value<=" + crit_lifestyle_smoking_obj.getAmount_range_max_value() + " AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE() + "'";
 					  
 				  }
 				  
@@ -426,8 +436,21 @@ public class CriterionsTestServlet extends HttpServlet {
 				  
 				  if(!condition_diagnosis_obj.getStage().isEmpty()) {  // [OUTCOME_ASSESSMENT]
 					  tables += ", voc_lymphoma_stage";
-					  where_clause += " AND cond_diagnosis.STAGE_ID = voc_lymphoma_stage.ID AND " + Make_OR_of_CODES("voc_lymphoma_stage.CODE", condition_diagnosis_obj.getStage());
-					  
+					  where_clause += " AND cond_diagnosis.STAGE_ID = voc_lymphoma_stage.ID AND " + Make_OR_of_CODES("voc_lymphoma_stage.CODE", condition_diagnosis_obj.getStage());	  
+				  }
+				  
+				  if(!condition_diagnosis_obj.getOrgan().isEmpty()) {  // [OUTCOME_ASSESSMENT]
+					  tables += ", cond_diagnosis_organs, voc_lymphoma_organ";
+					  where_clause += " AND cond_diagnosis.ID = cond_diagnosis_organs.DIAGNOSIS_ID AND cond_diagnosis_organs.ORGAN_ID = voc_lymphoma_organ.ID AND (" + Make_OR_of_CODES("voc_lymphoma_organ.CODE", condition_diagnosis_obj.getOrgan());
+					  String organCodes[] = condition_diagnosis_obj.getOrgan().split(",");
+					  for(int k=0; k<organCodes.length; k++) {
+						  String narrowTerms = getTermsWithNarrowMeaning(organCodes[k].trim());
+						  String[] allNarrowTerms = narrowTerms.split(",");
+						  for(int c=1; c<allNarrowTerms.length; c++) {
+							  where_clause += " OR " + Make_OR_of_CODES("voc_lymphoma_organ.CODE", allNarrowTerms[c]);
+						  }
+					  }
+					  where_clause += ")";
 					  	
 				  }
 				  
@@ -619,15 +642,15 @@ public class CriterionsTestServlet extends HttpServlet {
 				  
 				  if(!examination_lab_test_obj.getOutcome_amount_range_min_value().isEmpty()&&!examination_lab_test_obj.getOutcome_amount_range_max_value().isEmpty()) { // [OUTCOME_AMOUNT]
 					  tables += ", dt_amount, voc_unit";	
-					  where_clause += " AND exam_lab_test.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE < '"+examination_lab_test_obj.getOutcome_amount_range_max_value()+"' " +
-					  	"AND dt_amount.VALUE > '"+examination_lab_test_obj.getOutcome_amount_range_min_value()+"' " +
+					  where_clause += " AND exam_lab_test.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE <= '"+examination_lab_test_obj.getOutcome_amount_range_max_value()+"' " +
+					  	"AND dt_amount.VALUE >= '"+examination_lab_test_obj.getOutcome_amount_range_min_value()+"' " +
 					  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
 					  	"AND voc_unit.CODE ='"+examination_lab_test_obj.getOutcome_amount_unit()+"' ";
 				  } else
 					  
 				  if(examination_lab_test_obj.getOutcome_amount_range_min_value().isEmpty()&&!examination_lab_test_obj.getOutcome_amount_range_max_value().isEmpty()) { // [OUTCOME_AMOUNT]
 					  tables += ", dt_amount, voc_unit";	
-					  where_clause += " AND exam_lab_test.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE < '"+examination_lab_test_obj.getOutcome_amount_range_max_value()+"' " +
+					  where_clause += " AND exam_lab_test.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE <= '"+examination_lab_test_obj.getOutcome_amount_range_max_value()+"' " +
 					  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
 					  	"AND voc_unit.CODE ='"+examination_lab_test_obj.getOutcome_amount_unit()+"' ";
 				  } else
@@ -635,7 +658,7 @@ public class CriterionsTestServlet extends HttpServlet {
 				  if(!examination_lab_test_obj.getOutcome_amount_range_min_value().isEmpty()&&examination_lab_test_obj.getOutcome_amount_range_max_value().isEmpty()) { // [OUTCOME_AMOUNT]
 					  tables += ", dt_amount, voc_unit";
 					  where_clause += " AND exam_lab_test.OUTCOME_AMOUNT_ID = dt_amount.ID " + //AND dt_amount.VALUE < '"+examination_lab_test_obj.getOutcome_amount_range_max_value()+"' 
-					  	"AND dt_amount.VALUE > '"+examination_lab_test_obj.getOutcome_amount_range_min_value()+"' " +
+					  	"AND dt_amount.VALUE >= '"+examination_lab_test_obj.getOutcome_amount_range_min_value()+"' " +
 					  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
 					  	"AND voc_unit.CODE ='"+examination_lab_test_obj.getOutcome_amount_unit()+"' ";
 				  }
@@ -673,47 +696,48 @@ public class CriterionsTestServlet extends HttpServlet {
 						  		//= " +examination_lab_test_obj.getOutcome_term() +" ";
 					  }
 					  else {
-						  switch (examination_lab_test_obj.getTest_id()) {
-						  case "BLOOD-310":
+						  if (examination_lab_test_obj.getTest_id().equals("BLOOD-310")) {
+							tables += ", voc_cryo_type";
 						    System.out.println("BLOOD-310");
 						    query += "AND exam_lab_test.OUTCOME_TERM_ID = voc_cryo_type.ID " +
 									  "AND voc_cryo_type.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
-						    break;
-						  case "BLOOD-311":
-							System.out.println("BLOOD-310");
+						  }
+						  else if (examination_lab_test_obj.getTest_id().equals("BLOOD-311")) {
+							tables += ", voc_cryo_type";
+							System.out.println("BLOOD-311");
 							query += "AND exam_lab_test.OUTCOME_TERM_ID = voc_cryo_type.ID " +
 							"AND voc_cryo_type.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
-						    break;
-						  case "BLOOD-312":
+						  }
+						  else if (examination_lab_test_obj.getTest_id().equals("BLOOD-312")) {
 							  tables += ", voc_cryo_type";
-							  System.out.println("BLOOD-310"); //voc_ana_pattern
+							  System.out.println("BLOOD-312"); //voc_ana_pattern
 							  where_clause += " AND exam_lab_test.OUTCOME_TERM_ID = voc_cryo_type.ID " +
 							  "AND voc_cryo_type.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
-						    break;
-						  case "BLOOD-521":
+						  }
+						  else if (examination_lab_test_obj.getTest_id().equals("BLOOD-521")) {
 							  tables += ", voc_ana_pattern";
 							  System.out.println("BLOOD-521");
 							  where_clause += " AND exam_lab_test.OUTCOME_TERM_ID = voc_ana_pattern.ID " +
 							  "AND voc_ana_pattern.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
-						    break;
-						  case "BLOOD-522":
+						  }
+						  else if (examination_lab_test_obj.getTest_id().equals("BLOOD-522")) {
 							  tables += ", voc_ana_pattern";
 							  System.out.println("BLOOD-522");
 							  where_clause += " AND exam_lab_test.OUTCOME_TERM_ID = voc_ana_pattern.ID " +
 							  "AND voc_ana_pattern.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
-						    break;
-						  case "BLOOD-523":
-							  query=query.replace("FROM patient","FROM patient, voc_ana_pattern");
-						    System.out.println("BLOOD-523"); //voc_ana_pattern
-						    query += "AND exam_lab_test.OUTCOME_TERM_ID = voc_ana_pattern.ID " +
+						  }
+						  else if (examination_lab_test_obj.getTest_id().equals("BLOOD-523")) {
+							  tables += ", voc_ana_pattern";
+							  System.out.println("BLOOD-523"); //voc_ana_pattern
+							  where_clause += "AND exam_lab_test.OUTCOME_TERM_ID = voc_ana_pattern.ID " +
 							" AND voc_ana_pattern.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
-						    break;
+						  }
 					  }
 					  
 					}
 					  
 					  	//query += "AND exam_lab_test.OUTCOME_TERM_ID = " +examination_lab_test_obj.getOutcome_term() +" ";
-				  };
+
 				  
 /*					  if(!(examination_lab_test_obj.getSample_period_of_time_interval_start_year() + examination_lab_test_obj.getSample_period_of_time_interval_start_month() + 
 						  examination_lab_test_obj.getSample_period_of_time_interval_start_day()).isEmpty()) {
