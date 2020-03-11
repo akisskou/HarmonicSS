@@ -33,15 +33,16 @@
 <h4>Body Mass Index</h4>
 <p>Normal weight: {"criterion":"demographics_weight", "body_mass_index":"BMI-02"}</p>
 <h4>Pregnancies</h4>
-<p>There was an abortion: {"criterion":"demographics_pregnancy", "outcome_coded_value":"PREG-OUT-300"}</p>
+<p>There was an abortion, conception before 2015: {"criterion":"demographics_pregnancy", "outcome_coded_value":"PREG-OUT-300", "conception_interval_end_year":"2015"}</p>
+<p>Single was born after 2013: {"criterion":"demographics_pregnancy", "outcome_coded_value":"PREG-OUT-100", "outcome_interval_start_year":"2013"}</p>
 <h4>Smoking Status</h4>
-<p>Active Smoker with more than 200 cigarettes each year: {"criterion":"lifestyle_smoking", "status_coded_value":"SMOK-STAT-01", "amount_unit":"UNITEXP-18", "amount_range_min_value":"200"}</p>
+<p>Active Smoker with more than 200 cigarettes each year, between 2005 and 2012: {"criterion":"lifestyle_smoking", "status_coded_value":"SMOK-STAT-01", "amount_unit":"UNITEXP-18", "amount_range_min_value":"200", "interval_start_year":"2005", "interval_end_year":"2012"}</p>
 <br>
 <h3>Examination</h3>
 <h4>Lab Tests</h4>
-<p>Presence of Anti-Ro/SSA: {"criterion":"examination_lab_test","test_id":"BLOOD-530","outcome_term":"CONFIRM-01"}
+<p>Presence of Anti-Ro/SSA between 2010 and 2017: {"criterion":"examination_lab_test","test_id":"BLOOD-530","outcome_term":"CONFIRM-01", "sample_period_of_time_interval_start_year":"2010", "sample_period_of_time_interval_end_year":"2017"}
 <p>Schrimer’s Test value was abnormal: {"criterion":"examination_lab_test","test_id":"OCULAR-01","outcome_assessment":"ASSESS-20"}</p>
-<p>Leukocytes was less than 3000 mm3 before 2015: {"criterion":"examination_lab_test","test_id":"BLOOD-120","outcome_amount_range_max_value":"3000","outcome_amount_unit":"UNITEXP-01","sample_period_of_time_until_year":"2015"}</p>
+<p>Leukocytes was less than 3000 mm3 before 2015: {"criterion":"examination_lab_test","test_id":"BLOOD-120","outcome_amount_range_max_value":"3000","outcome_amount_unit":"UNITEXP-01","sample_period_of_time_interval_end_year":"2015"}</p>
 <p>ANA pattern was Nucleolar: {"criterion":"examination_lab_test","test_id":"BLOOD-523","outcome_term":"ANA-PAT-03"}</p>
 <h4>Biopsy Tests</h4>
 <p>Minor Salivary Gland Greenspan Focus Score > 5: {"criterion":"examination_biopsy","biopsy_type":"SAL-BIO-20","test_id":"BIOPSY-21","outcome_amount_range_min_value":"1"}</p>
@@ -57,9 +58,12 @@
 <h3>Condition</h3>
 <h4>Symptoms/Signs</h4>
 <p>Diagnosed with dry mouth: {"criterion":"condition_symptom","sign_coded":"SYMPT-020"}</p>
+<p>Diagnosed with dry eyes between 2000 and 2008: {"criterion":"condition_symptom","sign_coded":"SYMPT-030","sign_date_interval_start_year":"2000", "sign_date_interval_end_year":"2008"}</p>
 <h4>Diseases</h4>
 <p>Diagnosed with cancer: {"criterion":"condition_diagnosis","condition":"COND-140000"}</p>
 <p>Diagnosed with cancer before 2015: {"criterion":"condition_diagnosis","condition":"COND-140000","date_until_year":"2014"}</p>
+<p>Diagnosed with Hematologic disease at lymph nodes: {"criterion":"condition_diagnosis","condition":"COND-110000","organ":"ORGAN-07","date_interval_start_year":"2013", "date_interval_end_year":"2016"}</p>
+<p>Diagnosed with Liver disease, stage II, grade 3: {"criterion":"condition_diagnosis","condition":"COND-021000","organ":"ORGAN-05", "stage":"STAGE-02", "performance_status":"PERFORM-03"}</p>
 <br>
 <h3>Intervention</h3>
 <h4>Medications/Drugs</h4>

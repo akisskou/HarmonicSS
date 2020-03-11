@@ -1,0 +1,98 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html" charset="ISO-8859-1">
+<title>Test Create Request</title>
+<style>
+body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; } 
+.header { background-color: #e6f2ff; text-align: center; padding-top: 10px; padding-bottom: 10px; } 
+#harmonicssLogo { height: 40px;  } 
+#iccsntuaLogo { height: 40px; padding-left: 20px; }
+</style>
+</head>
+<body>
+<div class='header'><img id='harmonicssLogo' src="IMG/HarmonicSS-Logo.png" alt="HarmonicSS Logo"><img id='iccsntuaLogo' src="IMG/ICCS-NTUA-Logo.png" alt="ICCS/NTUA Logo"></div>
+	<div class="container">
+		
+		<p><a href="home.html">Back to main menu</a></p>
+		
+		<p>Through this Web Page the user can create a <b>new</b> Patient Selection Request.</p>
+		<p>Provide the Formal Expression of all the inclusion and exclusion criteria in JSON formal.</p>
+		<p>e.g.: { "criterion" : "demographics_gender" , "gender" : "SEX-02" } <a href="CriteriaJsonExamples.html" target="_blank">View More Examples</a></p>
+		<p>The patient selection request should be executed in the given Cohorts.</p>
+		
+		<input type="text" id="username" placeholder="username" value="test1">
+		<input type="password" id="password" placeholder="password" value="1test12!">
+		<select id="cohortIDs" multiple="multiple">
+    		<option value="34">test1-chdb034</option>
+    		<option value="35">test2-chdb035</option>
+    		<option value="36">test3-chdb036</option>
+		</select><br><br>
+		<textarea id="jsonInclCriteria" rows="10" cols="100" placeholder="Inclusion criteria"></textarea><br><br>
+		<textarea id="jsonExclCriteria" rows="10" cols="100" placeholder="Exclusion criteria"></textarea><br><br>
+        <button id="mybutton" onclick="createRequest()">Create Request</button><br><br><br>
+        <div id="data">
+        </div>
+    </div>
+    
+    <!-- 4 include the jQuery library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>   
+	<script type="text/javascript">
+	
+	function createRequest() {
+		var username = document.getElementById("username");
+ 		var password = document.getElementById("password");
+ 		if (!(username && username.value.trim()) || !(password && password.value.trim())){
+			alert("Please enter username and password");
+			return false;
+		}
+ 		var cohortIDs = document.getElementById("cohortIDs");
+ 		var selected1 = [];
+ 	    for (var i = 0; i < cohortIDs.length; i++) {
+ 	        if (cohortIDs.options[i].selected) selected1.push(cohortIDs.options[i].value);
+ 	    }
+ 	    if(selected1.length==0){
+ 	    	alert("Please select at least one cohort");
+ 	    	return false;
+ 	    }
+		var jsonInclCriteria = document.getElementById("jsonInclCriteria");
+		var jsonExclCriteria = document.getElementById("jsonExclCriteria");
+ 		if (!(jsonInclCriteria && jsonInclCriteria.value.trim()) && !(jsonExclCriteria && jsonExclCriteria.value.trim())){
+			alert("Please enter at least one json criterion");
+			return false;
+		}
+ 		$('#data').html("<h4>Creating your request...</h4>");
+ 		document.getElementById("mybutton").disabled = true;
+		var HttpClient = function() {
+ 			this.get = function(aUrl, aCallback) {
+ 				var anHttpRequest = new XMLHttpRequest();
+ 				anHttpRequest.onreadystatechange = function() { 
+ 					if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+ 						aCallback(anHttpRequest.responseText);
+ 					}
+ 				anHttpRequest.open( "POST", aUrl, true ); 
+ 				anHttpRequest.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+ 				anHttpRequest.send(JSON.stringify({"username": username.value.trim(), "password": password.value.trim(), "cohortIDs": selected1, "jsonInclCriteria": jsonInclCriteria.value.trim(), "jsonExclCriteria": jsonExclCriteria.value.trim()})); 
+ 			}
+ 		}
+ 		
+ 		var theurl='TestCreateServlet';
+ 		
+ 		var client = new HttpClient();
+ 		client.get(theurl, function(response) { 
+ 			var response1 = JSON.parse(response);
+			if(response1['errorMessage']){
+				var htmldata = "<h4>"+response1.errorMessage+"</h4>";
+				$('#data').html(htmldata);
+			}
+			else{
+			var darId = response1.requestID;
+			var htmldata="<h4>Request ID: "+darId+"</h4>";
+			$('#data').html(htmldata);
+			}
+			document.getElementById("mybutton").disabled = false;
+			});
+	}
+	</script>
+</body>
+</html>
