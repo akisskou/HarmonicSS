@@ -410,7 +410,7 @@ public class CriterionsTestServlet extends HttpServlet {
 				  
 				  if(!crit_cond_symptom_obj.getStatement().isEmpty()){
 					  tables += ", voc_confirmation";
-					  where_clause += "AND cond_symptom.STMT_ID=voc_confirmation.ID " +
+					  where_clause += " AND cond_symptom.STMT_ID=voc_confirmation.ID " +
 				  				 "AND voc_confirmation.CODE='"+crit_cond_symptom_obj.getStatement() + "'";
 				  }
 				  
@@ -503,8 +503,26 @@ public class CriterionsTestServlet extends HttpServlet {
 				  //if(!crit_interv_medication_obj.getVoc_pharm_drug_BROADER_TERM_ID().isEmpty()) query += "AND voc_pharm_drug.BROADER_TERM_ID = '"+crit_interv_medication_obj.getVoc_pharm_drug_BROADER_TERM_ID()+"' "; //Do we need the Broader_Term_ID? (`BROADER_TERM_ID`) REFERENCES `voc_pharm_drug` (`ID`)
 					  
 				  if(!crit_interv_medication_obj.getDosage_amount_exact_value().isEmpty()) {
-					  tables += ", dt_amount";
-					  where_clause += " AND interv_medication.DOSSAGE_ID = dt_amount.ID AND dt_amount.VALUE ='" +crit_interv_medication_obj.getDosage_amount_exact_value()+"'";
+					  tables += ", dt_amount, voc_unit";
+					  where_clause += " AND interv_medication.DOSAGE_ID = dt_amount.ID AND dt_amount.VALUE ='" +crit_interv_medication_obj.getDosage_amount_exact_value()+"' "+
+							  "AND dt_amount.UNIT_ID=voc_unit.ID " +
+							  	"AND voc_unit.CODE ='"+crit_interv_medication_obj.getDOSAGE_ID_dt_amount_VALUE()+"'";;
+				  }
+				  
+				  if(!crit_interv_medication_obj.getDosage_amount_range_min_value().isEmpty()){
+					  	tables += ", dt_amount, voc_unit";
+					  where_clause += " AND interv_medication.DOSAGE_ID = dt_amount.ID AND dt_amount.value>=" + crit_interv_medication_obj.getDosage_amount_range_min_value();
+					  if(!crit_interv_medication_obj.getDosage_amount_range_max_value().isEmpty()){
+						  where_clause += "AND dt_amount.value<=" + crit_interv_medication_obj.getDosage_amount_range_max_value();
+					  }
+					  where_clause += " AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_interv_medication_obj.getDOSAGE_ID_dt_amount_VALUE() + "'";
+					  
+				  }
+				  
+				  else if(!crit_interv_medication_obj.getDosage_amount_range_max_value().isEmpty()){
+					  	tables += ", dt_amount, voc_unit";
+					  where_clause += " AND interv_medication.DOSAGE_ID = dt_amount.ID AND dt_amount.value<=" + crit_interv_medication_obj.getDosage_amount_range_max_value() + " AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_interv_medication_obj.getDOSAGE_ID_dt_amount_VALUE() + "'";
+					  
 				  }
 				  
 				  if(!(crit_interv_medication_obj.getMedication_exact_date_year()).isEmpty()) {	
@@ -530,7 +548,7 @@ public class CriterionsTestServlet extends HttpServlet {
 				  
 				  if(!crit_interv_medication_obj.getStatement().isEmpty()) {
 					  tables += ", voc_confirmation";
-					  where_clause += "AND interv_medication.STMT_ID=voc_confirmation.ID AND voc_confirmation.CODE='"+crit_interv_medication_obj.getStatement() + "'";
+					  where_clause += " AND interv_medication.STMT_ID=voc_confirmation.ID AND voc_confirmation.CODE='"+crit_interv_medication_obj.getStatement() + "'";
 				  }
 				  
 				  where_clause += " AND interv_medication.STMT_ID=1";
@@ -541,9 +559,13 @@ public class CriterionsTestServlet extends HttpServlet {
 			  
 			  case "intervention_chemotherapy": { //Check if user provided the info of all the fields 
 				  intervention_chemotherapy  crit_interv_chemotherapy_obj =  (intervention_chemotherapy)current_Criterion;
-				  String tables = "patient, interv_chemotherapy, voc_confirmation AS conf_1";
-				  String where_clause = "patient.ID = interv_chemotherapy.PATIENT_ID AND interv_chemotherapy.DUE_TO_PSS_ID = conf_1.ID AND " + Make_OR_of_CODES("conf_1.CODE", crit_interv_chemotherapy_obj.getReason());
-				 
+				  String tables = "patient, interv_chemotherapy";
+				  String where_clause = "patient.ID = interv_chemotherapy.PATIENT_ID";
+				  
+				  if(!crit_interv_chemotherapy_obj.getReason().isEmpty()) {
+					  tables += ", voc_confirmation AS conf_1";
+					  where_clause += " AND interv_chemotherapy.DUE_TO_PSS_ID = conf_1.ID AND " + Make_OR_of_CODES("conf_1.CODE", crit_interv_chemotherapy_obj.getReason());
+				  }
 				  
 				  if(!(crit_interv_chemotherapy_obj.getChem_exact_date_year()).isEmpty()) {	
 					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
@@ -551,7 +573,7 @@ public class CriterionsTestServlet extends HttpServlet {
 					  			crit_interv_chemotherapy_obj.getChem_exact_date_month(), crit_interv_chemotherapy_obj.getChem_exact_date_day(),
 					  			crit_interv_chemotherapy_obj.getChem_exact_date_year(), crit_interv_chemotherapy_obj.getChem_exact_date_month(),
 					  			crit_interv_chemotherapy_obj.getChem_exact_date_day()); 						  
-					} else if(!(crit_interv_chemotherapy_obj.getChem_period_end_year()).isEmpty()) {
+					} else if(!(crit_interv_chemotherapy_obj.getChem_period_begin_year()).isEmpty() || !(crit_interv_chemotherapy_obj.getChem_period_end_year()).isEmpty()) {
 						tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
 						where_clause += Make_begin_end_period_query (mode,"interv_chemotherapy.PERIOD_ID", "dt_date1", "dt_date2", crit_interv_chemotherapy_obj.getChem_period_begin_year(), 
 								crit_interv_chemotherapy_obj.getChem_period_begin_month(), crit_interv_chemotherapy_obj.getChem_period_begin_day(),
@@ -579,8 +601,13 @@ public class CriterionsTestServlet extends HttpServlet {
 			  case "intervention_surgery": { //Check if user provided the info of all the fields 
 				  intervention_surgery  crit_interv_surgery_obj =  (intervention_surgery)current_Criterion;
 				  
-				  String tables = "patient, interv_Surgery, voc_confirmation AS conf_1";
-				  String where_clause = "patient.ID = interv_Surgery.PATIENT_ID AND interv_Surgery.DUE_TO_PSS_ID = conf_1.ID AND conf_1.CODE= '"+crit_interv_surgery_obj.getReason()+"'";
+				  String tables = "patient, interv_surgery";
+				  String where_clause = "patient.ID = interv_surgery.PATIENT_ID";
+				  
+				  if(!crit_interv_surgery_obj.getReason().isEmpty()) {
+					  tables += ", voc_confirmation AS conf_1";
+					  where_clause += " AND interv_surgery.DUE_TO_PSS_ID = conf_1.ID AND "+Make_OR_of_CODES("conf_1.CODE", crit_interv_surgery_obj.getReason());
+				  }
 				  
 				  if(!(crit_interv_surgery_obj.getSurgery_exact_date_year()).isEmpty()) {
 					  tables += ", dt_date";
@@ -821,35 +848,34 @@ public class CriterionsTestServlet extends HttpServlet {
 				  
 			  
 				  if(!examination_biopsy_obj.getOutcome_amount_exact_value().isEmpty()) { // [OUTCOME_AMOUNT]
-					  tables += ", dt_amount"; //, voc_unit";
-					  where_clause += "AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE = '"+examination_biopsy_obj.getOutcome_amount_exact_value()+"' " /* +
-					  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
-					  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' "*/;
+					  tables += ", dt_amount, voc_unit";
+					  where_clause += " AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE = '"+examination_biopsy_obj.getOutcome_amount_exact_value()+"' " +
+							  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
+							  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' ";
+					  
 				  } else
 				  
 				  if(!examination_biopsy_obj.getOutcome_amount_range_min_value().isEmpty()&&!examination_biopsy_obj.getOutcome_amount_range_max_value().isEmpty()) { // [OUTCOME_AMOUNT]
-					  tables += ", dt_amount"; //, voc_unit";
-					  where_clause += "AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE < '"+examination_biopsy_obj.getOutcome_amount_range_max_value()+"' " +
-					  	"AND dt_amount.VALUE > '"+examination_biopsy_obj.getOutcome_amount_range_min_value()+"' "/* +
+					  tables += ", dt_amount, voc_unit";	
+					  where_clause += " AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE <= '"+examination_biopsy_obj.getOutcome_amount_range_max_value()+"' " +
+					  	"AND dt_amount.VALUE >= '"+examination_biopsy_obj.getOutcome_amount_range_min_value()+"' " +
 					  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
-					  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' "*/;
+					  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' ";
 				  } else
 					  
 				  if(examination_biopsy_obj.getOutcome_amount_range_min_value().isEmpty()&&!examination_biopsy_obj.getOutcome_amount_range_max_value().isEmpty()) { // [OUTCOME_AMOUNT]
-					  tables += ", dt_amount"; //, voc_unit";	
-					  where_clause += "AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE < '"+examination_biopsy_obj.getOutcome_amount_range_max_value()+"' "/* +
-					  	//"AND dt_amount.VALUE > '"+examination_lab_test_obj.getOutcome_amount_range_min_value()+"' " +
+					  tables += ", dt_amount, voc_unit";	
+					  where_clause += " AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE <= '"+examination_biopsy_obj.getOutcome_amount_range_max_value()+"' " +
 					  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
-					  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' "*/;
-					  	System.out.println("Mpikame max value amount.");
+					  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' ";
 				  } else
 					  
 				  if(!examination_biopsy_obj.getOutcome_amount_range_min_value().isEmpty()&&examination_biopsy_obj.getOutcome_amount_range_max_value().isEmpty()) { // [OUTCOME_AMOUNT]
-					  tables += ", dt_amount"; //, voc_unit";	
-					  where_clause += "AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID " + //AND dt_amount.VALUE < '"+examination_lab_test_obj.getOutcome_amount_range_max_value()+"' 
-					  	"AND dt_amount.VALUE > '"+examination_biopsy_obj.getOutcome_amount_range_min_value()+"' "/* +
+					  tables += ", dt_amount, voc_unit";
+					  where_clause += " AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID " + //AND dt_amount.VALUE < '"+examination_lab_test_obj.getOutcome_amount_range_max_value()+"' 
+					  	"AND dt_amount.VALUE >= '"+examination_biopsy_obj.getOutcome_amount_range_min_value()+"' " +
 					  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
-					  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' "*/;
+					  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' ";
 				  }
 					  					  
 				  //TODO NORMAL_RANGE  does it check if the value belongs in these two limits.		  
@@ -992,11 +1018,11 @@ public class CriterionsTestServlet extends HttpServlet {
 				  
 				  //TODO NORMAL_RANGE  does it check if the value belongs in these two limits.		  
 				  if(!(examination_questionnaire_score_obj.getNormal_range_value()).isEmpty()) {
-					  tables += ", exam_lab_test, dt_amount_range, voc_unit";
-					  where_clause += " AND exam_lab_test.NORMAL_RANGE_ID = dt_amount_range.ID " +
-					  	"AND dt_amount_range.VALUE1 <= '"+examination_questionnaire_score_obj.getNormal_range_value()+"' " +
-					  	"AND dt_amount_range.VALUE2 >= '"+examination_questionnaire_score_obj.getNormal_range_value()+"' " +
-					    "AND dt_amount_range.UNIT_ID = voc_unit.ID AND voc_unit.CODE='"+examination_questionnaire_score_obj.getUnit()+"' ";
+					  tables += ", dt_int_range";//, voc_unit";
+					  where_clause += " AND exam_questionnaire_score.NORMAL_RANGE_ID = dt_int_range.ID " +
+					  	"AND dt_int_range.INT1 <= '"+examination_questionnaire_score_obj.getNormal_range_value()+"' " +
+					  	"AND dt_int_range.INT2 >= '"+examination_questionnaire_score_obj.getNormal_range_value()+"' ";/* +
+					    "AND dt_int_range.UNIT_ID = voc_unit.ID AND voc_unit.CODE='"+examination_questionnaire_score_obj.getUnit()+"' ";*/
 				  };
 				  
 				  if(!examination_questionnaire_score_obj.getOther_term().isEmpty()) {  //TODO check value
@@ -1501,7 +1527,7 @@ public class CriterionsTestServlet extends HttpServlet {
         		}
         		break;
         		case "intervention_surgery": { 
-        			query = "SELECT * FROM intervention_surgery";
+        			query = "SELECT * FROM interv_surgery";
         			termAndSubterms = "Search for surgery data";
         		}
         		break;

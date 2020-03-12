@@ -196,11 +196,11 @@ public class Intermediate_Layer {
 		if(!input_JSON.contains("\"period_of_time_exact_month\":")) added_elements+="\"period_of_time_exact_month\":\"\",";
 		if(!input_JSON.contains("\"period_of_time_exact_day\":")) added_elements+="\"period_of_time_exact_day\":\"\",";
 		
-		if(!input_JSON.contains(" \"period_of_time_interval_start_year\":")) added_elements+="\"period_of_time_interval_start_year\":\"\",";
+		if(!input_JSON.contains("\"period_of_time_interval_start_year\":")) added_elements+="\"period_of_time_interval_start_year\":\"\",";
 		if(!input_JSON.contains("\"period_of_time_interval_start_month\":")) added_elements+="\"period_of_time_interval_start_month\":\"\",";
 		if(!input_JSON.contains("\"period_of_time_interval_start_day\":")) added_elements+="\"period_of_time_interval_start_day\":\"\",";
 		
-		if(!input_JSON.contains(" \"period_of_time_interval_end_year\":")) added_elements+="\"period_of_time_interval_end_year\":\"\",";
+		if(!input_JSON.contains("\"period_of_time_interval_end_year\":")) added_elements+="\"period_of_time_interval_end_year\":\"\",";
 		if(!input_JSON.contains("\"period_of_time_interval_end_month\":")) added_elements+="\"period_of_time_interval_end_month\":\"\",";
 		if(!input_JSON.contains("\"period_of_time_interval_end_day\":")) added_elements+=" \"period_of_time_interval_end_day\":\"\",";
 		
@@ -306,7 +306,7 @@ public class Intermediate_Layer {
 		
 		if(!input_JSON.contains("\"conception_until_year\":")) added_elements+="\"conception_until_year\":\"\",";
 		if(!input_JSON.contains("\"conception_until_month\":")) added_elements+="\"conception_until_month\":\"\",";
-		if(!input_JSON.contains(" \"conception_until_day\":")) added_elements+="\"conception_until_day\":\"\",";
+		if(!input_JSON.contains("\"conception_until_day\":")) added_elements+="\"conception_until_day\":\"\",";
 		
 		if(!input_JSON.contains("\"outcome_exact_year\":")) added_elements+="\"outcome_exact_year\":\"\",";
 		if(!input_JSON.contains("\"outcome_exact_month\":")) added_elements+="\"outcome_exact_month\":\"\",";
@@ -321,7 +321,7 @@ public class Intermediate_Layer {
 		if(!input_JSON.contains("\"outcome_interval_end_day\":")) added_elements+="\"outcome_interval_end_day\":\"\",";
 		
 		if(!input_JSON.contains("\"outcome_until_year\":")) added_elements+=" \"outcome_until_year\":\"\",";
-		if(!input_JSON.contains(" \"outcome_until_month\":")) added_elements+="\"outcome_until_month\":\"\",";
+		if(!input_JSON.contains("\"outcome_until_month\":")) added_elements+="\"outcome_until_month\":\"\",";
 		if(!input_JSON.contains("\"outcome_until_day\":")) added_elements+="\"outcome_until_day\":\"\",";
 		
 		String result= input_JSON.replace("\"}", "\","+added_elements+"}");
