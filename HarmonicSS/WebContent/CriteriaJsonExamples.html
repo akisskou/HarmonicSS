@@ -45,15 +45,19 @@
 <p>Leukocytes was less than 3000 mm3 before 2015: {"criterion":"examination_lab_test","test_id":"BLOOD-120","outcome_amount_range_max_value":"3000","outcome_amount_unit":"UNITEXP-01","sample_period_of_time_interval_end_year":"2015"}</p>
 <p>ANA pattern was Nucleolar: {"criterion":"examination_lab_test","test_id":"BLOOD-523","outcome_term":"ANA-PAT-03"}</p>
 <h4>Biopsy Tests</h4>
-<p>Minor Salivary Gland Greenspan Focus Score > 5: {"criterion":"examination_biopsy","biopsy_type":"SAL-BIO-20","test_id":"BIOPSY-21","outcome_amount_range_min_value":"1"}</p>
+<p>Minor Salivary Gland, Greenspan Focus Score > 1: {"criterion":"examination_biopsy","biopsy_type":"SAL-BIO-20","test_id":"BIOPSY-21","outcome_amount_range_min_value":"1"}</p>
+<p>Labial Gland, Greenspan Focus Score between 1 and 2 (normal): {"criterion":"examination_biopsy","biopsy_type":"SAL-BIO-21","test_id":"BIOPSY-21","outcome_amount_range_min_value":"1", "outcome_amount_range_max_value":"2", "outcome_amount_unit":"UNITEXP-19","assessment":"ASSESS-10"}</p>
+<p>Labial Gland, Germinal Centers, 7 IU/ml in normal range, between 2010 and 2017: {"criterion":"examination_biopsy", "biopsy_type":"SAL-BIO-21", "test_id":"BIOPSY-11", "normal_range_value":"7", "outcome_amount_unit":"UNITEXP-06", "biopsy_period_of_time_interval_start_year":"2010", "biopsy_period_of_time_interval_end_year":"2017"}</p>
 <h4>Imaging Tests</h4>
-<p>MRI of Major Salivary Gland (abnormal):{"criterion":"examination_medical_imaging_test","test_id":"IMG-14","assessment":"ASSESS-20"}</p>
+<p>MRI of Major Salivary Gland between 2010 and 2017(abnormal):{"criterion":"examination_medical_imaging_test", "test_id":"IMG-14", "assessment":"ASSESS-20", "test_period_of_time_interval_start_year":"2010", "test_period_of_time_interval_end_year":"2017"}</p>
 <h4>Questionnaire Score</h4>
-<p>ESSDAI score: {"criterion":"examination_questionnaire_score","score":"QUEST-010"}</p>
+<p>ESSDAI score = 2: {"criterion":"examination_questionnaire_score","score":"QUEST-010", "value":"2"}</p>
+<p>ESSDAI score 8 is in normal range: {"criterion":"examination_questionnaire_score","score":"QUEST-010", "normal_range_value":"8"}</p>
 <h4>ESSDAI Domain</h4>
 <p>Constitutional ESSDAI domain activity level HIGH before 2014: {"criterion":"examination_essdai_domain","domain":"ESSDAI-01","activity_level":"ACTLVL-03","questionnaire_period_of_time_until_year":"2014"}</p>
+<p>Pulmonary ESSDAI domain with no activity level between 2010 and 2018:{"criterion":"examination_essdai_domain","domain":"ESSDAI-06","activity_level":"ACTLVL-00", "questionnaire_period_of_time_interval_start_year":"2010","questionnaire_period_of_time_interval_end_year":"2018"}
 <h4>CACI Condition</h4>
-<p>Caci condition: {"criterion":"examination_caci_condition","caci":"CACI-06"}</p>
+<p>Caci condition: {"criterion":"examination_caci_condition","caci":"CACI-06","value":"CONFIRM-01"}</p>
 <br>
 <h3>Condition</h3>
 <h4>Symptoms/Signs</h4>
@@ -69,5 +73,10 @@
 <h4>Medications/Drugs</h4>
 <p>Received Glucocorticoids: {"criterion":"intervention_medication","pharmacological_drug":"CHEM-10000"}</p>
 <p>Received Glucocorticoids in the past (before now): {"criterion":"intervention_medication","pharmacological_drug":"CHEM-10000","period_of_time_until_year":"2019"}</p>
+<p>Received Conventional Disease-modifying Antirheumatic Drug (cDMARD), minimum 10 mg/day, between 2005 and 2010: {"criterion":"intervention_medication","pharmacological_drug":"CHEM-21000", "dosage_amount_range_min_value":"10", "dosage_amount_unit":"UNITEXP-21", "period_of_time_interval_start_year":"2005", "period_of_time_interval_end_year":"2010"}</p>
+<h4>Chemotherapies</h4>
+<p>Chemotherapy between 2010 and 2015: {"criterion":"intervention_chemotherapy", "reason":"CONFIRM-01", "period_of_time_interval_start_year":"2010", "period_of_time_interval_end_year":"2015"}</p>
+<h4>Surgeries</h4>
+<p>Surgery between 2010 and 2016: {"criterion":"intervention_surgery", "reason":"CONFIRM-01", "procedure_date_interval_start_year":"2010", "procedure_date_interval_end_year":"2016"}</p>
 </body>
 </html>
