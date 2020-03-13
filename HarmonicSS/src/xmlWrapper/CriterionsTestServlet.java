@@ -1391,7 +1391,7 @@ public class CriterionsTestServlet extends HttpServlet {
 			
 			try { System.out.println("We are ready to execute the query: "+query);
 				results_of_one_Criterion = DBServiceCRUD.getDataFromDB(query);
-				//System.out.println("We executed the query: "+query +"\nAnd we had the result: "+results_of_one_Criterion);
+				System.out.println("We executed the query: "+query +"\nAnd we had the result: "+results_of_one_Criterion);
 			} catch (SQLException e) {
 				//LOGGER.log(Level.SEVERE,"Bad type query or arguments: "+query,true);
 				//flush_handler();
@@ -1821,6 +1821,7 @@ public class CriterionsTestServlet extends HttpServlet {
 	protected synchronized void doPost(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
 		// TODO Auto-generated method stub
 		//doGet(request, response);
+		System.out.println("Proccess started");
 		cohortResponseList.clear();
 		patients_found = true;
 		all = new JSONObject();
@@ -1829,6 +1830,7 @@ public class CriterionsTestServlet extends HttpServlet {
     	Properties prop = new Properties();
         // load a properties file
         prop.load(input);
+        System.out.println("Properties file read");
     	//Scanner s1 = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/infos.txt"))));
 		//String[] line = s1.nextLine().split(":");
 	    //documentIRI = IRI.create("file:///C:/Users/Jason/Desktop/", "HarmonicSS-Reference-Model+Vocabularies-v.0.9.owl");
@@ -1838,6 +1840,7 @@ public class CriterionsTestServlet extends HttpServlet {
 	        ontology = manager.loadOntologyFromOntologyDocument(documentIRI);
             findClasses();
             findSubclasses();
+            System.out.println("OWL file read");
 		}
 		catch (OWLOntologyCreationException e) {
 			all.put("error_message", "Could not find owl file. Check file path and try again.");
