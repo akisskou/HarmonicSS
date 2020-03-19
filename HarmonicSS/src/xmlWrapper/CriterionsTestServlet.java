@@ -308,9 +308,14 @@ public class CriterionsTestServlet extends HttpServlet {
 			  case "lifestyle_smoking": { //Check if user provided the info of all the fields 
 				  lifestyle_smoking crit_lifestyle_smoking_obj =  (lifestyle_smoking)current_Criterion;
 				  
-				  String tables = "patient, lifestyle_smoking, voc_smoking_status";
-				  String where_clause = "patient.ID = lifestyle_smoking.PATIENT_ID AND lifestyle_smoking.STATUS_ID = voc_smoking_status.ID AND " + Make_OR_of_CODES("voc_smoking_status.CODE", crit_lifestyle_smoking_obj.getVoc_smoking_status_CODE());  			  
+				  String tables = "patient, lifestyle_smoking";
+				  String where_clause = "patient.ID = lifestyle_smoking.PATIENT_ID";  			  
 
+				  if(!crit_lifestyle_smoking_obj.getVoc_smoking_status_CODE().isEmpty()) {
+						 tables += ", voc_smoking_status";
+						 where_clause += " AND lifestyle_smoking.STATUS_ID = voc_smoking_status.ID AND "+Make_OR_of_CODES("voc_smoking_status.CODE", crit_lifestyle_smoking_obj.getVoc_smoking_status_CODE());
+					 }
+				  
 				  if(!(crit_lifestyle_smoking_obj.getSmoking_exact_date_year()).isEmpty()) {
 					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
 					  where_clause += Make_begin_end_period_query (mode,"lifestyle_smoking.PERIOD_ID", "dt_date1", "dt_date2", crit_lifestyle_smoking_obj.getSmoking_exact_date_year(), 
@@ -376,16 +381,25 @@ public class CriterionsTestServlet extends HttpServlet {
 				  condition_symptom crit_cond_symptom_obj =  (condition_symptom)current_Criterion;
 				  
 				  String tables = "patient, cond_symptom, voc_symptom_sign";
-				  String where_clause = "patient.ID = cond_symptom.PATIENT_ID AND cond_symptom.CONDITION_ID = voc_symptom_sign.ID AND (" + Make_OR_of_CODES("voc_symptom_sign.CODE", crit_cond_symptom_obj.getVoc_symptom_sign_CODE());
-				  String codes[] = crit_cond_symptom_obj.getVoc_symptom_sign_CODE().split(",");
-				  for(int k=0; k<codes.length; k++) {
-					  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
-					  String[] allNarrowTerms = narrowTerms.split(",");
-					  for(int c=1; c<allNarrowTerms.length; c++) {
-						  where_clause += " OR " + Make_OR_of_CODES("voc_symptom_sign.CODE", allNarrowTerms[c]);
+				  String where_clause = "patient.ID = cond_symptom.PATIENT_ID";
+						  
+				if(!crit_cond_symptom_obj.getVoc_symptom_sign_CODE().isEmpty()) {
+					tables += ", voc_symptom_sign";
+					where_clause += " AND cond_symptom.CONDITION_ID = voc_symptom_sign.ID AND (" + Make_OR_of_CODES("voc_symptom_sign.CODE", crit_cond_symptom_obj.getVoc_symptom_sign_CODE());
+					String codes[] = crit_cond_symptom_obj.getVoc_symptom_sign_CODE().split(",");
+					  for(int k=0; k<codes.length; k++) {
+						  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
+						  String[] allNarrowTerms = narrowTerms.split(",");
+						  for(int c=1; c<allNarrowTerms.length; c++) {
+							  where_clause += " OR " + Make_OR_of_CODES("voc_symptom_sign.CODE", allNarrowTerms[c]);
+						  }
 					  }
-				  }
-					where_clause += ")";
+						where_clause += ")";
+				}
+				  
+				  
+						  
+				  
 				  /*query = "SELECT DISTINCT patient.UID " + 
 						  "FROM patient, cond_symptom, voc_symptom_sign, dt_date, voc_direction, voc_confirmation " + 
 						  "WHERE patient.ID = cond_symptom.PATIENT_ID " + 
@@ -422,17 +436,22 @@ public class CriterionsTestServlet extends HttpServlet {
 			  case "condition_diagnosis": { //Check if user provided the info of all the fields 
 				  condition_diagnosis condition_diagnosis_obj =  (condition_diagnosis)current_Criterion;
 				  
-				  String tables = "patient, cond_diagnosis, voc_medical_condition";
-				  String where_clause = "patient.ID = cond_diagnosis.PATIENT_ID AND cond_diagnosis.CONDITION_ID = voc_medical_condition.ID AND (" + Make_OR_of_CODES("voc_medical_condition.CODE", condition_diagnosis_obj.getCondition());
-				  String codes[] = condition_diagnosis_obj.getCondition().split(",");
-				  for(int k=0; k<codes.length; k++) {
-					  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
-					  String[] allNarrowTerms = narrowTerms.split(",");
-					  for(int c=1; c<allNarrowTerms.length; c++) {
-						  where_clause += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
+				  String tables = "patient, cond_diagnosis";
+				  String where_clause = "patient.ID = cond_diagnosis.PATIENT_ID";
+				  
+				  if(!condition_diagnosis_obj.getCondition().isEmpty()) {
+					  tables += ", voc_medical_condition";
+					  where_clause += " AND cond_diagnosis.CONDITION_ID = voc_medical_condition.ID AND (" + Make_OR_of_CODES("voc_medical_condition.CODE", condition_diagnosis_obj.getCondition());
+					  String codes[] = condition_diagnosis_obj.getCondition().split(",");
+					  for(int k=0; k<codes.length; k++) {
+						  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
+						  String[] allNarrowTerms = narrowTerms.split(",");
+						  for(int c=1; c<allNarrowTerms.length; c++) {
+							  where_clause += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
+						  }
 					  }
+					  where_clause += ")";
 				  }
-				  where_clause += ")";
 				  
 				  if(!condition_diagnosis_obj.getStage().isEmpty()) {  // [OUTCOME_ASSESSMENT]
 					  tables += ", voc_lymphoma_stage";
@@ -488,17 +507,24 @@ public class CriterionsTestServlet extends HttpServlet {
 			  
 			  case "intervention_medication": { //Check if user provided the info of all the fields 
 				  intervention_medication  crit_interv_medication_obj =  (intervention_medication )current_Criterion;
-				  String tables = "patient, interv_medication, voc_pharm_drug";
-				  String where_clause = "patient.ID = interv_medication.PATIENT_ID AND interv_medication.MEDICATION_ID = voc_pharm_drug.ID AND (" + Make_OR_of_CODES("voc_pharm_drug.CODE", crit_interv_medication_obj.getVoc_pharm_drug_CODE());
-				  String codes[] = crit_interv_medication_obj.getVoc_pharm_drug_CODE().split(",");
-				  for(int k=0; k<codes.length; k++) {
-					  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
-					  String[] allNarrowTerms = narrowTerms.split(",");
-					  for(int c=1; c<allNarrowTerms.length; c++) {
-						  where_clause += " OR " + Make_OR_of_CODES("voc_pharm_drug.CODE", allNarrowTerms[c]);
+				  String tables = "patient, interv_medication";
+				  String where_clause = "patient.ID = interv_medication.PATIENT_ID";
+				  
+				  if(!crit_interv_medication_obj.getVoc_pharm_drug_CODE().isEmpty()) {
+					  tables += ", voc_pharm_drug";
+					  where_clause += " AND interv_medication.MEDICATION_ID = voc_pharm_drug.ID AND (" + Make_OR_of_CODES("voc_pharm_drug.CODE", crit_interv_medication_obj.getVoc_pharm_drug_CODE());
+					  String codes[] = crit_interv_medication_obj.getVoc_pharm_drug_CODE().split(",");
+					  for(int k=0; k<codes.length; k++) {
+						  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
+						  String[] allNarrowTerms = narrowTerms.split(",");
+						  for(int c=1; c<allNarrowTerms.length; c++) {
+							  where_clause += " OR " + Make_OR_of_CODES("voc_pharm_drug.CODE", allNarrowTerms[c]);
+						  }
 					  }
+					  where_clause += ")";
 				  }
-				  where_clause += ")";
+				  
+				  
 				  
 				  //if(!crit_interv_medication_obj.getVoc_pharm_drug_BROADER_TERM_ID().isEmpty()) query += "AND voc_pharm_drug.BROADER_TERM_ID = '"+crit_interv_medication_obj.getVoc_pharm_drug_BROADER_TERM_ID()+"' "; //Do we need the Broader_Term_ID? (`BROADER_TERM_ID`) REFERENCES `voc_pharm_drug` (`ID`)
 					  
@@ -639,25 +665,23 @@ public class CriterionsTestServlet extends HttpServlet {
 			  case "examination_lab_test": { //Check if user provided the info of all the fields 
 				  examination_lab_test  examination_lab_test_obj =  (examination_lab_test)current_Criterion;
 				  
-				  String tables = "patient, exam_lab_test, voc_lab_test";
-				  String where_clause = "patient.ID = exam_lab_test.PATIENT_ID AND exam_lab_test.TEST_ID=voc_lab_test.ID AND (" + Make_OR_of_CODES("voc_lab_test.CODE", examination_lab_test_obj.getTest_id());
-				  String codes[] = examination_lab_test_obj.getTest_id().split(",");
-				  for(int k=0; k<codes.length; k++) {
-					  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
-					  String[] allNarrowTerms = narrowTerms.split(",");
-					  for(int c=1; c<allNarrowTerms.length; c++) {
-						  where_clause += " OR " + Make_OR_of_CODES("voc_lab_test.CODE", allNarrowTerms[c]);
+				  String tables = "patient, exam_lab_test";
+				  String where_clause = "patient.ID = exam_lab_test.PATIENT_ID";
+				  
+				  if(!examination_lab_test_obj.getTest_id().isEmpty()) {
+					  tables += ", voc_lab_test";
+					  where_clause +=  " AND exam_lab_test.TEST_ID=voc_lab_test.ID AND (" + Make_OR_of_CODES("voc_lab_test.CODE", examination_lab_test_obj.getTest_id());
+					  String codes[] = examination_lab_test_obj.getTest_id().split(",");
+					  for(int k=0; k<codes.length; k++) {
+						  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
+						  String[] allNarrowTerms = narrowTerms.split(",");
+						  for(int c=1; c<allNarrowTerms.length; c++) {
+							  where_clause += " OR " + Make_OR_of_CODES("voc_lab_test.CODE", allNarrowTerms[c]);
+						  }
 					  }
+					  where_clause += ") ";
+				  
 				  }
-				  where_clause += ") ";
-					
-				  /*query = "SELECT DISTINCT patient.UID " +
-						  "FROM patient, exam_lab_test, voc_lab_test " +//, exam_lab_test, voc_lab_test, dt_amount, voc_unit, voc_assessment, dt_amount_range, dt_date " + //, voc_direction interv_Surgery, dt_date, voc_direction, voc_confirmation
-						  "WHERE patient.ID = exam_lab_test.PATIENT_ID AND " + 
-						  "exam_lab_test.TEST_ID=voc_lab_test.ID " +
-						  //"voc_lab_test.CODE='"+crit_exam_lab_test_obj.getTEST_ID_voc_lab_test_CODE()+"' ";
-				  		  "AND " + Make_OR_of_CODES("voc_lab_test.CODE", examination_lab_test_obj.getTest_id());  // [TEST_ID]
-				  System.out.println("We received: "+examination_lab_test_obj.getNormal_range_value());*/
 				  
 				  if(!examination_lab_test_obj.getOutcome_amount_exact_value().isEmpty()) { // [OUTCOME_AMOUNT]
 					  tables += ", dt_amount, voc_unit";
@@ -716,66 +740,45 @@ public class CriterionsTestServlet extends HttpServlet {
 				  
 				  if(!(examination_lab_test_obj.getOutcome_term()).isEmpty()) {
 					  String outcome_term= examination_lab_test_obj.getOutcome_term();
-					  if (outcome_term.equals("CONFIRM-01")||outcome_term.equals("CONFIRM-02")) {
-						  tables += ", voc_confirmation";
-						  where_clause += " AND exam_lab_test.OUTCOME_TERM_ID = voc_confirmation.ID " +
-								    "AND voc_confirmation.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
-						  		//= " +examination_lab_test_obj.getOutcome_term() +" ";
+					  String codes[] = outcome_term.split(",");
+					  boolean conf = false;
+					  boolean cryo = false;
+					  boolean ana = false;
+					  for(int j=0; j<codes.length; j++) {
+						  codes[j] = codes[j].trim();
+						  if (codes[j].equals("CONFIRM-01")||codes[j].equals("CONFIRM-02")) {
+							  if(!conf) {
+								  conf = true;
+								  tables += ", voc_confirmation";
+							  }
+							  if(j==0) where_clause += " AND (exam_lab_test.OUTCOME_TERM_ID = voc_confirmation.ID ";
+							  else where_clause += " OR exam_lab_test.OUTCOME_TERM_ID = voc_confirmation.ID ";
+							  where_clause += "AND voc_confirmation.CODE='"+codes[j] + "'";
+						  }
+						  else if(codes[j].equals("CRYO-01")||codes[j].equals("CRYO-02")||codes[j].equals("CRYO-03")){
+							  if(!cryo) {
+								  cryo = true;
+								  tables += ", voc_cryo_type";
+							  }
+							  if(j==0) where_clause += " AND (exam_lab_test.OUTCOME_TERM_ID = voc_cryo_type.ID ";  
+							  else where_clause += " OR exam_lab_test.OUTCOME_TERM_ID = voc_cryo_type.ID "; 
+							  where_clause += "AND voc_cryo_type.CODE='"+codes[j]+ "'";
+						  }
+						  else {
+							  if(!ana) {
+								  ana = true;
+								  tables += ", voc_ana_pattern";
+							  }
+							  if(j==0) where_clause += " AND (exam_lab_test.OUTCOME_TERM_ID = voc_ana_pattern.ID ";
+							  else where_clause += " OR exam_lab_test.OUTCOME_TERM_ID = voc_ana_pattern.ID ";
+							  where_clause += "AND voc_ana_pattern.CODE='"+codes[j]+ "'";
+						  }
+							
 					  }
-					  else {
-						  if (examination_lab_test_obj.getTest_id().equals("BLOOD-310")) {
-							tables += ", voc_cryo_type";
-						    System.out.println("BLOOD-310");
-						    query += "AND exam_lab_test.OUTCOME_TERM_ID = voc_cryo_type.ID " +
-									  "AND voc_cryo_type.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
-						  }
-						  else if (examination_lab_test_obj.getTest_id().equals("BLOOD-311")) {
-							tables += ", voc_cryo_type";
-							System.out.println("BLOOD-311");
-							query += "AND exam_lab_test.OUTCOME_TERM_ID = voc_cryo_type.ID " +
-							"AND voc_cryo_type.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
-						  }
-						  else if (examination_lab_test_obj.getTest_id().equals("BLOOD-312")) {
-							  tables += ", voc_cryo_type";
-							  System.out.println("BLOOD-312"); //voc_ana_pattern
-							  where_clause += " AND exam_lab_test.OUTCOME_TERM_ID = voc_cryo_type.ID " +
-							  "AND voc_cryo_type.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
-						  }
-						  else if (examination_lab_test_obj.getTest_id().equals("BLOOD-521")) {
-							  tables += ", voc_ana_pattern";
-							  System.out.println("BLOOD-521");
-							  where_clause += " AND exam_lab_test.OUTCOME_TERM_ID = voc_ana_pattern.ID " +
-							  "AND voc_ana_pattern.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
-						  }
-						  else if (examination_lab_test_obj.getTest_id().equals("BLOOD-522")) {
-							  tables += ", voc_ana_pattern";
-							  System.out.println("BLOOD-522");
-							  where_clause += " AND exam_lab_test.OUTCOME_TERM_ID = voc_ana_pattern.ID " +
-							  "AND voc_ana_pattern.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
-						  }
-						  else if (examination_lab_test_obj.getTest_id().equals("BLOOD-523")) {
-							  tables += ", voc_ana_pattern";
-							  System.out.println("BLOOD-523"); //voc_ana_pattern
-							  where_clause += "AND exam_lab_test.OUTCOME_TERM_ID = voc_ana_pattern.ID " +
-							" AND voc_ana_pattern.CODE='"+examination_lab_test_obj.getOutcome_term() + "'";
-						  }
-					  }
+					  where_clause += ")";
 					  
 					}
-					  
-					  	//query += "AND exam_lab_test.OUTCOME_TERM_ID = " +examination_lab_test_obj.getOutcome_term() +" ";
-
-				  
-/*					  if(!(examination_lab_test_obj.getSample_period_of_time_interval_start_year() + examination_lab_test_obj.getSample_period_of_time_interval_start_month() + 
-						  examination_lab_test_obj.getSample_period_of_time_interval_start_day()).isEmpty()) {
-				 		query += "AND exam_lab_test.SAMPLE_DATE_ID = dt_date.ID ";
-				 		if(!examination_lab_test_obj.getSample_period_of_time_interval_start_year().isEmpty()) query += "AND dt_date.YEAR='"+examination_lab_test_obj.getSample_period_of_time_interval_start_year()+"' ";
-				 		if(!examination_lab_test_obj.getSample_period_of_time_interval_start_month().isEmpty()) query += "AND dt_date.MONTH='"+examination_lab_test_obj.getSample_period_of_time_interval_start_month()+"' ";
-				 		if(!examination_lab_test_obj.getSample_period_of_time_interval_start_day().isEmpty()) query += "AND dt_date.DAY='"+examination_lab_test_obj.getSample_period_of_time_interval_start_day()+"' ";
-				 		//if(!examination_lab_test_obj.getSTART_DATE_voc_direction_CODE().isEmpty()) query += "AND dt_date.OP_ID= voc_direction.ID " +
-				 		//"AND voc_direction.CODE='"+examination_lab_test_obj.getSTART_DATE_voc_direction_CODE()+"' ";
-				 		//if(true) query += "AND dt_date.BEFORE_DATE_ID='" + Crit_lifestyle_smoking_obj.getSTART_DATE_dt_date_BEFORE_DATE_ID()+"' ";
-				 	} */
+					
 				  if(!(examination_lab_test_obj.getSample_period_of_time_exact_year()).isEmpty()) {
 					  tables += ", dt_date";
 					  where_clause += Make_specific_date_query(true, mode, "exam_lab_test.SAMPLE_DATE_ID","dt_date",examination_lab_test_obj.getSample_period_of_time_exact_year(), 
@@ -797,24 +800,6 @@ public class CriterionsTestServlet extends HttpServlet {
 									  examination_lab_test_obj.getSample_period_of_time_until_day()); 
 						  }
 				  
-				  
-				  
-/*					  if(!(examination_lab_test_obj.getSample_period_of_time_exact_year()).isEmpty()) {						  
-					  	query += Make_begin_end_period_query (mode,"exam_lab_test.SAMPLE_DATE_ID", "dt_date1", "dt_date2", examination_lab_test_obj.getSample_period_of_time_exact_year(), 
-					  			examination_lab_test_obj.getSample_period_of_time_exact_month(), examination_lab_test_obj.getSample_period_of_time_exact_day(),
-					  			examination_lab_test_obj.getSample_period_of_time_exact_year(), 
-					  			examination_lab_test_obj.getSample_period_of_time_exact_month(), examination_lab_test_obj.getSample_period_of_time_exact_day()); 							  
-					} else if(!(examination_lab_test_obj.getSample_period_of_time_interval_end_year()).isEmpty()) {						  
-						query += Make_begin_end_period_query (mode,"exam_lab_test.SAMPLE_DATE_ID", "dt_date1", "dt_date2", examination_lab_test_obj.getSample_period_of_time_interval_start_year(), 
-								examination_lab_test_obj.getSample_period_of_time_interval_start_month(), examination_lab_test_obj.getSample_period_of_time_interval_start_day(),
-								examination_lab_test_obj.getSample_period_of_time_interval_end_year(), examination_lab_test_obj.getSample_period_of_time_interval_end_month(),
-								examination_lab_test_obj.getSample_period_of_time_interval_end_day()); 												
-					} else if(!(examination_lab_test_obj.getSample_period_of_time_until_year()).isEmpty()) {						  
-						query += Make_begin_end_period_query (mode,"exam_lab_test.SAMPLE_DATE_ID", "dt_date1", "dt_date2", "1800", 
-								  "1", "1",examination_lab_test_obj.getSample_period_of_time_until_year(), examination_lab_test_obj.getSample_period_of_time_until_month(),
-								  examination_lab_test_obj.getSample_period_of_time_until_day()); 								
-					}*/
-				  
 					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
 					//System.out.println("We executed: "+crit_exam_lab_test_obj.criterion_name+"\nThe Query is: "+query); 
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
@@ -823,21 +808,26 @@ public class CriterionsTestServlet extends HttpServlet {
 			  case "examination_biopsy": { //Check if user provided the info of all the fields 
 				  examination_biopsy  examination_biopsy_obj =  (examination_biopsy)current_Criterion;
 				  
-				  String tables = "patient, exam_biopsy, voc_biopsy";
-				  String where_clause = "patient.ID = exam_biopsy.PATIENT_ID AND exam_biopsy.BIOPSY_ID=voc_biopsy.ID AND (voc_biopsy.CODE='"+examination_biopsy_obj.getBiopsy_type()+"' ";
-				  String codes[] = examination_biopsy_obj.getBiopsy_type().split(",");
-				  for(int k=0; k<codes.length; k++) {
-					  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
-					  String[] allNarrowTerms = narrowTerms.split(",");
-					  for(int c=1; c<allNarrowTerms.length; c++) {
-						  where_clause += " OR " + Make_OR_of_CODES("voc_biopsy.CODE", allNarrowTerms[c]);
+				  String tables = "patient, exam_biopsy";
+				  String where_clause = "patient.ID = exam_biopsy.PATIENT_ID";
+				  
+				  if(!examination_biopsy_obj.getBiopsy_type().isEmpty()) {
+					  tables += ", voc_biopsy";
+					  where_clause += " AND exam_biopsy.BIOPSY_ID=voc_biopsy.ID AND ("+Make_OR_of_CODES("voc_biopsy.CODE",examination_biopsy_obj.getBiopsy_type()); 
+					  String codes[] = examination_biopsy_obj.getBiopsy_type().split(",");
+					  for(int k=0; k<codes.length; k++) {
+						  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
+						  String[] allNarrowTerms = narrowTerms.split(",");
+						  for(int c=1; c<allNarrowTerms.length; c++) {
+							  where_clause += " OR " + Make_OR_of_CODES("voc_biopsy.CODE", allNarrowTerms[c]);
+						  }
 					  }
+					  where_clause += ") ";
 				  }
-					where_clause += ") ";
 				  
 				  if(!(examination_biopsy_obj.getTest_id()).isEmpty()) {
 					  tables += ", voc_lab_test";
-					  where_clause += "AND exam_biopsy.TEST_ID = voc_lab_test.ID AND (voc_lab_test.CODE = '"+examination_biopsy_obj.getTest_id() +"'"; //'BLOOD-100'
+					  where_clause += " AND exam_biopsy.TEST_ID = voc_lab_test.ID AND ("+Make_OR_of_CODES("voc_lab_test.CODE",examination_biopsy_obj.getTest_id()); //'BLOOD-100'
 					  String narrowTerms = getTermsWithNarrowMeaning(examination_biopsy_obj.getTest_id());
 					  String[] allNarrowTerms = narrowTerms.split(",");
 					  for(int c=1; c<allNarrowTerms.length; c++) {
@@ -881,7 +871,7 @@ public class CriterionsTestServlet extends HttpServlet {
 				  //TODO NORMAL_RANGE  does it check if the value belongs in these two limits.		  
 				  if(!(examination_biopsy_obj.getNormal_range_value()).isEmpty()) {
 					  tables += ", dt_amount_range, voc_unit";
-					  where_clause += "AND exam_biopsy.NORMAL_RANGE_ID = dt_amount_range.ID " +
+					  where_clause += " AND exam_biopsy.NORMAL_RANGE_ID = dt_amount_range.ID " +
 					  	"AND dt_amount_range.VALUE1 <= '"+examination_biopsy_obj.getNormal_range_value()+"' " +
 					  	"AND dt_amount_range.VALUE2 >= '"+examination_biopsy_obj.getNormal_range_value()+"' " +
 					    "AND dt_amount_range.UNIT_ID = voc_unit.ID AND voc_unit.CODE='"+examination_biopsy_obj.getOutcome_amount_unit()+"' ";
@@ -889,7 +879,7 @@ public class CriterionsTestServlet extends HttpServlet {
 				  
 				  if(!examination_biopsy_obj.getAssessment().isEmpty()) {  // [OUTCOME_ASSESSMENT]
 					  tables += ", voc_assessment";
-					  where_clause += "AND exam_biopsy.ASSESSMENT_ID = voc_assessment.ID " + 
+					  where_clause += " AND exam_biopsy.ASSESSMENT_ID = voc_assessment.ID " + 
 					  	//"AND voc_assessment.CODE ='"+crit_exam_lab_test_obj.OUTCOME_ASSESSMENT_ID_voc_assessment_CODE+"' ";
 					  	"AND (" + Make_OR_of_CODES("voc_assessment.CODE", examination_biopsy_obj.getAssessment());
 					  String narrowTerms = getTermsWithNarrowMeaning(examination_biopsy_obj.getAssessment());
@@ -932,17 +922,22 @@ public class CriterionsTestServlet extends HttpServlet {
 			  case "examination_medical_imaging_test": { //Check if user provided the info of all the fields 
 				  examination_medical_imaging_test  examination_medical_imaging_test_obj =  (examination_medical_imaging_test)current_Criterion;
 				  
-				  String tables = "exam_medical_imaging_test, patient, voc_medical_imaging_test";
-				  String where_clause = "patient.ID = exam_medical_imaging_test.PATIENT_ID AND exam_medical_imaging_test.TEST_ID=voc_medical_imaging_test.ID AND (" + Make_OR_of_CODES("voc_medical_imaging_test.CODE", examination_medical_imaging_test_obj.getTest_id()) +" ";
-				  String codes[] = examination_medical_imaging_test_obj.getTest_id().split(",");
-				  for(int k=0; k<codes.length; k++) {
-					  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
-					  String[] allNarrowTerms = narrowTerms.split(",");
-					  for(int c=1; c<allNarrowTerms.length; c++) {
-						  where_clause += " OR " + Make_OR_of_CODES("voc_medical_imaging_test.CODE", allNarrowTerms[c]);
+				  String tables = "exam_medical_imaging_test, patient";
+				  String where_clause = "patient.ID = exam_medical_imaging_test.PATIENT_ID"; 
+				  
+				  if(!examination_medical_imaging_test_obj.getTest_id().isEmpty()) {
+					  tables += ", voc_medical_imaging_test";
+					  where_clause += "AND exam_medical_imaging_test.TEST_ID=voc_medical_imaging_test.ID AND (" + Make_OR_of_CODES("voc_medical_imaging_test.CODE", examination_medical_imaging_test_obj.getTest_id());
+					  String codes[] = examination_medical_imaging_test_obj.getTest_id().split(",");
+					  for(int k=0; k<codes.length; k++) {
+						  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
+						  String[] allNarrowTerms = narrowTerms.split(",");
+						  for(int c=1; c<allNarrowTerms.length; c++) {
+							  where_clause += " OR " + Make_OR_of_CODES("voc_medical_imaging_test.CODE", allNarrowTerms[c]);
+						  }
 					  }
+					  where_clause += ") ";
 				  }
-				  where_clause += ") ";
 				  
 				  if(!examination_medical_imaging_test_obj.getAssessment().isEmpty()) {  // [OUTCOME_ASSESSMENT]
 					  tables += ", voc_assessment";
@@ -984,20 +979,39 @@ public class CriterionsTestServlet extends HttpServlet {
 			  case "examination_questionnaire_score": { //Check if user provided the info of all the fields 
 				  examination_questionnaire_score  examination_questionnaire_score_obj =  (examination_questionnaire_score)current_Criterion;
 				  
-				  String tables = "patient, exam_questionnaire_score, voc_questionnaire";
-				  String where_clause = "patient.ID = exam_questionnaire_score.PATIENT_ID AND exam_questionnaire_score.SCORE_ID=voc_questionnaire.ID AND (" + Make_OR_of_CODES("voc_questionnaire.CODE", examination_questionnaire_score_obj.getScore());
-				  String mycodes[] = examination_questionnaire_score_obj.getScore().split(",");
-				  for(int k=0; k<mycodes.length; k++) {
-					  String narrowTerms = getTermsWithNarrowMeaning(mycodes[k].trim());
-					  String[] allNarrowTerms = narrowTerms.split(",");
-					  for(int c=1; c<allNarrowTerms.length; c++) {
-						  where_clause += " OR " + Make_OR_of_CODES("voc_questionnaire.CODE", allNarrowTerms[c]);
-					  }
-				  }
-				  where_clause += ")";
+				  String tables = "patient, exam_questionnaire_score";
+				  String where_clause = "patient.ID = exam_questionnaire_score.PATIENT_ID";
 				  
-				  if(!examination_questionnaire_score_obj.getValue().isEmpty()) {  //TODO check value
+				  if(!examination_questionnaire_score_obj.getScore().isEmpty()) {
+					  tables += ", voc_questionnaire";
+					  where_clause += " AND exam_questionnaire_score.SCORE_ID=voc_questionnaire.ID AND (" + Make_OR_of_CODES("voc_questionnaire.CODE", examination_questionnaire_score_obj.getScore());
+					  String mycodes[] = examination_questionnaire_score_obj.getScore().split(",");
+					  for(int k=0; k<mycodes.length; k++) {
+						  String narrowTerms = getTermsWithNarrowMeaning(mycodes[k].trim());
+						  String[] allNarrowTerms = narrowTerms.split(",");
+						  for(int c=1; c<allNarrowTerms.length; c++) {
+							  where_clause += " OR " + Make_OR_of_CODES("voc_questionnaire.CODE", allNarrowTerms[c]);
+						  }
+					  }
+					  where_clause += ")";
+				  }
+				  
+				  /*if(!examination_questionnaire_score_obj.getValue().isEmpty()) {  //TODO check value
 					  where_clause += " AND " + Make_OR_of_CODES("exam_questionnaire_score.VALUE", examination_questionnaire_score_obj.getValue());
+				  }*/
+				  
+				  if(!examination_questionnaire_score_obj.getExactValue().isEmpty()){
+					  where_clause += " AND " + Make_OR_of_CODES("exam_questionnaire_score.VALUE", examination_questionnaire_score_obj.getExactValue());
+				  }
+				  
+				  if(!examination_questionnaire_score_obj.getRangeMinValue().isEmpty()){
+					  	where_clause += " AND exam_questionnaire_score.VALUE>=" + examination_questionnaire_score_obj.getRangeMinValue(); 
+					  	if(!examination_questionnaire_score_obj.getRangeMaxValue().isEmpty()) {
+					  		where_clause += " AND exam_questionnaire_score.VALUE<=" + examination_questionnaire_score_obj.getRangeMaxValue();
+					  	}
+				  }
+				  else if(!examination_questionnaire_score_obj.getRangeMaxValue().isEmpty()) {
+					  where_clause += " AND exam_questionnaire_score.VALUE<=" + examination_questionnaire_score_obj.getRangeMaxValue();
 				  }
 				  
 				  if(!examination_questionnaire_score_obj.getAssessment().isEmpty()) {  // [OUTCOME_ASSESSMENT]
@@ -1052,8 +1066,13 @@ public class CriterionsTestServlet extends HttpServlet {
 			  case "examination_essdai_domain": { //Check if user provided the info of all the fields 
 				  examination_essdai_domain  examination_essdai_domain_obj =  (examination_essdai_domain)current_Criterion;
 				  
-				  String tables = "patient, exam_essdai_domain, voc_essdai_domain";
-				  String where_clause = "patient.ID = exam_essdai_domain.PATIENT_ID AND exam_essdai_domain.DOMAIN_ID = voc_essdai_domain.ID AND " + Make_OR_of_CODES("voc_essdai_domain.CODE", examination_essdai_domain_obj.getDomain());
+				  String tables = "patient, exam_essdai_domain";
+				  String where_clause = "patient.ID = exam_essdai_domain.PATIENT_ID";
+				  
+				  if(!examination_essdai_domain_obj.getDomain().isEmpty()) {
+					  tables += ", voc_essdai_domain";
+					  where_clause += " AND exam_essdai_domain.DOMAIN_ID = voc_essdai_domain.ID AND " + Make_OR_of_CODES("voc_essdai_domain.CODE", examination_essdai_domain_obj.getDomain());
+				  }
 				  
 				  /*query = "SELECT DISTINCT patient.UID " +
 						  "FROM patient, exam_essdai_domain, voc_essdai_domain, dt_date, voc_activity_level " + 
@@ -1067,7 +1086,7 @@ public class CriterionsTestServlet extends HttpServlet {
 					  tables += ", voc_activity_level";
 					  where_clause += " AND exam_essdai_domain.ACTIVITY_LEVEL_ID = voc_activity_level.ID " +
 					  	"AND voc_activity_level.CODE = '" + examination_essdai_domain_obj.getActivity_level() +"' "; //'BLOOD-100'
-				  };
+				  }
 				  
 				  if(!(examination_essdai_domain_obj.getQuestionnaire_period_of_time_exact_year()).isEmpty()) {
 					  tables += ", dt_date";
@@ -1090,8 +1109,13 @@ public class CriterionsTestServlet extends HttpServlet {
 			  case "examination_caci_condition": { //Check if user provided the info of all the fields 
 				  examination_caci_condition  examination_caci_condition_obj =  (examination_caci_condition)current_Criterion;
 				  
-				  String tables = "exam_caci_condition, patient, voc_caci_condition";
-				  String where_clause = "patient.ID = exam_caci_condition.PATIENT_ID AND exam_caci_condition.CACI_ID = voc_caci_condition.ID AND " + Make_OR_of_CODES("voc_caci_condition.CODE", examination_caci_condition_obj.getCaci());
+				  String tables = "exam_caci_condition, patient";
+				  String where_clause = "patient.ID = exam_caci_condition.PATIENT_ID";
+				  
+				  if(!examination_caci_condition_obj.getCaci().isEmpty()) {
+					  tables += ", voc_caci_condition";
+					  where_clause += " AND exam_caci_condition.CACI_ID = voc_caci_condition.ID AND " + Make_OR_of_CODES("voc_caci_condition.CODE", examination_caci_condition_obj.getCaci());
+				  }
 				  
 				  if(!examination_caci_condition_obj.getValue().isEmpty()) {  //TODO check value
 					  tables += ", voc_confirmation";
@@ -1120,8 +1144,13 @@ public class CriterionsTestServlet extends HttpServlet {
 			  case "other_healthcare_visit": { //Check if user provided the info of all the fields 
 				  other_healthcare_visit  other_healthcare_visit_obj =  (other_healthcare_visit)current_Criterion;
 				  
-				  String tables = "patient, other_healthcare_visit, voc_specialist";
-				  String where_clause = "patient.ID = other_healthcare_visit.PATIENT_ID AND other_healthcare_visit.SPECIALIST_ID=voc_specialist.ID AND " + Make_OR_of_CODES("voc_specialist.CODE", other_healthcare_visit_obj.getSpecialist());
+				  String tables = "patient, other_healthcare_visit";
+				  String where_clause = "patient.ID = other_healthcare_visit.PATIENT_ID";
+				  
+				  if(!other_healthcare_visit_obj.getSpecialist().isEmpty()) {
+					  tables += ", voc_specialist";
+					  where_clause += " AND other_healthcare_visit.SPECIALIST_ID=voc_specialist.ID AND " + Make_OR_of_CODES("voc_specialist.CODE", other_healthcare_visit_obj.getSpecialist());
+				  }
 				  
 				  /*query = "SELECT DISTINCT patient.UID " +
 						  "FROM other_healthcare_visit, patient, dt_date, voc_specialist " + //interv_Surgery, dt_date, voc_direction, voc_confirmation
@@ -1153,17 +1182,22 @@ public class CriterionsTestServlet extends HttpServlet {
 			  case "other_family_history": { //Check if user provided the info of all the fields 
 				  other_family_history  other_family_history_obj =  (other_family_history)current_Criterion;
 				  
-				  String tables = "other_family_history, patient, voc_medical_condition";
-				  String where_clause = "patient.ID = other_family_history.PATIENT_ID AND other_family_history.MEDICAL_CONDITION_ID=voc_medical_condition.ID AND (" + Make_OR_of_CODES("voc_medical_condition.CODE", other_family_history_obj.getMedical_condition());
-				  String codes[] = other_family_history_obj.getMedical_condition().split(",");
-				  for(int k=0; k<codes.length; k++) {
-					  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
-					  String[] allNarrowTerms = narrowTerms.split(",");
-					  for(int c=1; c<allNarrowTerms.length; c++) {
-						  where_clause += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
+				  String tables = "other_family_history, patient";
+				  String where_clause = "patient.ID = other_family_history.PATIENT_ID";
+				  
+				  if(!other_family_history_obj.getMedical_condition().isEmpty()) {
+					  tables += ", voc_medical_condition";
+					  where_clause += " AND other_family_history.MEDICAL_CONDITION_ID=voc_medical_condition.ID AND (" + Make_OR_of_CODES("voc_medical_condition.CODE", other_family_history_obj.getMedical_condition());
+					  String codes[] = other_family_history_obj.getMedical_condition().split(",");
+					  for(int k=0; k<codes.length; k++) {
+						  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
+						  String[] allNarrowTerms = narrowTerms.split(",");
+						  for(int c=1; c<allNarrowTerms.length; c++) {
+							  where_clause += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
+						  }
 					  }
+					  where_clause += ")";
 				  }
-				  where_clause += ")";
 				  
 				  if(!(other_family_history_obj.getRelative_degree()).isEmpty()) {
 					  tables += ", voc_relative_degree";
@@ -1187,10 +1221,6 @@ public class CriterionsTestServlet extends HttpServlet {
 				  
 				  String tables = "patient, other_clinical_trials";
 				  String where_clause = "patient.ID = other_clinical_trials.PATIENT_ID";
-				  
-				 /* query = "SELECT DISTINCT patient.UID " +
-						  "FROM patient, other_clinical_trials, dt_period_of_time, dt_date, voc_confirmation " + //interv_Surgery, dt_date, voc_direction, voc_confirmation
-						  "WHERE patient.ID = other_clinical_trials.PATIENT_ID "; */
 						  
 				  if(!(other_clinical_trials_obj.getPeriod_of_time_exact_year()).isEmpty()) {
 						tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
@@ -1548,7 +1578,7 @@ public class CriterionsTestServlet extends HttpServlet {
         		break;
         		case "examination_biopsy": { //Check if user provided the info of all the fields 
     				examination_biopsy  examination_biopsy_obj =  (examination_biopsy)crit;
-    				query = "SELECT * FROM exam_biopsy, voc_biopsy WHERE exam_biopsy.BIOPSY_ID=voc_biopsy.ID AND (voc_biopsy.CODE='"+examination_biopsy_obj.getBiopsy_type()+"'"; // ='SAL-BIO-21' Make_OR_of_CODES("voc_lab_test.CODE", examination_biopsy_obj.getBiopsy_type());				  		 
+    				query = "SELECT * FROM exam_biopsy"; /*, voc_biopsy WHERE exam_biopsy.BIOPSY_ID=voc_biopsy.ID AND (voc_biopsy.CODE='"+examination_biopsy_obj.getBiopsy_type()+"'"; // ='SAL-BIO-21' Make_OR_of_CODES("voc_lab_test.CODE", examination_biopsy_obj.getBiopsy_type());				  		 
     				String codes[] = examination_biopsy_obj.getBiopsy_type().split(",");
   				  	for(int k=0; k<codes.length; k++) {
   				  		String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
@@ -1558,7 +1588,7 @@ public class CriterionsTestServlet extends HttpServlet {
   				  		}
   				  	}
     				query += ") ";
-    				assistanceQuery = "SELECT NAME FROM voc_biopsy WHERE" + query.split("AND")[1];
+    				assistanceQuery = "SELECT NAME FROM voc_biopsy WHERE" + query.split("AND")[1];*/
         		}
         		break;
         		case "examination_medical_imaging_test": { //Check if user provided the info of all the fields 

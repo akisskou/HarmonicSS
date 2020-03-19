@@ -381,13 +381,13 @@ public class Intermediate_Layer {
 	
 	private static String auto_fill_JSON_elements_examination_biopsy(String input_JSON) {
 		String added_elements="";
-/*		if(!input_JSON.contains("\"outcome_amount_unit\":")) added_elements+="\"outcome_amount_unit\":\"\",";
+		/*if(!input_JSON.contains("\"outcome_amount_unit\":")) added_elements+="\"outcome_amount_unit\":\"\",";
 		if(!input_JSON.contains("\"outcome_amount_exact_value\":")) added_elements+="\"outcome_amount_exact_value\":\"\",";
 		if(!input_JSON.contains("\"outcome_amount_range_min_value\":")) added_elements+="\"outcome_amount_range_min_value\":\"\",";
 		if(!input_JSON.contains("\"outcome_amount_range_max_value\":")) added_elements+="\"outcome_amount_range_max_value\":\"\",";
-		if(!input_JSON.contains("\"outcome_assessment\":")) added_elements+="\"outcome_assessment\":\"\",";
+		if(!input_JSON.contains("\"assessment\":")) added_elements+="\"outcome_assessment\":\"\",";
 		if(!input_JSON.contains("\"outcome_check\":")) added_elements+="\"outcome_check\":\"\",";
-		if(!input_JSON.contains("\"normal_range\":")) added_elements+="\"normal_range\":\"\",";*/
+		if(!input_JSON.contains("\"normal_range_value\":")) added_elements+="\"normal_range_value\":\"\",";*/
 
 		if(!input_JSON.contains("\"biopsy_period_of_time_exact_year\":")) added_elements+="\"biopsy_period_of_time_exact_year\":\"\",";
 		if(!input_JSON.contains("\"biopsy_period_of_time_exact_month\":")) added_elements+="\"biopsy_period_of_time_exact_month\":\"\",";
@@ -433,12 +433,16 @@ public class Intermediate_Layer {
 	
 	private static String auto_fill_JSON_elements_examination_questionnaire_score(String input_JSON) {
 		String added_elements="";
-		/*
-		if(!input_JSON.contains("\"score_id\":")) added_elements+="\"score_id\":\"\",";
+		/*if(!input_JSON.contains("\"score\":")) added_elements+="\"score\":\"\",";
 		if(!input_JSON.contains("\"value\":")) added_elements+="\"value\":\"\",";
+		if(!input_JSON.contains("\"exact_value\":")) added_elements+="\"exact_value\":\"\",";
+		if(!input_JSON.contains("\"range_min_value\":")) added_elements+="\"range_min_value\":\"\",";
+		if(!input_JSON.contains("\"range_max_value\":")) added_elements+="\"range_max_value\":\"\",";
+		
 		if(!input_JSON.contains("\"assessment\":")) added_elements+="\"assessment\":\"\",";
-		if(!input_JSON.contains("\"normal_range_val1\":")) added_elements+="\"normal_range_val1\":\"\",";
-		if(!input_JSON.contains("\"normal_range_val2\":")) added_elements+="\"normal_range_val2\":\"\",";
+		if(!input_JSON.contains("\"normal_range_value\":")) added_elements+="\"normal_range_value\":\"\",";
+		//if(!input_JSON.contains("\"normal_range_val2\":")) added_elements+="\"normal_range_val2\":\"\",";
+		if(!input_JSON.contains("\"unit\":")) added_elements+="\"unit\":\"\",";
 		if(!input_JSON.contains("\"other_term\":")) added_elements+="\"other_term\":\"\",";*/
 		
 		

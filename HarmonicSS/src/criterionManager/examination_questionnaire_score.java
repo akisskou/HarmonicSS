@@ -4,6 +4,9 @@ public class examination_questionnaire_score extends Criterion{
 
 	public String score= "";
 	public String value = "";
+	public String exact_value = "";	
+	public String range_min_value="";
+	public String range_max_value="";
 	public String assessment = "";
 	public String normal_range_value = "";
 	public String unit= "";
@@ -27,7 +30,7 @@ public class examination_questionnaire_score extends Criterion{
 	
 	
 	
-	public examination_questionnaire_score(String criterion_name, String score_id, String value, String assessment,
+	public examination_questionnaire_score(String criterion_name, String score_id, String value, String exact_value, String range_min_value, String range_max_value, String assessment,
 			String normal_range_value, String normal_range_unit, String other_term,
 			String questionnaire_period_of_time_exact_year, String questionnaire_period_of_time_exact_month,
 			String questionnaire_period_of_time_exact_day, String questionnaire_period_of_time_interval_start_year,
@@ -39,6 +42,9 @@ public class examination_questionnaire_score extends Criterion{
 			String questionnaire_period_of_time_until_month, String questionnaire_period_of_time_until_day) {
 		super(criterion_name);
 		this.score = score_id;
+		this.exact_value = exact_value;
+		this.range_max_value = range_max_value;
+		this.range_min_value = range_min_value;
 		this.value = value;		
 		this.assessment = assessment;
 		this.normal_range_value = normal_range_value;
@@ -62,6 +68,9 @@ public class examination_questionnaire_score extends Criterion{
 		super("");
 		this.score = "";
 		this.value = "";
+		this.exact_value = "";
+		this.range_min_value = "";
+		this.range_max_value = "";
 		this.unit = "";
 		this.assessment = "";
 		this.normal_range_value = "";
@@ -91,6 +100,24 @@ public class examination_questionnaire_score extends Criterion{
 	}
 	public void setValue(String value) {
 		this.value = value;
+	}
+	public String getExactValue() {
+		return exact_value; 
+	}
+	public void setExactValue(String exact_value) {
+		this.exact_value = exact_value;
+	}
+	public String getRangeMinValue() {
+		return range_min_value; 
+	}
+	public void setRangeMinValue(String range_min_value) {
+		this.range_min_value = range_min_value;
+	}
+	public String getRangeMaxValue() {
+		return range_max_value; 
+	}
+	public void setRangeMaxValue(String range_max_value) {
+		this.range_max_value = range_max_value;
 	}
 	public String getUnit() {
 		return unit;

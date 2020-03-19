@@ -130,7 +130,7 @@ public class SQL_aux_functions {
 		if(!begin_year.isEmpty()) {
 			if(!end_year.isEmpty()) {
 				query+=" AND (("+begin_year+" <= "+dt_date1+".YEAR AND "+dt_date1+".YEAR <= "+end_year+")" + 		
-						" OR ("+begin_year+" >= "+dt_date1+".YEAR  AND "+dt_date2+".YEAR >= "+end_year+")" + 				
+						" OR ("+begin_year+" >= "+dt_date1+".YEAR AND "+dt_date2+".YEAR >= "+end_year+" AND "+begin_year+" <= "+end_year+")" + 				
 						" OR ("+begin_year+" <= "+dt_date2+".YEAR AND "+dt_date2+".YEAR <= "+end_year+")"  + 				 
 						" OR ("+begin_year+" <= "+dt_date1+".YEAR AND "+dt_date2+".YEAR <= "+end_year+")";
 			}
@@ -232,7 +232,7 @@ public class SQL_aux_functions {
 				else {query += " OR ("+dt_date+".YEAR = "+ begin_year +")";}
 			query +=")";*/
 			//String assistance_where = "";
-			if(!begin_year.isEmpty()) {
+			/*if(!begin_year.isEmpty()) {
 				if(!begin_month.isEmpty()) {
 					if(!begin_day.isEmpty()) {
 						assistance_where += " AND ("+dt_date+".YEAR > " + begin_year + " OR ("+dt_date+".YEAR = " + begin_year +" AND "+dt_date+".MONTH > " + begin_month+") OR ("+dt_date+".YEAR = " + begin_year +" AND "+dt_date+".MONTH = " + begin_month+" AND "+dt_date+".DAY >= " +begin_day+"))";
@@ -248,7 +248,7 @@ public class SQL_aux_functions {
 			if(!end_year.isEmpty()) {
 				if(!end_month.isEmpty()) {
 					if(!end_day.isEmpty()) {
-						assistance_where += " AND ("+dt_date+".YEAR < " + end_year + " OR ("+dt_date+".YEAR = " + end_year +" AND "+dt_date+".MONTH < " + end_month+") OR ("+dt_date+".YEAR = " + end_year +" AND "+dt_date+".MONTH = " + end_month+" AND "+dt_date+".DAY <= " +end_day+"))";
+						assistance_where += " AND ("+dt_date+".YEAR < " + end_year + " OR ("+dt_date+".YEAR = " + end_year +" AND "+dt_date+".MONTH < " + end_month+") OR ("+dt_date+".YEAR = " + end_year +" AND "+dt_date+".MONTH = " + end_month+" AND "+dt_date+".DAY <= " +end_day+")";
 					}
 					else {
 						assistance_where += " AND ("+dt_date+".YEAR < " + end_year + " OR ("+dt_date+".YEAR = " + end_year +" AND "+dt_date+".MONTH <= " + end_month+"))";
@@ -257,6 +257,46 @@ public class SQL_aux_functions {
 				else {
 					assistance_where += " AND ("+dt_date+".YEAR <= " + end_year+")";
 				}
+			}*/
+			
+			if(!(begin_day).isEmpty()) {
+				assistance_where += " AND (("+begin_year+" = "+dt_date+".YEAR AND "+dt_date+".MONTH = "+begin_month+" AND "+dt_date+".DAY >= "+begin_day+")"+ 
+									" OR ("+begin_year+" = "+dt_date+".YEAR2 AND "+dt_date+".MONTH2 = "+begin_month+" AND "+dt_date+".DAY2 >= "+begin_day+")"+
+									" OR ("+begin_year+" = "+dt_date+".YEAR AND "+dt_date+".MONTH > "+begin_month+")" +
+									" OR ("+begin_year+" = "+dt_date+".YEAR2 AND "+dt_date+".MONTH2 > "+begin_month+")" +
+									" OR ("+begin_year+" < "+dt_date+".YEAR)"+
+									" OR ("+begin_year+" < "+dt_date+".YEAR2))";
+			
+			}
+			else if(!begin_month.isEmpty()) {
+				assistance_where += " AND (("+begin_year+" = "+dt_date+".YEAR AND "+dt_date+".MONTH >= "+begin_month+")" +
+									" OR ("+begin_year+" = "+dt_date+".YEAR2 AND "+dt_date+".MONTH2 >= "+begin_month+")" +
+									" OR ("+begin_year+" < "+dt_date+".YEAR)"+
+									" OR ("+begin_year+" < "+dt_date+".YEAR2))";
+			}
+			else if(!begin_year.isEmpty()) {
+				assistance_where += " AND (("+begin_year+" <= "+dt_date+".YEAR)"+
+									" OR ("+begin_year+" <= "+dt_date+".YEAR2))";
+			}
+			
+			if(!(end_day).isEmpty()) {
+				assistance_where += " AND (("+end_year+" = "+dt_date+".YEAR AND "+dt_date+".MONTH = "+end_month+" AND "+dt_date+".DAY <= "+end_day+")"+ 
+									" OR ("+end_year+" = "+dt_date+".YEAR2 AND "+dt_date+".MONTH2 = "+end_month+" AND "+dt_date+".DAY2 <= "+end_day+")"+
+									" OR ("+end_year+" = "+dt_date+".YEAR AND "+dt_date+".MONTH > "+end_month+")" +
+									" OR ("+end_year+" = "+dt_date+".YEAR2 AND "+dt_date+".MONTH2 > "+end_month+")" +
+									" OR ("+end_year+" > "+dt_date+".YEAR)"+
+									" OR ("+end_year+" > "+dt_date+".YEAR2))";
+			
+			}
+			else if(!end_month.isEmpty()) {
+				assistance_where += " AND (("+end_year+" = "+dt_date+".YEAR AND "+dt_date+".MONTH <= "+end_month+")" +
+									" OR ("+end_year+" = "+dt_date+".YEAR2 AND "+dt_date+".MONTH2 <= "+end_month+")" +
+									" OR ("+end_year+" > "+dt_date+".YEAR2)"+
+									" OR ("+end_year+" > "+dt_date+".YEAR))";
+			}
+			else if(!end_year.isEmpty()) {
+				assistance_where += " AND (("+end_year+" >= "+dt_date+".YEAR2)"+
+									" OR ("+end_year+" >= "+dt_date+".YEAR))";
 			}
 		}
 		
