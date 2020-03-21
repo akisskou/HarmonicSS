@@ -35,6 +35,7 @@
 <h4>Pregnancies</h4>
 <p>There was an abortion, conception before 2015: {"criterion":"demographics_pregnancy", "outcome_coded_value":"PREG-OUT-300", "conception_interval_end_year":"2015"}</p>
 <p>Single was born after 2013: {"criterion":"demographics_pregnancy", "outcome_coded_value":"PREG-OUT-100", "outcome_interval_start_year":"2013"}</p>
+<p>Patients with 2 or more pregnancies: {"criterion":"demographics_pregnancy", "count":"2"}</p>
 <h4>Smoking Status</h4>
 <p>Active Smoker with more than 200 cigarettes each year, between 2005 and 2012: {"criterion":"lifestyle_smoking", "status_coded_value":"SMOK-STAT-01", "amount_unit":"UNITEXP-18", "amount_range_min_value":"200", "interval_start_year":"2005", "interval_end_year":"2012"}</p>
 <br>
@@ -47,7 +48,7 @@
 <h4>Biopsy Tests</h4>
 <p>Minor Salivary Gland, Greenspan Focus Score > 1: {"criterion":"examination_biopsy","test_id":"BIOPSY-21","outcome_amount_range_min_value":"1","outcome_amount_unit":"UNITEXP-19"}</p>
 <p>Labial Gland, Greenspan Focus Score between 1 and 2 (normal): {"criterion":"examination_biopsy","biopsy_type":"SAL-BIO-21","test_id":"BIOPSY-21","outcome_amount_range_min_value":"1", "outcome_amount_range_max_value":"2", "outcome_amount_unit":"UNITEXP-19","assessment":"ASSESS-10"}</p>
-<p>Labial Gland, Germinal Centers, 7 IU/ml in normal range, between 2010 and 2017: {"criterion":"examination_biopsy", "biopsy_type":"SAL-BIO-21", "test_id":"BIOPSY-11", "normal_range_value":"7", "outcome_amount_unit":"UNITEXP-06", "biopsy_period_of_time_interval_start_year":"2010", "biopsy_period_of_time_interval_end_year":"2017"}</p>
+<p>Germinal Centers, 7 IU/ml in normal range, between 2010 and 2017: {"criterion":"examination_biopsy", "test_id":"BIOPSY-11", "normal_range_value":"7", "outcome_amount_unit":"UNITEXP-06", "biopsy_period_of_time_interval_start_year":"2010", "biopsy_period_of_time_interval_end_year":"2017"}</p>
 <h4>Imaging Tests</h4>
 <p>MRI of Major Salivary Gland between 2010 and 2017(abnormal):{"criterion":"examination_medical_imaging_test", "test_id":"IMG-14", "assessment":"ASSESS-20", "test_period_of_time_interval_start_year":"2010", "test_period_of_time_interval_end_year":"2017"}</p>
 <h4>Questionnaire Score</h4>
@@ -68,6 +69,7 @@
 <p>Diagnosed with cancer before 2015: {"criterion":"condition_diagnosis","condition":"COND-140000","date_until_year":"2014"}</p>
 <p>Diagnosed with Hematologic disease at lymph nodes: {"criterion":"condition_diagnosis","condition":"COND-110000","organ":"ORGAN-07","date_interval_start_year":"2013", "date_interval_end_year":"2016"}</p>
 <p>Diagnosed with Liver disease, stage II, grade 3: {"criterion":"condition_diagnosis","condition":"COND-021000","organ":"ORGAN-05", "stage":"STAGE-02", "performance_status":"PERFORM-03"}</p>
+<p>Diagnosed with digestive system disease 2 or more times: {"criterion":"condition_diagnosis","condition":"COND-020000","count":"2"}</p>
 <br>
 <h3>Intervention</h3>
 <h4>Medications/Drugs</h4>
@@ -77,7 +79,8 @@
 <h4>Chemotherapies</h4>
 <p>Chemotherapy between 2010 and 2015: {"criterion":"intervention_chemotherapy", "reason":"CONFIRM-01", "period_of_time_interval_start_year":"2010", "period_of_time_interval_end_year":"2015"}</p>
 <h4>Surgeries</h4>
-<p>Surgery between 2010 and 2016: {"criterion":"intervention_surgery", "reason":"CONFIRM-01", "procedure_date_interval_start_year":"2010", "procedure_date_interval_end_year":"2016"}</p>
+<p>Surgery between 2010 and 2016: {"criterion":"intervention_surgery", "procedure_date_interval_start_year":"2010", "procedure_date_interval_end_year":"2016"}</p>
+<p>Surgery between 2008 and 2012, loss of work beacause of it: {"criterion":"intervention_surgery", "reason":"CONFIRM-01", "procedure_date_interval_start_year":"2008", "procedure_date_interval_end_year":"2012"}</p>
 <br>
 <h3>Other criteria</h3>
 <h4>Other Healthcare Entity</h4>

@@ -20,6 +20,7 @@ public class lifestyle_smoking extends Criterion {
 	public String until_month = "";
 	public String until_day = "";	
 	public String statement = "";
+	public String count = "";
 	
 	
 	public lifestyle_smoking(String criterion_name, String voc_smoking_status_CODE, String dt_amount_exact_value, String amount_range_min_value,
@@ -27,7 +28,7 @@ public class lifestyle_smoking extends Criterion {
 			String START_DATE_dt_date_YEAR, String START_DATE_dt_date_MONTH, String START_DATE_dt_date_DAY, 
 			String END_DATE_dt_date_YEAR, String END_DATE_dt_date_MONTH, String END_DATE_dt_date_DAY,
 			 String smoking_exact_date_year, String smoking_exact_date_month, String smoking_exact_date_day,
-			String smoking_until_date_year, String smoking_until_date_month, String smoking_until_date_day, String statement) {	
+			String smoking_until_date_year, String smoking_until_date_month, String smoking_until_date_day, String statement, String count) {	
 		super(criterion_name);
 		this.status_coded_value = voc_smoking_status_CODE;							//Column: STATUS_ID
 		this.amount_exact_value = dt_amount_exact_value;							//Column: AMOUNT_ID
@@ -47,6 +48,7 @@ public class lifestyle_smoking extends Criterion {
 		this.until_month = smoking_until_date_month;
 		this.until_day = smoking_until_date_day;
 		this.statement = statement;	
+		this.count = count;
 	}
 
 	public lifestyle_smoking() {
@@ -68,7 +70,8 @@ public class lifestyle_smoking extends Criterion {
 		this.until_year = "";
 		this.until_month = "";
 		this.until_day = "";
-		this.statement = "";	
+		this.statement = "";
+		this.count = "";
 	}
 	
 	public String getAmount_exact_value() {
@@ -213,5 +216,13 @@ public class lifestyle_smoking extends Criterion {
 
 	public void setStatement(String statement) {
 		this.statement = statement;
+	}
+	
+	public String getCount() {
+		return count;
+	}
+	
+	public void setCount(String count) {
+		this.count = count;
 	}
 }

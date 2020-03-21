@@ -5,13 +5,15 @@ public class other_family_history extends Criterion{
 	public String medical_condition ="";
 	public String relative_degree ="";
 	public String statement = "";
-		
+	public String count = "";
 	
-	public other_family_history(String criterion_name, String medical_condition, String relative_degree, String statement) {
+	
+	public other_family_history(String criterion_name, String medical_condition, String relative_degree, String statement, String count) {
 		super(criterion_name);
 		this.medical_condition = medical_condition;
 		this.relative_degree = relative_degree;
 		this.statement = statement;
+		this.count = count;
 	}
 	
 	public other_family_history() {
@@ -19,6 +21,7 @@ public class other_family_history extends Criterion{
 		this.medical_condition = "";
 		this.relative_degree = "";
 		this.statement = "";
+		this.count = "";
 	}
 	
 	public String getMedical_condition() {
@@ -43,5 +46,13 @@ public class other_family_history extends Criterion{
 
 	public void setStatement(String statement) {
 		this.statement = statement;
+	}
+	
+	public String getCount() {
+		return count;
+	}
+	
+	public void setCount(String count) {
+		this.count = count;
 	}
 }

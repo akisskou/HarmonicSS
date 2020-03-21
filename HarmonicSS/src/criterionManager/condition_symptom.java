@@ -16,13 +16,14 @@ public class condition_symptom extends Criterion {
 	public String sign_date_until_month = "";
 	public String sign_date_until_day = "";	
 	public String statement = "";
+	public String count = "";
 	
 	
 	public condition_symptom(String criterion_name, String voc_symptom_sign_CODE, String OBSERVE_DATE_ID_dt_date_YEAR, String OBSERVE_DATE_ID_dt_date_MONTH, 
 			String OBSERVE_DATE_ID_dt_date_DAY, 
 			String observe_period_begin_year, String observe_period_begin_month, String observe_period_begin_day, String observe_period_end_year,
 			String observe_period_end_month, String observe_period_end_day, String observe_until_date_year, String observe_until_date_month,
-			String observe_until_date_day, String statement) {
+			String observe_until_date_day, String statement, String count) {
 		super(criterion_name);
 		this.sign_coded = voc_symptom_sign_CODE;										//Column: CONDITION_ID
 		this.sign_date_exact_year = OBSERVE_DATE_ID_dt_date_YEAR;						//Column: OBSERVE_DATE_ID
@@ -38,6 +39,7 @@ public class condition_symptom extends Criterion {
 		this.sign_date_until_month = observe_until_date_month;
 		this.sign_date_until_day = observe_until_date_day;
 		this.statement = statement;
+		this.count = count;
 	}
 
 	public condition_symptom() {
@@ -56,6 +58,7 @@ public class condition_symptom extends Criterion {
 		this.sign_date_until_month = "";
 		this.sign_date_until_day = "";
 		this.statement = "";
+		this.count = "";
 	}
 
 	public String getVoc_symptom_sign_CODE() {
@@ -168,5 +171,14 @@ public class condition_symptom extends Criterion {
 
 	public void setStatement(String statement) {
 		this.statement = statement;
+	}
+	
+
+	public String getCount() {
+		return count;
+	}
+	
+	public void setCount(String count) {
+		this.count = count;
 	}
 }

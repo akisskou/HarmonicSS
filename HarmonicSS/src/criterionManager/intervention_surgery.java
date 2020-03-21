@@ -16,12 +16,13 @@ public class intervention_surgery extends Criterion {
 	public String procedure_date_until_month = "";
 	public String procedure_date_until_day = "";
 	public String statement = "";
+	public String count = "";
 	
 	
 	public intervention_surgery(String criterion_name, String DUE_TO_PSS_ID_voc_confirmation_CODE, String surgery_exact_date_year, String surgery_exact_date_month,
 			String surgery_exact_date_day, String surgery_period_begin_year, String surgery_period_begin_month, String surgery_period_begin_day, String surgery_period_end_year,
 			String surgery_period_end_month, String surgery_period_end_day, String surgery_until_date_year, String surgery_until_date_month, String surgery_until_date_day,
-			String statement) {
+			String statement, String count) {
 		super(criterion_name);
 		this.reason = DUE_TO_PSS_ID_voc_confirmation_CODE;		
 		this.procedure_date_exact_year = surgery_exact_date_year;						
@@ -37,6 +38,7 @@ public class intervention_surgery extends Criterion {
 		this.procedure_date_until_month = surgery_until_date_month;
 		this.procedure_date_until_day = surgery_until_date_day;	
 		this.statement = statement;
+		this.count = count;
 	}
 
 	public intervention_surgery() {
@@ -55,6 +57,7 @@ public class intervention_surgery extends Criterion {
 		this.procedure_date_until_month = "";
 		this.procedure_date_until_day = "";
 		this.statement = "";
+		this.count = "";
 	}
 
 	public String getReason() {
@@ -167,5 +170,13 @@ public class intervention_surgery extends Criterion {
 
 	public void setStatement(String statement) {
 		this.statement = statement;
+	}
+	
+	public String getCount() {
+		return count;
+	}
+	
+	public void setCount(String count) {
+		this.count = count;
 	}
 }

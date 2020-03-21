@@ -22,6 +22,7 @@ public class examination_lab_test extends Criterion{
 	public String sample_period_of_time_until_year = "";			//dt_date
 	public String sample_period_of_time_until_month = "";			//dt_date
 	public String sample_period_of_time_until_day = "";				//dt_date
+	public String count = "";
 	
 	
 	public examination_lab_test(String criterion_name, String test_id, String outcome_amount_unit, String outcome_amount_exact_value,
@@ -32,7 +33,7 @@ public class examination_lab_test extends Criterion{
 			String sample_period_of_time_interval_start_day, String sample_period_of_time_interval_end_year,
 			String sample_period_of_time_interval_end_month, String sample_period_of_time_interval_end_day,
 			String sample_period_of_time_until_year, String sample_period_of_time_until_month,
-			String sample_period_of_time_until_day) {
+			String sample_period_of_time_until_day, String count) {
 		super(criterion_name);
 		this.test_id = test_id;
 		this.outcome_amount_unit = outcome_amount_unit;
@@ -54,6 +55,7 @@ public class examination_lab_test extends Criterion{
 		this.sample_period_of_time_until_year = sample_period_of_time_until_year;
 		this.sample_period_of_time_until_month = sample_period_of_time_until_month;
 		this.sample_period_of_time_until_day = sample_period_of_time_until_day;
+		this.count = count;
 	}
 
 	public examination_lab_test() {	
@@ -78,6 +80,7 @@ public class examination_lab_test extends Criterion{
 		this.sample_period_of_time_until_year = "";
 		this.sample_period_of_time_until_month = "";
 		this.sample_period_of_time_until_day = "";
+		this.count = "";
 	}
 	
 	public String getTest_id() {
@@ -238,5 +241,13 @@ public class examination_lab_test extends Criterion{
 
 	public void setSample_period_of_time_until_day(String sample_period_of_time_until_day) {
 		this.sample_period_of_time_until_day = sample_period_of_time_until_day;
+	}
+	
+	public String getCount() {
+		return count;
+	}
+	
+	public void setCount(String count) {
+		this.count = count;
 	}
 }

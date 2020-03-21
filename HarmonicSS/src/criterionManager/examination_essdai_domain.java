@@ -22,7 +22,7 @@ public class examination_essdai_domain extends Criterion{
 	public String questionnaire_period_of_time_until_month = "";			//dt_date
 	public String questionnaire_period_of_time_until_day = "";				//dt_date
 	
-	
+	public String count = "";
 	
 	
 	public examination_essdai_domain(String domain, String activity_level,
@@ -33,7 +33,7 @@ public class examination_essdai_domain extends Criterion{
 			String questionnaire_period_of_time_interval_end_year,
 			String questionnaire_period_of_time_interval_end_month,
 			String questionnaire_period_of_time_interval_end_day, String questionnaire_period_of_time_until_year,
-			String questionnaire_period_of_time_until_month, String questionnaire_period_of_time_until_day) {
+			String questionnaire_period_of_time_until_month, String questionnaire_period_of_time_until_day, String count) {
 		super();
 		this.domain = domain;
 		this.activity_level = activity_level;
@@ -49,6 +49,7 @@ public class examination_essdai_domain extends Criterion{
 		this.questionnaire_period_of_time_until_year = questionnaire_period_of_time_until_year;
 		this.questionnaire_period_of_time_until_month = questionnaire_period_of_time_until_month;
 		this.questionnaire_period_of_time_until_day = questionnaire_period_of_time_until_day;
+		this.count = count;
 	}
 	
 	public examination_essdai_domain() {
@@ -67,6 +68,7 @@ public class examination_essdai_domain extends Criterion{
 		this.questionnaire_period_of_time_until_year = "";
 		this.questionnaire_period_of_time_until_month = "";
 		this.questionnaire_period_of_time_until_day = "";
+		this.count = "";
 	}
 	
 	public String getDomain() {
@@ -155,7 +157,13 @@ public class examination_essdai_domain extends Criterion{
 	public void setQuestionnaire_period_of_time_until_day(String questionnaire_period_of_time_until_day) {
 		this.questionnaire_period_of_time_until_day = questionnaire_period_of_time_until_day;
 	}
+	public String getCount() {
+		return count;
+	}
 	
+	public void setCount(String count) {
+		this.count = count;
+	}
 	
 
 }

@@ -225,6 +225,9 @@ public class CriterionsTestServlet extends HttpServlet {
 						  "WHERE patient.ID=demo_occupation_data.PATIENT_ID " + 
 						  "AND demo_occupation_data.LOSS_OF_WORK_DUE_TO_PSS_ID = voc_confirmation.ID " + 
 				  		  "AND " + Make_OR_of_CODES("voc_confirmation.CODE", ((demographics_occupation) current_Criterion).loss_of_work_due_to_pss);
+				  if(!((demographics_occupation) current_Criterion).getCount().isEmpty()) {
+					  query += " GROUP BY patient.UID HAVING COUNT(*) >= "+((demographics_occupation) current_Criterion).getCount();
+				  }
 			  } break;
 				    
 			  case "demographics_pregnancy": { //Check if user provided the info of all the fields 
@@ -300,6 +303,9 @@ public class CriterionsTestServlet extends HttpServlet {
 				  	
 				  	where_clause += " AND demo_pregnancy_data.STMT_ID=1";
 				
+				  	if(!crit_demo_pregnancy_obj.getCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_demo_pregnancy_obj.getCount();
+					}
 				  	
 				  	query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 				  	
@@ -340,15 +346,15 @@ public class CriterionsTestServlet extends HttpServlet {
 				   
 				  if(!crit_lifestyle_smoking_obj.getAmount_exact_value().isEmpty()){
 					  	tables += ", dt_amount, voc_unit";
-					  where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND dt_amount.value=" + crit_lifestyle_smoking_obj.getAmount_exact_value() + " AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE() + "' ";
+					  where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND (dt_amount.value=" + crit_lifestyle_smoking_obj.getAmount_exact_value() +" OR (dt_amount.value<=" + crit_lifestyle_smoking_obj.getAmount_exact_value() + " AND dt_amount.value2>=" + crit_lifestyle_smoking_obj.getAmount_exact_value() + ")) AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE() + "' ";
 					  
 				  }
 				  
 				  if(!crit_lifestyle_smoking_obj.getAmount_range_min_value().isEmpty()){
 					  	tables += ", dt_amount, voc_unit";
-					  where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND dt_amount.value>=" + crit_lifestyle_smoking_obj.getAmount_range_min_value();
+					  where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND (dt_amount.value>=" + crit_lifestyle_smoking_obj.getAmount_range_min_value()+" OR dt_amount.value2>=" + crit_lifestyle_smoking_obj.getAmount_range_min_value()+")";
 					  if(!crit_lifestyle_smoking_obj.getAmount_range_max_value().isEmpty()){
-						  where_clause += "AND dt_amount.value<=" + crit_lifestyle_smoking_obj.getAmount_range_max_value();
+						  where_clause += " AND dt_amount.value<=" + crit_lifestyle_smoking_obj.getAmount_range_max_value();
 					  }
 					  where_clause += " AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE() + "'";
 					  
@@ -367,6 +373,10 @@ public class CriterionsTestServlet extends HttpServlet {
 				  }
 				  
 				  where_clause += " AND lifestyle_smoking.STMT_ID=1";
+				  
+				  if(!crit_lifestyle_smoking_obj.getCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_lifestyle_smoking_obj.getCount();
+				  }
 					  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;		
 				  
@@ -429,6 +439,10 @@ public class CriterionsTestServlet extends HttpServlet {
 				  }
 				  
 				  where_clause += " AND cond_symptom.STMT_ID=1";
+				  
+				  if(!crit_cond_symptom_obj.getCount().isEmpty()) {
+					  where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_cond_symptom_obj.getCount();
+				  }
 				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 			  } break;
@@ -497,10 +511,12 @@ public class CriterionsTestServlet extends HttpServlet {
 				  if(!condition_diagnosis_obj.getStatement().isEmpty()){ 
 					  tables += ", voc_confirmation";
 					  where_clause += " AND cond_diagnosis.STMT_ID=voc_confirmation.ID AND voc_confirmation.CODE='"+condition_diagnosis_obj.getStatement() + "'";
-				  		query += " AND cond_diagnosis.STMT_ID=voc_confirmation.ID " +
-				  				 "AND voc_confirmation.CODE='"+condition_diagnosis_obj.getStatement() + "'";
 				  }
 				  where_clause += " AND cond_diagnosis.STMT_ID=1";
+				  
+				  if(!condition_diagnosis_obj.getCount().isEmpty()) {
+					  where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+condition_diagnosis_obj.getCount();
+				  }
 				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 			  } break;
@@ -530,16 +546,16 @@ public class CriterionsTestServlet extends HttpServlet {
 					  
 				  if(!crit_interv_medication_obj.getDosage_amount_exact_value().isEmpty()) {
 					  tables += ", dt_amount, voc_unit";
-					  where_clause += " AND interv_medication.DOSAGE_ID = dt_amount.ID AND dt_amount.VALUE ='" +crit_interv_medication_obj.getDosage_amount_exact_value()+"' "+
+					  where_clause += " AND interv_medication.DOSAGE_ID = dt_amount.ID AND (dt_amount.VALUE ='" +crit_interv_medication_obj.getDosage_amount_exact_value()+"' OR (dt_amount.VALUE <="+ crit_interv_medication_obj.getDosage_amount_exact_value() +" AND dt_amount.VALUE2 >="+ crit_interv_medication_obj.getDosage_amount_exact_value() +")) "+
 							  "AND dt_amount.UNIT_ID=voc_unit.ID " +
 							  	"AND voc_unit.CODE ='"+crit_interv_medication_obj.getDOSAGE_ID_dt_amount_VALUE()+"'";;
 				  }
 				  
 				  if(!crit_interv_medication_obj.getDosage_amount_range_min_value().isEmpty()){
 					  	tables += ", dt_amount, voc_unit";
-					  where_clause += " AND interv_medication.DOSAGE_ID = dt_amount.ID AND dt_amount.value>=" + crit_interv_medication_obj.getDosage_amount_range_min_value();
+					  where_clause += " AND interv_medication.DOSAGE_ID = dt_amount.ID AND (dt_amount.value>=" + crit_interv_medication_obj.getDosage_amount_range_min_value() + " OR dt_amount.value2>=" + crit_interv_medication_obj.getDosage_amount_range_min_value() + ")";
 					  if(!crit_interv_medication_obj.getDosage_amount_range_max_value().isEmpty()){
-						  where_clause += "AND dt_amount.value<=" + crit_interv_medication_obj.getDosage_amount_range_max_value();
+						  where_clause += " AND dt_amount.value<=" + crit_interv_medication_obj.getDosage_amount_range_max_value();
 					  }
 					  where_clause += " AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_interv_medication_obj.getDOSAGE_ID_dt_amount_VALUE() + "'";
 					  
@@ -578,6 +594,10 @@ public class CriterionsTestServlet extends HttpServlet {
 				  }
 				  
 				  where_clause += " AND interv_medication.STMT_ID=1";
+				  
+				  if(!crit_interv_medication_obj.getCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_interv_medication_obj.getCount();
+				  }
 				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 					
@@ -619,6 +639,10 @@ public class CriterionsTestServlet extends HttpServlet {
 				  
 				  where_clause += " AND interv_chemotherapy.STMT_ID=1";
 				  
+				  if(!crit_interv_chemotherapy_obj.getCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_interv_chemotherapy_obj.getCount();
+				  }
+				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
 					//System.out.println("We executed: "+crit_interv_chemotherapy_obj.criterion_name+"\nThe Query is: "+query); 
@@ -659,6 +683,10 @@ public class CriterionsTestServlet extends HttpServlet {
 				  
 				  where_clause += " AND interv_surgery.STMT_ID=1";
 				  
+				  if(!crit_interv_surgery_obj.getCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_interv_surgery_obj.getCount();
+				  }
+				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 			  } break;
 			  
@@ -685,7 +713,7 @@ public class CriterionsTestServlet extends HttpServlet {
 				  
 				  if(!examination_lab_test_obj.getOutcome_amount_exact_value().isEmpty()) { // [OUTCOME_AMOUNT]
 					  tables += ", dt_amount, voc_unit";
-					  where_clause += " AND exam_lab_test.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE = '"+examination_lab_test_obj.getOutcome_amount_exact_value()+"' " +
+					  where_clause += " AND exam_lab_test.OUTCOME_AMOUNT_ID = dt_amount.ID AND (dt_amount.VALUE = '"+examination_lab_test_obj.getOutcome_amount_exact_value()+"' OR (dt_amount.VALUE <= " +examination_lab_test_obj.getOutcome_amount_exact_value()+" AND dt_amount.VALUE2 >= "+ examination_lab_test_obj.getOutcome_amount_exact_value()+")) " +
 							  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
 							  	"AND voc_unit.CODE ='"+examination_lab_test_obj.getOutcome_amount_unit()+"' ";
 					  
@@ -694,7 +722,7 @@ public class CriterionsTestServlet extends HttpServlet {
 				  if(!examination_lab_test_obj.getOutcome_amount_range_min_value().isEmpty()&&!examination_lab_test_obj.getOutcome_amount_range_max_value().isEmpty()) { // [OUTCOME_AMOUNT]
 					  tables += ", dt_amount, voc_unit";	
 					  where_clause += " AND exam_lab_test.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE <= '"+examination_lab_test_obj.getOutcome_amount_range_max_value()+"' " +
-					  	"AND dt_amount.VALUE >= '"+examination_lab_test_obj.getOutcome_amount_range_min_value()+"' " +
+					  	"AND (dt_amount.VALUE >= '"+examination_lab_test_obj.getOutcome_amount_range_min_value()+"' OR dt_amount.VALUE2 >= '"+examination_lab_test_obj.getOutcome_amount_range_min_value()+") "+ 
 					  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
 					  	"AND voc_unit.CODE ='"+examination_lab_test_obj.getOutcome_amount_unit()+"' ";
 				  } else
@@ -709,7 +737,7 @@ public class CriterionsTestServlet extends HttpServlet {
 				  if(!examination_lab_test_obj.getOutcome_amount_range_min_value().isEmpty()&&examination_lab_test_obj.getOutcome_amount_range_max_value().isEmpty()) { // [OUTCOME_AMOUNT]
 					  tables += ", dt_amount, voc_unit";
 					  where_clause += " AND exam_lab_test.OUTCOME_AMOUNT_ID = dt_amount.ID " + //AND dt_amount.VALUE < '"+examination_lab_test_obj.getOutcome_amount_range_max_value()+"' 
-					  	"AND dt_amount.VALUE >= '"+examination_lab_test_obj.getOutcome_amount_range_min_value()+"' " +
+					  	"AND (dt_amount.VALUE >= '"+examination_lab_test_obj.getOutcome_amount_range_min_value()+"' OR dt_amount.VALUE2 >=" +examination_lab_test_obj.getOutcome_amount_range_min_value()+") "+
 					  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
 					  	"AND voc_unit.CODE ='"+examination_lab_test_obj.getOutcome_amount_unit()+"' ";
 				  }
@@ -800,6 +828,9 @@ public class CriterionsTestServlet extends HttpServlet {
 									  examination_lab_test_obj.getSample_period_of_time_until_day()); 
 						  }
 				  
+				  if(!examination_lab_test_obj.getCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_lab_test_obj.getCount();
+				  }
 					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
 					//System.out.println("We executed: "+crit_exam_lab_test_obj.criterion_name+"\nThe Query is: "+query); 
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
@@ -839,7 +870,7 @@ public class CriterionsTestServlet extends HttpServlet {
 			  
 				  if(!examination_biopsy_obj.getOutcome_amount_exact_value().isEmpty()) { // [OUTCOME_AMOUNT]
 					  tables += ", dt_amount, voc_unit";
-					  where_clause += " AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE = '"+examination_biopsy_obj.getOutcome_amount_exact_value()+"' " +
+					  where_clause += " AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID AND (dt_amount.VALUE = '"+examination_biopsy_obj.getOutcome_amount_exact_value()+"' OR (dt_amount.VALUE <= " +examination_biopsy_obj.getOutcome_amount_exact_value()+" AND dt_amount.VALUE2 >= "+examination_biopsy_obj.getOutcome_amount_exact_value()+")) "+
 							  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
 							  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' ";
 					  
@@ -848,7 +879,7 @@ public class CriterionsTestServlet extends HttpServlet {
 				  if(!examination_biopsy_obj.getOutcome_amount_range_min_value().isEmpty()&&!examination_biopsy_obj.getOutcome_amount_range_max_value().isEmpty()) { // [OUTCOME_AMOUNT]
 					  tables += ", dt_amount, voc_unit";	
 					  where_clause += " AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID AND dt_amount.VALUE <= '"+examination_biopsy_obj.getOutcome_amount_range_max_value()+"' " +
-					  	"AND dt_amount.VALUE >= '"+examination_biopsy_obj.getOutcome_amount_range_min_value()+"' " +
+					  	"AND (dt_amount.VALUE >= '"+examination_biopsy_obj.getOutcome_amount_range_min_value()+"' OR dt_amount.VALUE2 >= " +examination_biopsy_obj.getOutcome_amount_range_min_value()+") "+
 					  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
 					  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' ";
 				  } else
@@ -863,7 +894,7 @@ public class CriterionsTestServlet extends HttpServlet {
 				  if(!examination_biopsy_obj.getOutcome_amount_range_min_value().isEmpty()&&examination_biopsy_obj.getOutcome_amount_range_max_value().isEmpty()) { // [OUTCOME_AMOUNT]
 					  tables += ", dt_amount, voc_unit";
 					  where_clause += " AND exam_biopsy.OUTCOME_AMOUNT_ID = dt_amount.ID " + //AND dt_amount.VALUE < '"+examination_lab_test_obj.getOutcome_amount_range_max_value()+"' 
-					  	"AND dt_amount.VALUE >= '"+examination_biopsy_obj.getOutcome_amount_range_min_value()+"' " +
+					  	"AND (dt_amount.VALUE >= '"+examination_biopsy_obj.getOutcome_amount_range_min_value()+"' OR dt_amount.VALUE2 >= " +examination_biopsy_obj.getOutcome_amount_range_min_value()+") "+
 					  	"AND dt_amount.UNIT_ID=voc_unit.ID " +
 					  	"AND voc_unit.CODE ='"+examination_biopsy_obj.getOutcome_amount_unit()+"' ";
 				  }
@@ -912,6 +943,10 @@ public class CriterionsTestServlet extends HttpServlet {
 							  where_clause += Make_begin_end_date_query (true, mode,"exam_biopsy.BIOPSY_DATE_ID","dt_date", "1800", "1", "1", examination_biopsy_obj.getBiopsy_period_of_time_until_year(), examination_biopsy_obj.getBiopsy_period_of_time_until_month(),
 									  examination_biopsy_obj.getBiopsy_period_of_time_until_day()); 
 						  }
+				  
+				  if(!examination_biopsy_obj.getCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_biopsy_obj.getCount();
+				  }
 				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 
@@ -971,6 +1006,10 @@ public class CriterionsTestServlet extends HttpServlet {
 							  examination_medical_imaging_test_obj.getTest_period_of_time_until_day()); 
 				  }
 				  
+				  if(!examination_medical_imaging_test_obj.getCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_medical_imaging_test_obj.getCount();
+				  }
+				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 
 					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
@@ -1001,11 +1040,11 @@ public class CriterionsTestServlet extends HttpServlet {
 				  }*/
 				  
 				  if(!examination_questionnaire_score_obj.getExactValue().isEmpty()){
-					  where_clause += " AND " + Make_OR_of_CODES("exam_questionnaire_score.VALUE", examination_questionnaire_score_obj.getExactValue());
+					  where_clause += " AND (exam_questionnaire_score.VALUE="+ examination_questionnaire_score_obj.getExactValue() +" OR (exam_questionnaire_score.VALUE<="+examination_questionnaire_score_obj.getExactValue()+" AND exam_questionnaire_score.VALUE2>="+examination_questionnaire_score_obj.getExactValue()+")) ";
 				  }
 				  
 				  if(!examination_questionnaire_score_obj.getRangeMinValue().isEmpty()){
-					  	where_clause += " AND exam_questionnaire_score.VALUE>=" + examination_questionnaire_score_obj.getRangeMinValue(); 
+					  	where_clause += " AND (exam_questionnaire_score.VALUE>=" + examination_questionnaire_score_obj.getRangeMinValue() +" OR exam_questionnaire_score.VALUE2>=" + examination_questionnaire_score_obj.getRangeMinValue() +") "; 
 					  	if(!examination_questionnaire_score_obj.getRangeMaxValue().isEmpty()) {
 					  		where_clause += " AND exam_questionnaire_score.VALUE<=" + examination_questionnaire_score_obj.getRangeMaxValue();
 					  	}
@@ -1059,6 +1098,11 @@ public class CriterionsTestServlet extends HttpServlet {
 					  where_clause += Make_begin_end_date_query (true, mode,"exam_questionnaire_score.QUESTIONNAIRE_DATE_ID","dt_date", "1800", "1", "1", examination_questionnaire_score_obj.getQuestionnaire_period_of_time_until_year(), examination_questionnaire_score_obj.getQuestionnaire_period_of_time_until_month(),
 							  examination_questionnaire_score_obj.getQuestionnaire_period_of_time_until_day()); 
 				  }
+				  
+				  if(!examination_questionnaire_score_obj.getCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_questionnaire_score_obj.getCount();
+				  }
+				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 				  
 			  } break;  //examination_essdai_domain
@@ -1103,6 +1147,11 @@ public class CriterionsTestServlet extends HttpServlet {
 					  where_clause += Make_begin_end_date_query (true, mode,"exam_essdai_domain.QUESTIONNAIRE_DATE_ID","dt_date", "1800", "1", "1", examination_essdai_domain_obj.getQuestionnaire_period_of_time_until_year(), examination_essdai_domain_obj.getQuestionnaire_period_of_time_until_month(),
 							  examination_essdai_domain_obj.getQuestionnaire_period_of_time_until_day()); 
 				  }
+				  
+				  if(!examination_essdai_domain_obj.getCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_essdai_domain_obj.getCount();
+				  }
+				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 			  } break; //examination_caci_condition
 			  
@@ -1136,6 +1185,10 @@ public class CriterionsTestServlet extends HttpServlet {
 					  tables += ", dt_date";
 					  where_clause += Make_begin_end_date_query (true, mode,"exam_caci_condition.QUESTIONNAIRE_DATE_ID","dt_date", "1800", "1", "1", examination_caci_condition_obj.getQuestionnaire_period_of_time_until_year(), examination_caci_condition_obj.getQuestionnaire_period_of_time_until_month(),
 							  examination_caci_condition_obj.getQuestionnaire_period_of_time_until_day()); 
+				  }
+				  
+				  if(!examination_caci_condition_obj.getCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_caci_condition_obj.getCount();
 				  }
 				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
@@ -1175,6 +1228,10 @@ public class CriterionsTestServlet extends HttpServlet {
 							  other_healthcare_visit_obj.getPeriod_of_time_until_day()); 
 				  }
 				  
+				  if(!other_healthcare_visit_obj.getCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+other_healthcare_visit_obj.getCount();
+				  }
+				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 				  
 			  } break;			
@@ -1212,6 +1269,10 @@ public class CriterionsTestServlet extends HttpServlet {
 				  
 				  where_clause += " AND other_family_history.STMT_ID=1";
 				  
+				  if(!other_family_history_obj.getCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+other_family_history_obj.getCount();
+				  }
+				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 				  
 			  } break;
@@ -1244,6 +1305,10 @@ public class CriterionsTestServlet extends HttpServlet {
 		  				 "AND voc_confirmation.CODE='"+other_clinical_trials_obj.getStatement() + "'";
 			
 			where_clause += " AND other_clinical_trials.STMT_ID=1";
+			
+			 if(!other_clinical_trials_obj.getCount().isEmpty()) {
+			  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+other_clinical_trials_obj.getCount();
+			  }
 			
 			query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 

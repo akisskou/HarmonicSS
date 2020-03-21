@@ -28,6 +28,7 @@ public class examination_questionnaire_score extends Criterion{
 	public String questionnaire_period_of_time_until_month = "";			//dt_date
 	public String questionnaire_period_of_time_until_day = "";				//dt_date
 	
+	public String count = "";
 	
 	
 	public examination_questionnaire_score(String criterion_name, String score_id, String value, String exact_value, String range_min_value, String range_max_value, String assessment,
@@ -39,7 +40,7 @@ public class examination_questionnaire_score extends Criterion{
 			String questionnaire_period_of_time_interval_end_year,
 			String questionnaire_period_of_time_interval_end_month,
 			String questionnaire_period_of_time_interval_end_day, String questionnaire_period_of_time_until_year,
-			String questionnaire_period_of_time_until_month, String questionnaire_period_of_time_until_day) {
+			String questionnaire_period_of_time_until_month, String questionnaire_period_of_time_until_day, String count) {
 		super(criterion_name);
 		this.score = score_id;
 		this.exact_value = exact_value;
@@ -62,6 +63,7 @@ public class examination_questionnaire_score extends Criterion{
 		this.questionnaire_period_of_time_until_year = questionnaire_period_of_time_until_year;
 		this.questionnaire_period_of_time_until_month = questionnaire_period_of_time_until_month;
 		this.questionnaire_period_of_time_until_day = questionnaire_period_of_time_until_day;
+		this.count = count;
 	}
 	
 	public examination_questionnaire_score() {
@@ -87,6 +89,7 @@ public class examination_questionnaire_score extends Criterion{
 		this.questionnaire_period_of_time_until_year = "";
 		this.questionnaire_period_of_time_until_month = "";
 		this.questionnaire_period_of_time_until_day = "";
+		this.count = "";
 	}
 	
 	public String getScore() {
@@ -220,4 +223,11 @@ public class examination_questionnaire_score extends Criterion{
 		this.questionnaire_period_of_time_until_day = questionnaire_period_of_time_until_day;
 	}
 
+	public String getCount() {
+		return count;
+	}
+	
+	public void setCount(String count) {
+		this.count = count;
+	}
 }

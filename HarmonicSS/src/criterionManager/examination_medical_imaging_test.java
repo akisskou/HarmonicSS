@@ -21,6 +21,7 @@ public class examination_medical_imaging_test extends Criterion{
 	public String test_period_of_time_until_month = "";			//dt_date
 	public String test_period_of_time_until_day = "";			//dt_date
 	
+	public String count = "";
 	
 	
 	public examination_medical_imaging_test(String criterion_name, String test_id, String assessment,
@@ -29,7 +30,7 @@ public class examination_medical_imaging_test extends Criterion{
 			String test_period_of_time_interval_start_month, String test_period_of_time_interval_start_day,
 			String test_period_of_time_interval_end_year, String test_period_of_time_interval_end_month,
 			String test_period_of_time_interval_end_day, String test_period_of_time_until_year,
-			String test_period_of_time_until_month, String test_period_of_time_until_day) {
+			String test_period_of_time_until_month, String test_period_of_time_until_day, String count) {
 		super(criterion_name);
 		this.test_id = test_id;
 		this.assessment = assessment;
@@ -45,6 +46,7 @@ public class examination_medical_imaging_test extends Criterion{
 		this.test_period_of_time_until_year = test_period_of_time_until_year;
 		this.test_period_of_time_until_month = test_period_of_time_until_month;
 		this.test_period_of_time_until_day = test_period_of_time_until_day;
+		this.count = count;
 	}
 	
 	public examination_medical_imaging_test() {
@@ -63,6 +65,7 @@ public class examination_medical_imaging_test extends Criterion{
 		this.test_period_of_time_until_year = "";
 		this.test_period_of_time_until_month = "";
 		this.test_period_of_time_until_day = "";
+		this.count = "";
 	}
 	
 	public String getTest_id() {
@@ -150,5 +153,12 @@ public class examination_medical_imaging_test extends Criterion{
 		this.test_period_of_time_until_day = test_period_of_time_until_day;
 	}
 	
+	public String getCount() {
+		return count;
+	}
+	
+	public void setCount(String count) {
+		this.count = count;
+	}
 
 }

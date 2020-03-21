@@ -19,13 +19,14 @@ public class condition_diagnosis extends Criterion{
 	public String date_until_month = "";
 	public String date_until_day = "";
 	public String statement = "";
+	public String count = "";
 
 
 	public condition_diagnosis(String criterion_name, String condition, String organ, String stage, String performance_status,
 			String date_exact_year, String date_exact_month, String date_exact_day, String date_interval_start_year,
 			String date_interval_start_month, String date_interval_start_day, String date_interval_end_year,
 			String date_interval_end_month, String date_interval_end_day, String date_until_year,
-			String date_until_month, String date_until_day, String statement) {
+			String date_until_month, String date_until_day, String statement, String count) {
 		super(criterion_name);
 		this.condition = condition;
 		this.organ = organ;
@@ -44,6 +45,7 @@ public class condition_diagnosis extends Criterion{
 		this.date_until_month = date_until_month;
 		this.date_until_day = date_until_day;
 		this.statement = statement;
+		this.count = count;
 	}
 	
 	public condition_diagnosis() {
@@ -65,6 +67,7 @@ public class condition_diagnosis extends Criterion{
 		this.date_until_month = "";
 		this.date_until_day = "";
 		this.statement = "";
+		this.count = "";
 	}
 	
 	public String getCondition() {
@@ -201,5 +204,13 @@ public class condition_diagnosis extends Criterion{
 	
 	public void setStatement(String statement) {
 		this.statement = statement;
+	}
+	
+	public String getCount() {
+		return count;
+	}
+	
+	public void setCount(String count) {
+		this.count = count;
 	}
 }

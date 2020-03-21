@@ -21,6 +21,7 @@ public class examination_caci_condition extends Criterion {
 	public String questionnaire_period_of_time_until_month = "";			//dt_date
 	public String questionnaire_period_of_time_until_day = "";				//dt_date
 	
+	public String count = "";
 	
 	
 	public examination_caci_condition(String criterion_name, String caci, String value,
@@ -31,7 +32,7 @@ public class examination_caci_condition extends Criterion {
 			String questionnaire_period_of_time_interval_end_year,
 			String questionnaire_period_of_time_interval_end_month,
 			String questionnaire_period_of_time_interval_end_day, String questionnaire_period_of_time_until_year,
-			String questionnaire_period_of_time_until_month, String questionnaire_period_of_time_until_day) {
+			String questionnaire_period_of_time_until_month, String questionnaire_period_of_time_until_day, String count) {
 		super(criterion_name);
 		this.caci = caci;
 		this.value = value;
@@ -47,6 +48,7 @@ public class examination_caci_condition extends Criterion {
 		this.questionnaire_period_of_time_until_year = questionnaire_period_of_time_until_year;
 		this.questionnaire_period_of_time_until_month = questionnaire_period_of_time_until_month;
 		this.questionnaire_period_of_time_until_day = questionnaire_period_of_time_until_day;
+		this.count = count;
 	}
 	
 	public examination_caci_condition() {
@@ -65,6 +67,7 @@ public class examination_caci_condition extends Criterion {
 		this.questionnaire_period_of_time_until_year = "";
 		this.questionnaire_period_of_time_until_month = "";
 		this.questionnaire_period_of_time_until_day = "";
+		this.count = "";
 	}
 	
 	public String getCaci() {
@@ -153,7 +156,12 @@ public class examination_caci_condition extends Criterion {
 	public void setQuestionnaire_period_of_time_until_day(String questionnaire_period_of_time_until_day) {
 		this.questionnaire_period_of_time_until_day = questionnaire_period_of_time_until_day;
 	}
+	public String getCount() {
+		return count;
+	}
 	
-	
+	public void setCount(String count) {
+		this.count = count;
+	}
 	
 }

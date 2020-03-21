@@ -29,6 +29,7 @@ public class demographics_pregnancy extends Criterion {
 	public String outcome_coded_value = ""; 					//Column: OUTCOME_ID
 	public String outcome_ss_related = ""; 						//Column: SS_CONCORDANT_ID
 	public String statement = "";
+	public String count = "";
 	
 
 	public demographics_pregnancy(String criterion_name, String CONCEPTION_DATE_YEAR, String CONCEPTION_DATE_MONTH, String CONCEPTION_DATE_DAY,  
@@ -40,7 +41,7 @@ public class demographics_pregnancy extends Criterion {
 			
 			String OUTCOME_period_begin_year, String OUTCOME_period_begin_month, String OUTCOME_period_begin_day,
 			String OUTCOME_period_end_year, String OUTCOME_period_end_month, String OUTCOME_period_end_day,
-			String OUTCOME_until_year, String OUTCOME_until_month, String OUTCOME_until_day, String statement) {
+			String OUTCOME_until_year, String OUTCOME_until_month, String OUTCOME_until_day, String statement, String count) {
 		super(criterion_name);
 		this.conception_exact_year = CONCEPTION_DATE_YEAR;						//Column: CONCEPTION_DATE_ID
 		this.conception_exact_month = CONCEPTION_DATE_MONTH;						//Column: CONCEPTION_DATE_ID
@@ -69,6 +70,7 @@ public class demographics_pregnancy extends Criterion {
 		this.outcome_coded_value = voc_pregnancy_outcome_CODE; 			//Column: OUTCOME_ID
 		this.outcome_ss_related = voc_confirmation_CODE;						//Column: SS_CONCORDANT_ID
 		this.statement = statement;
+		this.count = count;
 	}
 
 	public demographics_pregnancy() {
@@ -99,6 +101,7 @@ public class demographics_pregnancy extends Criterion {
 		this.outcome_coded_value = ""; 					//Column: OUTCOME_ID
 		this.outcome_ss_related = "";						//Column: SS_CONCORDANT_ID
 		this.statement = "";
+		this.count = "";
 	}
 	
 	public String getCONCEPTION_DATE_YEAR() {
@@ -318,4 +321,11 @@ public class demographics_pregnancy extends Criterion {
 		this.statement = statement;
 	}
 
+	public String getCount() {
+		return count;
+	}
+	
+	public void setCount(String count) {
+		this.count = count;
+	}
 }

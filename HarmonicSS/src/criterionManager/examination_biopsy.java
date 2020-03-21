@@ -33,7 +33,8 @@ public class examination_biopsy extends Criterion{
 	public String biopsy_period_of_time_until_year = "";			//dt_date
 	public String biopsy_period_of_time_until_month = "";			//dt_date
 	public String biopsy_period_of_time_until_day = "";				//dt_date
-
+	
+	public String count = "";
 	
 	
 	public examination_biopsy(String criterion_name, String biopsy_id, String test_id, String outcome_amount_unit,
@@ -44,7 +45,7 @@ public class examination_biopsy extends Criterion{
 			String biopsy_period_of_time_interval_start_month, String biopsy_period_of_time_interval_start_day,
 			String biopsy_period_of_time_interval_end_year, String biopsy_period_of_time_interval_end_month,
 			String biopsy_period_of_time_interval_end_day, String biopsy_period_of_time_until_year,
-			String biopsy_period_of_time_until_month, String biopsy_period_of_time_until_day) {
+			String biopsy_period_of_time_until_month, String biopsy_period_of_time_until_day, String count) {
 		super(criterion_name);
 		this.biopsy_type = biopsy_id;
 		this.test_id = test_id;
@@ -68,6 +69,7 @@ public class examination_biopsy extends Criterion{
 		this.biopsy_period_of_time_until_year = biopsy_period_of_time_until_year;
 		this.biopsy_period_of_time_until_month = biopsy_period_of_time_until_month;
 		this.biopsy_period_of_time_until_day = biopsy_period_of_time_until_day;
+		this.count = count;
 	}
 	
 	public examination_biopsy() {
@@ -93,6 +95,7 @@ public class examination_biopsy extends Criterion{
 		this.biopsy_period_of_time_until_year = "";
 		this.biopsy_period_of_time_until_month = "";
 		this.biopsy_period_of_time_until_day = "";
+		this.count = "";
 	}
 	
 	public String getBiopsy_type() {
@@ -229,5 +232,11 @@ public class examination_biopsy extends Criterion{
 	public void setBiopsy_period_of_time_until_day(String biopsy_period_of_time_until_day) {
 		this.biopsy_period_of_time_until_day = biopsy_period_of_time_until_day;
 	}
-
+	public String getCount() {
+		return count;
+	}
+	
+	public void setCount(String count) {
+		this.count = count;
+	}
 }

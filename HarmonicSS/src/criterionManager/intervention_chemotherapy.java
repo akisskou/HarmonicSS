@@ -16,11 +16,12 @@ public class intervention_chemotherapy extends Criterion {
 	public String period_of_time_until_month = "";
 	public String period_of_time_until_day = "";	
 	public String statement = "";
+	public String count = "";
 	
 	
 	public intervention_chemotherapy(String criterion_name, String voc_confirmation_CODE, String chem_exact_date_year, String chem_exact_date_month, String chem_exact_date_day,
 			String chem_period_begin_year, String chem_period_begin_month, String chem_period_begin_day, String chem_period_end_year, String chem_period_end_month, 
-			String chem_period_end_day, String chem_until_date_year, String chem_until_date_month, String chem_until_date_day, String statement) {
+			String chem_period_end_day, String chem_until_date_year, String chem_until_date_month, String chem_until_date_day, String statement, String count) {
 		super(criterion_name);
 		this.reason = voc_confirmation_CODE; 						//Column: DUE_TO_PSS_ID
 		this.period_of_time_exact_year = chem_exact_date_year;						
@@ -36,6 +37,7 @@ public class intervention_chemotherapy extends Criterion {
 		this.period_of_time_until_month = chem_until_date_month;
 		this.period_of_time_until_day = chem_until_date_day;
 		this.statement=statement;
+		this.count = count;
 	}
 
 	public intervention_chemotherapy() {
@@ -54,6 +56,7 @@ public class intervention_chemotherapy extends Criterion {
 		this.period_of_time_until_month = "";
 		this.period_of_time_until_day = "";	
 		this.statement = "";
+		this.count = "";
 	}
 
 	public String getReason() {
@@ -166,5 +169,13 @@ public class intervention_chemotherapy extends Criterion {
 
 	public void setStatement(String statement) {
 		this.statement = statement;
+	}
+	
+	public String getCount() {
+		return count;
+	}
+	
+	public void setCount(String count) {
+		this.count = count;
 	}
 }

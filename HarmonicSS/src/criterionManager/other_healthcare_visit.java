@@ -20,6 +20,7 @@ public class other_healthcare_visit extends Criterion{
 	public String period_of_time_until_month = "";				//dt_date
 	public String period_of_time_until_day = "";				//dt_date
 	
+	public String count = "";
 	
 	
 	public other_healthcare_visit(String criterion_name, String specialist, String period_of_time_exact_year,
@@ -27,7 +28,7 @@ public class other_healthcare_visit extends Criterion{
 			String period_of_time_interval_start_year, String period_of_time_interval_start_month,
 			String period_of_time_interval_start_day, String period_of_time_interval_end_year,
 			String period_of_time_interval_end_month, String period_of_time_interval_end_day,
-			String period_of_time_until_year, String period_of_time_until_month, String period_of_time_until_day) {
+			String period_of_time_until_year, String period_of_time_until_month, String period_of_time_until_day, String count) {
 		super(criterion_name);
 		this.specialist = specialist;
 		this.period_of_time_exact_year = period_of_time_exact_year;
@@ -42,6 +43,7 @@ public class other_healthcare_visit extends Criterion{
 		this.period_of_time_until_year = period_of_time_until_year;
 		this.period_of_time_until_month = period_of_time_until_month;
 		this.period_of_time_until_day = period_of_time_until_day;
+		this.count = count;
 	}
 	
 	public other_healthcare_visit() {
@@ -59,6 +61,7 @@ public class other_healthcare_visit extends Criterion{
 		this.period_of_time_until_year = "";
 		this.period_of_time_until_month = "";
 		this.period_of_time_until_day = "";
+		this.count = "";
 	}
 	
 	public String getSpecialist() {
@@ -139,5 +142,10 @@ public class other_healthcare_visit extends Criterion{
 	public void setPeriod_of_time_until_day(String period_of_time_until_day) {
 		this.period_of_time_until_day = period_of_time_until_day;
 	}
-
+	public String getCount() {
+		return count;
+	}
+	public void setCount(String count) {
+		this.count = count;
+	}
 }

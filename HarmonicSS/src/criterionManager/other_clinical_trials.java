@@ -15,6 +15,7 @@ public class other_clinical_trials extends Criterion{
 	public String period_of_time_until_month = "";				//dt_date
 	public String period_of_time_until_day = "";				//dt_date
 	public String statement = "";
+	public String count = "";
 	
 	
 	public other_clinical_trials(String criterion_name, String period_of_time_exact_year,
@@ -22,7 +23,7 @@ public class other_clinical_trials extends Criterion{
 			String period_of_time_interval_start_year, String period_of_time_interval_start_month,
 			String period_of_time_interval_start_day, String period_of_time_interval_end_year,
 			String period_of_time_interval_end_month, String period_of_time_interval_end_day,
-			String period_of_time_until_year, String period_of_time_until_month, String period_of_time_until_day, String statement) {
+			String period_of_time_until_year, String period_of_time_until_month, String period_of_time_until_day, String statement, String count) {
 		super(criterion_name);
 		this.period_of_time_exact_year = period_of_time_exact_year;
 		this.period_of_time_exact_month = period_of_time_exact_month;
@@ -37,6 +38,7 @@ public class other_clinical_trials extends Criterion{
 		this.period_of_time_until_month = period_of_time_until_month;
 		this.period_of_time_until_day = period_of_time_until_day;
 		this.statement = statement;
+		this.count = count;
 	}
 	
 	public other_clinical_trials() {
@@ -54,6 +56,7 @@ public class other_clinical_trials extends Criterion{
 		this.period_of_time_until_month = "";
 		this.period_of_time_until_day = "";
 		this.statement = "";
+		this.count = "";
 	}
 	
 	public String getPeriod_of_time_exact_year() {
@@ -159,4 +162,11 @@ public class other_clinical_trials extends Criterion{
 		this.statement = statement;
 	}
 	
+	public String getCount() {
+		return count;
+	}
+	
+	public void setCount(String count) {
+		this.count = count;
+	}
 }
