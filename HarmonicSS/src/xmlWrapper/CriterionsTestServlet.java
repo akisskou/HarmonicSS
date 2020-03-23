@@ -1475,16 +1475,28 @@ public class CriterionsTestServlet extends HttpServlet {
 							  patient_obj.getCohort_inclusion_period_of_time_until_month(), patient_obj.getCohort_inclusion_period_of_time_until_day()); */
 				  }
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
-				  query=query.replace("WHERE  AND", "WHERE");
-				  query=query.replace("WHERE AND", "WHERE");
-				  System.out.println("The query is: "+query);
+				  
 			  } break;
 			  
 			  default:
 				  System.out.println("Undefined criterion-name-"+(i+1)+" in the input JSON file.");
 			} 
 			
-			try { System.out.println("We are ready to execute the query: "+query);
+			try { 
+				query=query.replace("WHERE  AND", "WHERE");
+				query=query.replace("WHERE AND", "WHERE");
+				if(!results_of_one_Criterion.trim().equals("")) {
+					  String[] previousResults = results_of_one_Criterion.trim().split(" ");
+					  String inClause = "(";
+					  for (int j=0; j<previousResults.length; j++) {
+						  if(j==0) inClause += previousResults[j];
+						  else inClause += ","+previousResults[j];
+					  }
+					  inClause += ")";
+					  query=query.replace("WHERE","WHERE patient.UID IN "+inClause+" AND");
+				}
+				//System.out.println("The query is: "+query);
+				System.out.println("We are ready to execute the query: "+query);
 				results_of_one_Criterion = DBServiceCRUD.getDataFromDB(query);
 				System.out.println("We executed the query: "+query +"\nAnd we had the result: "+results_of_one_Criterion);
 			} catch (SQLException e) {
@@ -1498,9 +1510,10 @@ public class CriterionsTestServlet extends HttpServlet {
 			//LOGGER.log(Level.INFO, "Criterion-"+(i+1)+": "+current_Criterion.getCriterion()+"\nQuery-"+(i+1)+": "+query+"\n"+
 			//"Results: "+results_of_one_Criterion+"\n",true);
 			
-			if(results_of_all_Criterions.equals("")) results_of_all_Criterions = results_of_one_Criterion;
+			/*if(results_of_all_Criterions.equals("")) results_of_all_Criterions = results_of_one_Criterion;
 			else results_of_all_Criterions = intersection_of_UIDs(results_of_one_Criterion, results_of_all_Criterions);
-			if(results_of_all_Criterions.trim().equals("")) patients_found = false;
+			if(results_of_all_Criterions.trim().equals("")) patients_found = false;*/
+			if(results_of_one_Criterion.trim().equals("")) patients_found = false;
 			System.out.println("patients found: "+patients_found);
 			}
 			else {
@@ -1513,7 +1526,8 @@ public class CriterionsTestServlet extends HttpServlet {
 				continue;
 			}
     	}
-    	return results_of_all_Criterions;
+    	//return results_of_all_Criterions;
+    	return results_of_one_Criterion;
     }
     
     public static String intersection_of_UIDs(String str_of_users_1, String str_of_users_2 ){

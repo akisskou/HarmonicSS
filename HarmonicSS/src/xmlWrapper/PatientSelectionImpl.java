@@ -118,6 +118,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	private static String myReqXML;
 	private static String myRespXML;
 	private static boolean patients_found;
+	private static List<String> inclusion_queries = new ArrayList<String>();
+	private static List<String> exclusion_queries = new ArrayList<String>();
+ 
     /**
      * @see HttpServlet#HttpServlet()
      */
@@ -313,11 +316,11 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		    return "";
     }
     
-    private String createQuery(ArrayList<Criterion> list_of_criterions, boolean incl, boolean mode, String results_of_all_Criterions) throws JSONException {
-    	String results_of_one_Criterion="";
-    	for(int i=0; i<list_of_criterions.size(); i++) {
-    		criterionResponseInfos = new JSONObject();
-			Criterion current_Criterion=list_of_criterions.get(i); //current_criterion
+    private String executeQuery(ArrayList<Criterion> list_of_criteria, boolean incl, String results_of_all_Criterions) {
+    	//String results_of_one_Criterion="";
+    	for(int i=0; i<list_of_criteria.size(); i++) {
+    		//criterionResponseInfos = new JSONObject();
+			Criterion current_Criterion=list_of_criteria.get(i); //current_criterion
 			if(patients_found) {
 			if(!canUseCriterion(current_Criterion)){
 				System.out.println("Criterion " + current_Criterion.getCriterion() + " cannot be used.");
@@ -334,6 +337,78 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			if(incl) inclusion_criteria.add(criterionResponseInfos);
 			else exclusion_criteria.add(criterionResponseInfos);
 			System.out.println(criterionResponseInfos);
+			String query;
+			if(incl) query = inclusion_queries.get(i);
+			else query = exclusion_queries.get(i);
+			try { 
+				if(!results_of_all_Criterions.trim().equals("")) {
+					String[] previousResults = results_of_all_Criterions.trim().split(" ");
+					String inClause = "(";
+					for (int j=0; j<previousResults.length; j++) {
+						if(j==0) inClause += previousResults[j];
+						else inClause += ","+previousResults[j];
+					}
+					inClause += ")";
+					query=query.replace("WHERE","WHERE patient.UID IN "+inClause+" AND");
+				}
+				System.out.println("We are ready to execute the query: "+query);
+				results_of_all_Criterions = DBServiceCRUD.getDataFromDB(query);
+				System.out.println("We executed the query: "+query +"\nAnd we had the result: "+results_of_all_Criterions);
+				
+			} catch (SQLException e) {
+				//LOGGER.log(Level.SEVERE,"Bad type query or arguments: "+query,true);
+				//flush_handler();
+				//if(incl)
+					LOGGER.log(Level.SEVERE,"SQLException while executing the query: " + query+", check the query format and db url and credentials.",true);
+				//else
+					//LOGGER.log(Level.SEVERE,"SQLException while executing the query: " + exclusion_queries.get(i)+", check the query format and db url and credentials.",true);
+				all.put("errorMessage", "An error occured while executing your query. Check your json criteria format and try again.");
+				e.printStackTrace();
+				//return "Bad type query or arguments: "+query;
+			}
+				
+			//LOGGER.log(Level.INFO, "Criterion-"+(i+1)+": "+current_Criterion.getCriterion()+"\nQuery-"+(i+1)+": "+query+"\n"+
+			//"Results: "+results_of_one_Criterion+"\n",true);
+			
+			/*if(results_of_all_Criterions.equals("")) results_of_all_Criterions = results_of_one_Criterion;
+			else results_of_all_Criterions = intersection_of_UIDs(results_of_one_Criterion, results_of_all_Criterions);*/
+			if(results_of_all_Criterions.trim().equals("")) patients_found = false;
+			System.out.println("patients found: "+patients_found);
+			}
+			else {
+				System.out.println("Criterion " + current_Criterion.getCriterion() + " cannot be used.");
+				criterionResponseInfos.put("usage", "notused");
+				criterionResponseInfos.put("notes", "Criterion cannot be reached because no patients found");
+				if(incl) inclusion_criteria.add(criterionResponseInfos);
+				else exclusion_criteria.add(criterionResponseInfos);
+				System.out.println(criterionResponseInfos);
+				continue;
+			}
+    	}
+    	return results_of_all_Criterions;
+    }
+    
+    private void createQuery(ArrayList<Criterion> list_of_criterions, boolean incl, boolean mode/*, String results_of_all_Criterions*/) throws JSONException {
+    	//String results_of_one_Criterion="";
+    	for(int i=0; i<list_of_criterions.size(); i++) {
+    		//criterionResponseInfos = new JSONObject();
+			Criterion current_Criterion=list_of_criterions.get(i); //current_criterion
+			/*if(patients_found) {
+			if(!canUseCriterion(current_Criterion)){
+				System.out.println("Criterion " + current_Criterion.getCriterion() + " cannot be used.");
+				criterionResponseInfos.put("usage", "notused");
+				criterionResponseInfos.put("notes", termAndSubterms);
+				if(incl) inclusion_criteria.add(criterionResponseInfos);
+				else exclusion_criteria.add(criterionResponseInfos);
+				System.out.println(criterionResponseInfos);
+				continue;
+			}
+			else System.out.println("Criterion " + current_Criterion.getCriterion() + " can be used.");
+			criterionResponseInfos.put("usage", "used");
+			criterionResponseInfos.put("notes", termAndSubterms);
+			if(incl) inclusion_criteria.add(criterionResponseInfos);
+			else exclusion_criteria.add(criterionResponseInfos);
+			System.out.println(criterionResponseInfos);*/
 			String query="";
 			switch(current_Criterion.getCriterion()) { //The name of the Criterion.
 			  
@@ -1733,10 +1808,12 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  System.out.println("Undefined criterion-name-"+(i+1)+" in the input JSON file.");
 			} 
 			
-			try { 
+			//try { 
 				query=query.replace("WHERE  AND", "WHERE");
 				query=query.replace("WHERE AND", "WHERE");
-				System.out.println("We are ready to execute the query: "+query);
+				if(incl) inclusion_queries.add(query);
+				else exclusion_queries.add(query);
+				/*System.out.println("We are ready to execute the query: "+query);
 				results_of_one_Criterion = DBServiceCRUD.getDataFromDB(query);
 				System.out.println("We executed the query: "+query +"\nAnd we had the result: "+results_of_one_Criterion);
 			} catch (SQLException e) {
@@ -1746,12 +1823,12 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 		    	all.put("errorMessage", "An error occured while executing your query. Check your json criteria format and try again.");
 				e.printStackTrace();
 				//return "Bad type query or arguments: "+query;
-			}
+			}*/
 				
 			//LOGGER.log(Level.INFO, "Criterion-"+(i+1)+": "+current_Criterion.getCriterion()+"\nQuery-"+(i+1)+": "+query+"\n"+
 			//"Results: "+results_of_one_Criterion+"\n",true);
 			
-			if(results_of_all_Criterions.equals("")) results_of_all_Criterions = results_of_one_Criterion;
+			/*if(results_of_all_Criterions.equals("")) results_of_all_Criterions = results_of_one_Criterion;
 			else results_of_all_Criterions = intersection_of_UIDs(results_of_one_Criterion, results_of_all_Criterions);
 			if(results_of_all_Criterions.trim().equals("")) patients_found = false;
 			System.out.println("patients found: "+patients_found);
@@ -1764,9 +1841,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				
 				System.out.println(criterionResponseInfos);
 				continue;
-			}
+			}*/
     	}
-    	return results_of_all_Criterions;
+    	//return results_of_all_Criterions;
     }
     
     public void criterionDBmatching(ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions) throws JSONException{
@@ -1777,8 +1854,8 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     		/*if(j==0)*/ mode = false; //LOGGER.log(Level.INFO,"======** UIDs_defined_ALL_elements **======\n",true);}
     		//else mode = true; //LOGGER.log(Level.INFO,"======** UIDs_UNdefined_some_elements **======\n",true);}
     		String results_of_all_Criterions="";
-    		results_of_all_Criterions = createQuery(list_of_inclusive_criterions, true, mode, results_of_all_Criterions);
-    		results_of_all_Criterions = createQuery(list_of_exclusive_criterions, false, mode, results_of_all_Criterions);
+    		results_of_all_Criterions = executeQuery(list_of_inclusive_criterions, true, results_of_all_Criterions);
+    		results_of_all_Criterions = executeQuery(list_of_exclusive_criterions, false, results_of_all_Criterions);
     		results.Input_UIDs(mode,results_of_all_Criterions);
     		results.Input_UIDs(true,"");
     	//}
@@ -1975,6 +2052,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	    StringBuilder sb = new StringBuilder();
 	    for (int c; (c = in.read()) >= 0;)
 	        sb.append((char)c);*/
+    	Boolean mode;
+    	//for (int j=0;j<2;j++) {
+			
+    		/*if(j==0)*/ mode = false; //LOGGER.log(Level.INFO,"======** UIDs_defined_ALL_elements **======\n",true);}
+    		//else mode = true; //LOGGER.log(Level.INFO,"======** UIDs_UNdefined_some_elements **======\n",true);}
+    	createQuery(list_of_inclusive_criterions, true, mode);
+    	createQuery(list_of_exclusive_criterions, false, mode);
+    	//}
 	    JSONArray cohorts = new JSONArray(getCohortsC4(darID, username, password));
 	    boolean createXML = false;
     	for(int i=0; i<cohorts.length(); i++){
