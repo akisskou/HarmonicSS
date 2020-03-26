@@ -62,6 +62,7 @@ public class MidServiceForReqRespList extends HttpServlet {
     	List<JSONObject> listJSONobj = new ArrayList<JSONObject>();
         // load a properties file
         prop.load(input);
+        JSONObject myresult = new JSONObject();
         System.out.println(prop.getProperty("domain")+":"+prop.getProperty("port"));
 		try {
 	        String webPage = "http://"+prop.getProperty("domain").trim()+":"+prop.getProperty("port").trim()+"/HarmonicSS/ReqRespList?userID="+userID+"&requestID="+requestID;
@@ -158,6 +159,8 @@ public class MidServiceForReqRespList extends HttpServlet {
 	  	  		listJSONobj.add(myjson);
 	        }
 	        
+			myresult.put("request_response_list", listJSONobj);
+			
 	        
 	       /* System.out.println("*** BEGIN ***");
 	        System.out.println(result);
@@ -167,8 +170,13 @@ public class MidServiceForReqRespList extends HttpServlet {
 	        e.printStackTrace();
 	    } catch (IOException e) {
 	    	//LOGGER.log(Level.SEVERE,"IOException while retrieving xml request.",true);
+	    	myresult.put("errorMessage","Error while connecting to database. Check your connection and db credentials and try again.");
 	        e.printStackTrace();
-	    } catch (JSONException e) {
+	    } catch (NullPointerException e) {
+	    	//LOGGER.log(Level.SEVERE,"IOException while retrieving xml request.",true);
+	    	myresult.put("errorMessage","Error while connecting to database. Check your connection and db credentials and try again.");
+	    	e.printStackTrace();
+	    }catch (JSONException e) {
 			// TODO Auto-generated catch block
 	    	//LOGGER.log(Level.SEVERE,"JSONException while retrieving xml request.",true);
 			e.printStackTrace();
@@ -178,12 +186,10 @@ public class MidServiceForReqRespList extends HttpServlet {
 			// TODO Auto-generated catch block
 			e.printStackTrace();
 		}
-		JSONObject result = new JSONObject();
-		result.put("request_response_list", listJSONobj);
 		response.setContentType("text/html; charset=UTF-8");
 		response.setCharacterEncoding("UTF-8");
 		PrintWriter pw = response.getWriter();
-		pw.print(result.toString());
+		pw.print(myresult.toString());
 		pw.close();
 	}
 

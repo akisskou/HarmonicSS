@@ -21,16 +21,6 @@
   </servlet-mapping>
   <servlet>
     <description></description>
-    <display-name>PatientSelectionImplRealApp</display-name>
-    <servlet-name>PatientSelectionImplRealApp</servlet-name>
-    <servlet-class>xmlWrapper.PatientSelectionImplRealApp</servlet-class>
-  </servlet>
-  <servlet-mapping>
-    <servlet-name>PatientSelectionImplRealApp</servlet-name>
-    <url-pattern>/PatientSelectionImplRealApp</url-pattern>
-  </servlet-mapping>
-  <servlet>
-    <description></description>
     <display-name>CriterionsTestServlet</display-name>
     <servlet-name>CriterionsTestServlet</servlet-name>
     <servlet-class>xmlWrapper.CriterionsTestServlet</servlet-class>

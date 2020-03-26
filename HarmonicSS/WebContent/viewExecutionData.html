@@ -23,8 +23,7 @@
 	<div class="container">
 		<p><a href="home.html">Back to main menu</a></p>
 		
-		<p>By default the Web Page presents all the Patient Selection Requests executed.</p>
-		<p>You can filter them by providing either the User ID or the Data Access Request ID or both of them.</p>
+		<p>This Web Page presents Patient Selection Requests executed, which you can filter by providing either the User ID or the Data Access Request ID or both of them.</p>
 		
 		<input type="text" id="userID" placeholder="user ID">
 		<input type="text" id="requestID" placeholder="request ID">
@@ -59,13 +58,19 @@
  		var client = new HttpClient();
  		client.get(theurl, function(response) { 
 			var response1 = JSON.parse(response);
-			var htmldata='<table table-layout="auto" width="100%"><tr><th>USER ID</th><th>REQUEST ID</th><th>REQUEST SYNOPSIS</th><th>EXECUTION DATE</th><th>RESPONSE SYNOPSIS</th></tr>';
-			var dbList = response1.request_response_list;
-			for(i=0; i<dbList.length; i++){
-				htmldata += '<tr><td>'+dbList[i].user_id+'</td><td align="center">'+dbList[i].request_id+'</td><td align="left">'+dbList[i].request_synopsis+'</td><td align="center">'+dbList[i].execution_date+'</td><td align="left">'+dbList[i].response_synopsis+'</td></tr>';
+			if(response1['request_response_list']){
+				var htmldata='<table><tr><th>USER ID</th><th>REQUEST ID</th><th>REQUEST SYNOPSIS</th><th>EXECUTION DATE</th><th>RESPONSE SYNOPSIS</th></tr>';
+				var dbList = response1.request_response_list;
+				for(i=0; i<dbList.length; i++){
+					htmldata += '<tr><td>'+dbList[i].user_id+'</td><td align="center">'+dbList[i].request_id+'</td><td align="left">'+dbList[i].request_synopsis+'</td><td align="center">'+dbList[i].execution_date+'</td><td align="left">'+dbList[i].response_synopsis+'</td></tr>';
+				}
+				htmldata += '</table>';
+				$('#data').html(htmldata);
 			}
-			htmldata += '</table>';
-			$('#data').html(htmldata);
+			else{
+				var errorMessage = response1.errorMessage;
+				$('#data').html(errorMessage);
+			}
 			document.getElementById("mybutton").disabled = false;
 		});
 	}

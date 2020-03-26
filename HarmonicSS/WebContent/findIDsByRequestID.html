@@ -1,0 +1,95 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html" charset="ISO-8859-1">
+<title>View Patient IDs</title>
+	<style>
+	body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; } 
+	.header { background-color: #e6f2ff; text-align: center; padding-top: 10px; padding-bottom: 10px; } 
+	#harmonicssLogo { height: 40px;  } 
+	#iccsntuaLogo { height: 40px; padding-left: 20px; }
+	table, th, td {
+  		border: 1px solid black;
+  		border-collapse: collapse;
+	}
+
+	</style>
+</head>
+<body>
+<div class='header'><img id='harmonicssLogo' src="IMG/HarmonicSS-Logo.png" alt="HarmonicSS Logo"><img id='iccsntuaLogo' src="IMG/ICCS-NTUA-Logo.png" alt="ICCS/NTUA Logo"></div>
+	<div class="container">
+		<p><a href="home.html">Back to main menu</a></p>
+		
+		<p>This page presents Patient IDs Selection Requests executed at a specific cohort for one or more Data Access Request IDs.</p>
+		
+		<input type="text" id="username" placeholder="username" value="test1">
+		<input type="password" id="password" placeholder="password" value="1test12!">
+		<input type="text" id="requestID" placeholder="request ID">
+		<select id="cohortID">
+    		<option value="34">test1-chdb034</option>
+    		<option value="35">test2-chdb035</option>
+    		<option value="36">test3-chdb036</option>
+		</select>
+		<button id="mybutton" onclick="this.disabled='disabled'; getDataFromDB()">View Patient IDs</button><br><br>
+        
+		<h3>Patient IDs Table</h3>
+        <div id="data">
+        </div>
+    </div>
+    
+    <!-- 4 include the jQuery library -->
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/jquery/1.12.1/jquery.min.js"></script>   
+	<script type="text/javascript">
+	
+	function getDataFromDB() {
+		var username = document.getElementById("username");
+ 		var password = document.getElementById("password");
+ 		if (!(username && username.value.trim()) || !(password && password.value.trim())){
+ 			document.getElementById("mybutton").disabled = false;
+			alert("Please enter username and password");
+			return false;
+		}
+ 		
+ 		var requestID = document.getElementById("requestID");
+ 		
+ 		var mycohort = document.getElementById("cohortID");
+		
+		$('#data').html("<h4>Collecting Patient IDs for your request IDs...</h4>");
+ 	 	document.getElementById("mybutton").disabled = true;
+ 	 	    
+ 	 	var HttpClient = function() {
+ 	 		this.get = function(aUrl, aCallback) {
+ 	 			var anHttpRequest = new XMLHttpRequest();
+ 	 			anHttpRequest.onreadystatechange = function() { 
+ 	 				if (anHttpRequest.readyState == 4 && anHttpRequest.status == 200)
+ 	 					aCallback(anHttpRequest.responseText);
+ 	 				}
+ 	 			anHttpRequest.open( "POST", aUrl, true ); 
+ 	 			anHttpRequest.setRequestHeader("Content-Type", "application/json;charset=UTF-8");
+ 	 			anHttpRequest.send(JSON.stringify({"requestID": requestID.value.trim(), "username": username.value.trim(), "password": password.value.trim(), "mycohort": mycohort.value}));
+ 	 		}
+ 	 	}
+ 		var theurl='FindIDsByRequestID';
+ 		
+ 		var client = new HttpClient();
+ 		client.get(theurl, function(response) { 
+			var response1 = JSON.parse(response);
+			if(response1['patient_IDs_list']){
+				var htmldata='<table table-layout="fixed" max-width="100%"><tr><th>REQUEST ID</th><th>EXECUTION DATE</th><th>PATIENT IDS</th></tr>';
+				var dbList = response1.patient_IDs_list;
+				for(i=0; i<dbList.length; i++){
+					htmldata += '<tr><td align="center">'+dbList[i].request_id+'</td><td align="center">'+dbList[i].execution_date+'</td><td align="left" word-wrap="break-word">'+dbList[i].patient_IDs+'</td></tr>';
+				}
+				htmldata += '</table>';
+				$('#data').html(htmldata);
+			}
+			else{
+				var errorMessage = response1.errorMessage;
+				$('#data').html(errorMessage);
+			}
+			document.getElementById("mybutton").disabled = false;
+		});
+	}
+	</script>
+</body>
+</html>

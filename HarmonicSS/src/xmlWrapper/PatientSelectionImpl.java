@@ -2455,10 +2455,6 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	    	prop = new Properties();
             // load a properties file
             prop.load(input);
-	    	//Scanner s1 = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/infos.txt"))));
-			//String[] line = s1.nextLine().split(":");
-		    //documentIRI = IRI.create("file:///C:/Users/Jason/Desktop/", "HarmonicSS-Reference-Model+Vocabularies-v.0.9.owl");
-			//documentIRI = IRI.create(getServletContext().getResource("/WEB-INF/"+line[1].trim()));
 			documentIRI = IRI.create(getServletContext().getResource("/WEB-INF/"+prop.getProperty("owlFile").trim()));
 		    try{
 		        ontology = manager.loadOntologyFromOntologyDocument(documentIRI);

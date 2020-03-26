@@ -1940,10 +1940,10 @@ public class CriterionsTestServlet extends HttpServlet {
         // load a properties file
         prop.load(input);
         System.out.println("Properties file read");
-    	//Scanner s1 = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/infos.txt"))));
-		//String[] line = s1.nextLine().split(":");
-	    //documentIRI = IRI.create("file:///C:/Users/Jason/Desktop/", "HarmonicSS-Reference-Model+Vocabularies-v.0.9.owl");
-		//documentIRI = IRI.create(getServletContext().getResource("/WEB-INF/"+line[1].trim()));
+    	/*Scanner s1 = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/infos.txt"))));
+		String[] line = s1.nextLine().split(":");
+	    documentIRI = IRI.create("file:///C:/Users/Jason/Desktop/", "HarmonicSS-Reference-Model+Vocabularies-v.0.9.owl");
+		documentIRI = IRI.create(getServletContext().getResource("/WEB-INF/"+line[1].trim()));*/
 		documentIRI = IRI.create(getServletContext().getResource("/WEB-INF/"+prop.getProperty("owlFile")));
 	    try{
 	        ontology = manager.loadOntologyFromOntologyDocument(documentIRI);

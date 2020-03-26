@@ -88,15 +88,15 @@ public class ReqRespList extends HttpServlet {
 	/**
 	 * @see HttpServlet#doGet(HttpServletRequest request, HttpServletResponse response)
 	 */
-	protected synchronized void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException {
+	protected synchronized void doGet(HttpServletRequest request, HttpServletResponse response) throws ServletException, IOException, NullPointerException {
 		// TODO Auto-generated method stub
 		//response.getWriter().append("Served at: ").append(request.getContextPath());
 		InputStream input = new FileInputStream(getServletContext().getRealPath("/WEB-INF/infos.properties"));
     	prop = new Properties();
         // load a properties file
         prop.load(input);
-		if(!makeJDBCConnection())  System.out.println("Connection with the ponte database failed. Check the Credentials and the DB URL.");
-    	else System.out.println("I am ponte and I'm gooooooood");
+		if(!makeJDBCConnection())  System.out.println("Connection with database failed. Check the Credentials and the DB URL.");
+    	else System.out.println("Everything's gooooooood");
 		String userID = request.getParameter("userID");
 		String requestID = request.getParameter("requestID");
 		
@@ -107,8 +107,8 @@ public class ReqRespList extends HttpServlet {
 				String[] requestIDs = requestID.split(",");
 				for(int i=0; i<requestIDs.length; i++) {
 					if(!requestIDs[i].equals("null") && !requestIDs[i].trim().equals("")) {
-						if(i==0) query += " WHERE (REQUEST_ID='" + requestIDs[i].trim() +"'";
-						else query += " OR REQUEST_ID='" + requestIDs[i].trim() +"'";
+						if(i==0) query += " WHERE REQUEST_ID IN (" + requestIDs[i].trim();
+						else query += "," + requestIDs[i].trim();
 					}
 				}
 				query += ")";
@@ -118,8 +118,8 @@ public class ReqRespList extends HttpServlet {
 			String[] userIDs = userID.split(",");
 			for(int i=0; i<userIDs.length; i++) {
 				if(!userIDs[i].equals("null") && !userIDs[i].trim().equals("")) {
-					if(i==0) query += " WHERE (USER_ID='" + userIDs[i].trim() +"'";
-					else query += " OR USER_ID='" + userIDs[i].trim() +"'";
+					if(i==0) query += " WHERE (USER_ID='" + userIDs[i].trim()+"'";
+					else query += " OR USER_ID='" + userIDs[i].trim()+"'";
 				}
 			}
 			query += ")";
@@ -127,12 +127,13 @@ public class ReqRespList extends HttpServlet {
 				String[] requestIDs = requestID.split(",");
 				for(int i=0; i<requestIDs.length; i++) {
 					if(!requestIDs[i].equals("null") && !requestIDs[i].trim().equals("")) {
-						if(i==0) query += " AND (REQUEST_ID='" + requestIDs[i].trim() +"'";
-						else query += " OR REQUEST_ID='" + requestIDs[i].trim() +"'";
+						if(i==0) query += " AND REQUEST_ID IN (" + requestIDs[i].trim();
+						else query += "," + requestIDs[i].trim();
 					}
 				}
 				query += ")";
 			}
+			System.out.println(query);
 		}
 		try {
 			db_prep_obj = db_con_obj.prepareStatement(query);

@@ -45,9 +45,7 @@ public class RequestXMLfilesServlet extends HttpServlet {
 	    	Properties prop = new Properties();
             // load a properties file
             prop.load(input);
-			/*Scanner s = new Scanner(new BufferedReader(new FileReader(getServletContext().getRealPath("/WEB-INF/properties.txt"))));
-			String[] line1 = s.nextLine().split(",");
-			File folder = new File(new URI("file:///"+line1[1].trim()));*/
+			
             File folder = new File(new URI("file:///"+prop.getProperty("pathToXML")));
 			File[] files = folder.listFiles(new FileFilter() {
 			    @Override
