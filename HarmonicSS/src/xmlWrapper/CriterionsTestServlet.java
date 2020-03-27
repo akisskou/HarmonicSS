@@ -1550,37 +1550,37 @@ public class CriterionsTestServlet extends HttpServlet {
         	boolean myresults = false;
         	switch(crit.getCriterion()) {
         		case "demographics_gender": {
-        			query = "SELECT * FROM demo_sex_data";
+        			query = "SELECT * FROM demo_sex_data LIMIT 1";
         			termAndSubterms = "Search for gender data";
         		}
         		break;
         		case "demographics_ethnicity": {
-        			query = "SELECT * FROM demo_ethnicity_data";
+        			query = "SELECT * FROM demo_ethnicity_data LIMIT 1";
         			termAndSubterms = "Search for ethnicity data";
         		}
         		break;
         		case "demographics_education": {
-        			query = "SELECT * FROM demo_education_level_data";
+        			query = "SELECT * FROM demo_education_level_data LIMIT 1";
         			termAndSubterms = "Search for education data";
         		}
         		break;
         		case "demographics_weight": {
-        			query = "SELECT * FROM demo_weight_data";
+        			query = "SELECT * FROM demo_weight_data LIMIT 1";
         			termAndSubterms = "Search for weight data";
         		}
         		break;
         		case "demographics_occupation": {
-        			query = "SELECT * FROM demo_occupation_data";
+        			query = "SELECT * FROM demo_occupation_data LIMIT 1";
         			termAndSubterms = "Search for occupation data";
         		}
         		break;
         		case "demographics_pregnancy": {
-        			query = "SELECT * FROM demo_pregnancy_data";
+        			query = "SELECT * FROM demo_pregnancy_data LIMIT 1";
         			termAndSubterms = "Search for pregnancy data";
         		}
         		break;
         		case "lifestyle_smoking": {
-        			query = "SELECT * FROM lifestyle_smoking";
+        			query = "SELECT * FROM lifestyle_smoking LIMIT 1";
         			termAndSubterms = "Search for smoking data";
         		}
         		break;
@@ -1595,7 +1595,7 @@ public class CriterionsTestServlet extends HttpServlet {
   				  			query += " OR " + Make_OR_of_CODES("voc_symptom_sign.CODE", allNarrowTerms[c]);
   				  		}
   				  	}
-    				query += ")";
+    				query += ") LIMIT 1";
     				assistanceQuery = "SELECT NAME FROM voc_symptom_sign WHERE" + query.split("AND")[1]; 
         		}
         		break;
@@ -1610,7 +1610,7 @@ public class CriterionsTestServlet extends HttpServlet {
   				  			query += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
   				  		}
   				  	}
-    				query += ")";
+    				query += ") LIMIT 1";
     				assistanceQuery = "SELECT NAME FROM voc_medical_condition WHERE" + query.split("AND")[1]; 
         		}
         		break;
@@ -1625,18 +1625,18 @@ public class CriterionsTestServlet extends HttpServlet {
   				  			query += " OR " + Make_OR_of_CODES("voc_pharm_drug.CODE", allNarrowTerms[c]);
   				  		}
   				  	}
-    				query += ")";
+    				query += ") LIMIT 1";
     				assistanceQuery = "SELECT NAME FROM voc_pharm_drug WHERE" + query.split("AND")[1]; 
         		}
         		break;
         		case "intervention_chemotherapy": {
     				  //intervention_chemotherapy  crit_interv_chemotherapy_obj =  (intervention_chemotherapy)crit;
-    				query = "SELECT * FROM interv_chemotherapy"; //, voc_confirmation WHERE interv_chemotherapy.DUE_TO_PSS_ID = voc_confirmation.ID AND " + Make_OR_of_CODES("voc_confirmation.CODE", crit_interv_chemotherapy_obj.getReason());
+    				query = "SELECT * FROM interv_chemotherapy LIMIT 1"; //, voc_confirmation WHERE interv_chemotherapy.DUE_TO_PSS_ID = voc_confirmation.ID AND " + Make_OR_of_CODES("voc_confirmation.CODE", crit_interv_chemotherapy_obj.getReason());
     				termAndSubterms = "Search for chemotherapy data";
         		}
         		break;
         		case "intervention_surgery": { 
-        			query = "SELECT * FROM interv_surgery";
+        			query = "SELECT * FROM interv_surgery LIMIT 1";
         			termAndSubterms = "Search for surgery data";
         		}
         		break;
@@ -1651,13 +1651,13 @@ public class CriterionsTestServlet extends HttpServlet {
   				  			query += " OR " + Make_OR_of_CODES("voc_lab_test.CODE", allNarrowTerms[c]);
   				  		}
   				  	}
-    				query += ") ";
+    				query += ") LIMIT 1";
     				assistanceQuery = "SELECT NAME FROM voc_lab_test WHERE" + query.split("AND")[1];
         		}
         		break;
         		case "examination_biopsy": { //Check if user provided the info of all the fields 
-    				examination_biopsy  examination_biopsy_obj =  (examination_biopsy)crit;
-    				query = "SELECT * FROM exam_biopsy"; /*, voc_biopsy WHERE exam_biopsy.BIOPSY_ID=voc_biopsy.ID AND (voc_biopsy.CODE='"+examination_biopsy_obj.getBiopsy_type()+"'"; // ='SAL-BIO-21' Make_OR_of_CODES("voc_lab_test.CODE", examination_biopsy_obj.getBiopsy_type());				  		 
+    				//examination_biopsy  examination_biopsy_obj =  (examination_biopsy)crit;
+    				query = "SELECT * FROM exam_biopsy LIMIT 1"; /*, voc_biopsy WHERE exam_biopsy.BIOPSY_ID=voc_biopsy.ID AND (voc_biopsy.CODE='"+examination_biopsy_obj.getBiopsy_type()+"'"; // ='SAL-BIO-21' Make_OR_of_CODES("voc_lab_test.CODE", examination_biopsy_obj.getBiopsy_type());				  		 
     				String codes[] = examination_biopsy_obj.getBiopsy_type().split(",");
   				  	for(int k=0; k<codes.length; k++) {
   				  		String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
@@ -1681,7 +1681,7 @@ public class CriterionsTestServlet extends HttpServlet {
   				  			query += " OR " + Make_OR_of_CODES("voc_medical_imaging_test.CODE", allNarrowTerms[c]);
   				  		}
   				  	}
-    				query += ") ";
+    				query += ") LIMIT 1";
     				assistanceQuery = "SELECT NAME FROM voc_medical_imaging_test WHERE" + query.split("AND")[1];
         		}
         		break;
@@ -1696,25 +1696,25 @@ public class CriterionsTestServlet extends HttpServlet {
   				  			query += " OR " + Make_OR_of_CODES("voc_questionnaire.CODE", allNarrowTerms[c]);
   				  		}
   				  	}
-    				query += ")";
+    				query += ") LIMIT 1";
     				assistanceQuery = "SELECT NAME FROM voc_questionnaire WHERE" + query.split("AND")[1];
         		}
         		break;
         		case "examination_essdai_domain": {
         			examination_essdai_domain  examination_essdai_domain_obj =  (examination_essdai_domain)crit;
-    				query = "SELECT * FROM exam_essdai_domain, voc_essdai_domain WHERE exam_essdai_domain.DOMAIN_ID = voc_essdai_domain.ID AND " + Make_OR_of_CODES("voc_essdai_domain.CODE", examination_essdai_domain_obj.getDomain());
+    				query = "SELECT * FROM exam_essdai_domain, voc_essdai_domain WHERE exam_essdai_domain.DOMAIN_ID = voc_essdai_domain.ID AND " + Make_OR_of_CODES("voc_essdai_domain.CODE", examination_essdai_domain_obj.getDomain())+" LIMIT 1";
     				assistanceQuery = "SELECT DOMAIN_NAME FROM voc_essdai_domain WHERE" + query.split("AND")[1];
         		}
         		break;
         		case "examination_caci_condition": { //Check if user provided the info of all the fields 
     				examination_caci_condition  examination_caci_condition_obj =  (examination_caci_condition)crit;
-    				query = "SELECT * FROM exam_caci_condition, voc_caci_condition WHERE exam_caci_condition.CACI_ID = voc_caci_condition.ID AND " + Make_OR_of_CODES("voc_caci_condition.CODE", examination_caci_condition_obj.getCaci());
+    				query = "SELECT * FROM exam_caci_condition, voc_caci_condition WHERE exam_caci_condition.CACI_ID = voc_caci_condition.ID AND " + Make_OR_of_CODES("voc_caci_condition.CODE", examination_caci_condition_obj.getCaci())+" LIMIT 1";
     				assistanceQuery = "SELECT * FROM voc_caci_condition WHERE" + query.split("AND")[1];
         		}
         		break;
         		case "other_healthcare_visit": { //Check if user provided the info of all the fields 
     				other_healthcare_visit  other_healthcare_visit_obj =  (other_healthcare_visit)crit;
-    				query = "SELECT * FROM other_healthcare_visit, voc_specialist WHERE other_healthcare_visit.SPECIALIST_ID=voc_specialist.ID AND " + Make_OR_of_CODES("voc_specialist.CODE", other_healthcare_visit_obj.getSpecialist());
+    				query = "SELECT * FROM other_healthcare_visit, voc_specialist WHERE other_healthcare_visit.SPECIALIST_ID=voc_specialist.ID AND " + Make_OR_of_CODES("voc_specialist.CODE", other_healthcare_visit_obj.getSpecialist())+" LIMIT 1";
     				assistanceQuery = "SELECT NAME FROM voc_specialist WHERE" + query.split("AND")[1];
         		}
         		break;
@@ -1729,17 +1729,17 @@ public class CriterionsTestServlet extends HttpServlet {
   				  			query += " OR " + Make_OR_of_CODES("voc_medical_condition.CODE", allNarrowTerms[c]);
   				  		}
   				  	}
-    				query += ")";
+    				query += ") LIMIT 1";
     				assistanceQuery = "SELECT NAME FROM voc_medical_condition WHERE" + query.split("AND")[1];
         		}
         		break;
         		case "other_clinical_trials": { //Check if user provided the info of all the fields 
-    				query = "SELECT * FROM other_clinical_trials"; 
+    				query = "SELECT * FROM other_clinical_trials LIMIT 1"; 
     				termAndSubterms = "Search for other clinical trials data";
         		}
         		break;
         		case "patient": { //Check if user provided the info of all the fields 
-    				query = "SELECT * FROM patient";
+    				query = "SELECT * FROM patient LIMIT 1";
     				termAndSubterms = "Search for patients data";
         		}
         		break;

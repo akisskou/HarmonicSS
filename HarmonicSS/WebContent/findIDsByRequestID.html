@@ -78,7 +78,7 @@
 				var htmldata='<table table-layout="fixed" max-width="100%"><tr><th>REQUEST ID</th><th>EXECUTION DATE</th><th>PATIENT IDS</th></tr>';
 				var dbList = response1.patient_IDs_list;
 				for(i=0; i<dbList.length; i++){
-					htmldata += '<tr><td align="center">'+dbList[i].request_id+'</td><td align="center">'+dbList[i].execution_date+'</td><td align="left" word-wrap="break-word">'+dbList[i].patient_IDs+'</td></tr>';
+					htmldata += '<tr><td align="center">'+dbList[i].request_id+'</td><td align="center">'+dbList[i].execution_date+'</td><td align="center" word-wrap="break-word">'+dbList[i].patient_IDs+'</td></tr>';
 				}
 				htmldata += '</table>';
 				$('#data').html(htmldata);
