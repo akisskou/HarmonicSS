@@ -20,13 +20,16 @@ public class condition_diagnosis extends Criterion{
 	public String date_until_day = "";
 	public String statement = "";
 	public String count = "";
+	public String max_nested = "";
+	public String min_nested = "";
+	public String years_nested = "";
 
 
 	public condition_diagnosis(String criterion_name, String condition, String organ, String stage, String performance_status,
 			String date_exact_year, String date_exact_month, String date_exact_day, String date_interval_start_year,
 			String date_interval_start_month, String date_interval_start_day, String date_interval_end_year,
 			String date_interval_end_month, String date_interval_end_day, String date_until_year,
-			String date_until_month, String date_until_day, String statement, String count) {
+			String date_until_month, String date_until_day, String statement, String count, String max_nested, String min_nested, String years_nested) {
 		super(criterion_name);
 		this.condition = condition;
 		this.organ = organ;
@@ -46,6 +49,9 @@ public class condition_diagnosis extends Criterion{
 		this.date_until_day = date_until_day;
 		this.statement = statement;
 		this.count = count;
+		this.max_nested = max_nested;
+		this.min_nested = min_nested;
+		this.years_nested = years_nested;
 	}
 	
 	public condition_diagnosis() {
@@ -68,6 +74,9 @@ public class condition_diagnosis extends Criterion{
 		this.date_until_day = "";
 		this.statement = "";
 		this.count = "";
+		this.max_nested = "";
+		this.min_nested = "";
+		this.years_nested = "";
 	}
 	
 	public String getCondition() {
@@ -212,5 +221,28 @@ public class condition_diagnosis extends Criterion{
 	
 	public void setCount(String count) {
 		this.count = count;
+	}
+	
+	public String getMaxNested() {
+		return max_nested;
+	}
+	
+	public void setMaxNested(String max_nested) {
+		this.max_nested = max_nested;
+	}
+	
+	public String getMinNested() {
+		return min_nested;
+	}
+	
+	public void setMinNested(String min_nested) {
+		this.min_nested = min_nested;
+	}
+	public String getYearsNested() {
+		return years_nested;
+	}
+	
+	public void setYearsNested(String years_nested) {
+		this.years_nested = years_nested;
 	}
 }

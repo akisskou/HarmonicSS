@@ -370,24 +370,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     private void createQuery(ArrayList<Criterion> list_of_criterions, boolean incl, boolean mode/*, String results_of_all_Criterions*/) throws JSONException {
     	//String results_of_one_Criterion="";
     	for(int i=0; i<list_of_criterions.size(); i++) {
-    		//criterionResponseInfos = new JSONObject();
 			Criterion current_Criterion=list_of_criterions.get(i); //current_criterion
-			/*if(patients_found) {
-			if(!canUseCriterion(current_Criterion)){
-				System.out.println("Criterion " + current_Criterion.getCriterion() + " cannot be used.");
-				criterionResponseInfos.put("usage", "notused");
-				criterionResponseInfos.put("notes", termAndSubterms);
-				if(incl) inclusion_criteria.add(criterionResponseInfos);
-				else exclusion_criteria.add(criterionResponseInfos);
-				System.out.println(criterionResponseInfos);
-				continue;
-			}
-			else System.out.println("Criterion " + current_Criterion.getCriterion() + " can be used.");
-			criterionResponseInfos.put("usage", "used");
-			criterionResponseInfos.put("notes", termAndSubterms);
-			if(incl) inclusion_criteria.add(criterionResponseInfos);
-			else exclusion_criteria.add(criterionResponseInfos);
-			System.out.println(criterionResponseInfos);*/
 			String query="";
 			switch(current_Criterion.getCriterion()) { //The name of the Criterion.
 			  
@@ -1786,43 +1769,11 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			  default:
 				  System.out.println("Undefined criterion-name-"+(i+1)+" in the input JSON file.");
 			} 
-			
-			//try { 
-				query=query.replace("WHERE  AND", "WHERE");
-				query=query.replace("WHERE AND", "WHERE");
-				if(incl) inclusion_queries.add(query);
-				else exclusion_queries.add(query);
-				/*System.out.println("We are ready to execute the query: "+query);
-				results_of_one_Criterion = DBServiceCRUD.getDataFromDB(query);
-				System.out.println("We executed the query: "+query +"\nAnd we had the result: "+results_of_one_Criterion);
-			} catch (SQLException e) {
-				//LOGGER.log(Level.SEVERE,"Bad type query or arguments: "+query,true);
-				//flush_handler();
-		    	LOGGER.log(Level.SEVERE,"SQLException while executing the query: " + query+", check the query format and db url and credentials.",true);
-		    	all.put("errorMessage", "An error occured while executing your query. Check your json criteria format and try again.");
-				e.printStackTrace();
-				//return "Bad type query or arguments: "+query;
-			}*/
-				
-			//LOGGER.log(Level.INFO, "Criterion-"+(i+1)+": "+current_Criterion.getCriterion()+"\nQuery-"+(i+1)+": "+query+"\n"+
-			//"Results: "+results_of_one_Criterion+"\n",true);
-			
-			/*if(results_of_all_Criterions.equals("")) results_of_all_Criterions = results_of_one_Criterion;
-			else results_of_all_Criterions = intersection_of_UIDs(results_of_one_Criterion, results_of_all_Criterions);
-			if(results_of_all_Criterions.trim().equals("")) patients_found = false;
-			System.out.println("patients found: "+patients_found);
-			}
-			else {
-				System.out.println("Criterion " + current_Criterion.getCriterion() + " cannot be used.");
-				criterionResponseInfos.put("usage", "notused");
-				criterionResponseInfos.put("notes", "Criterion cannot be reached because no patients found");
-				inclusion_criteria.add(criterionResponseInfos);
-				
-				System.out.println(criterionResponseInfos);
-				continue;
-			}*/
+			query=query.replace("WHERE  AND", "WHERE");
+			query=query.replace("WHERE AND", "WHERE");
+			if(incl) inclusion_queries.add(query);
+			else exclusion_queries.add(query);
     	}
-    	//return results_of_all_Criterions;
     }
     
     public void criterionDBmatching(ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions) throws JSONException{

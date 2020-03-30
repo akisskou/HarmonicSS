@@ -23,6 +23,7 @@ public class examination_lab_test extends Criterion{
 	public String sample_period_of_time_until_month = "";			//dt_date
 	public String sample_period_of_time_until_day = "";				//dt_date
 	public String count = "";
+	public String years_nested = "";
 	
 	
 	public examination_lab_test(String criterion_name, String test_id, String outcome_amount_unit, String outcome_amount_exact_value,
@@ -33,7 +34,7 @@ public class examination_lab_test extends Criterion{
 			String sample_period_of_time_interval_start_day, String sample_period_of_time_interval_end_year,
 			String sample_period_of_time_interval_end_month, String sample_period_of_time_interval_end_day,
 			String sample_period_of_time_until_year, String sample_period_of_time_until_month,
-			String sample_period_of_time_until_day, String count) {
+			String sample_period_of_time_until_day, String count, String years_nested) {
 		super(criterion_name);
 		this.test_id = test_id;
 		this.outcome_amount_unit = outcome_amount_unit;
@@ -56,6 +57,7 @@ public class examination_lab_test extends Criterion{
 		this.sample_period_of_time_until_month = sample_period_of_time_until_month;
 		this.sample_period_of_time_until_day = sample_period_of_time_until_day;
 		this.count = count;
+		this.years_nested = years_nested;
 	}
 
 	public examination_lab_test() {	
@@ -81,6 +83,7 @@ public class examination_lab_test extends Criterion{
 		this.sample_period_of_time_until_month = "";
 		this.sample_period_of_time_until_day = "";
 		this.count = "";
+		this.years_nested = "";
 	}
 	
 	public String getTest_id() {
@@ -249,5 +252,13 @@ public class examination_lab_test extends Criterion{
 	
 	public void setCount(String count) {
 		this.count = count;
+	}
+	
+	public String getYearsNested() {
+		return years_nested;
+	}
+	
+	public void setYearsNested(String years_nested) {
+		this.years_nested = years_nested;
 	}
 }

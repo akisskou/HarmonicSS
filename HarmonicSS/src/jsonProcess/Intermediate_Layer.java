@@ -28,7 +28,7 @@ public class Intermediate_Layer {
 			current_criterion=current_criterion.replace("{\"criterion\"", "\"criterionManager."+criterion_name+"\", {\"criterion\"");
 			//System.out.println("A§"+current_criterion+"B§");
 			
-			switch(criterion_name) 
+			/*switch(criterion_name) 
 			{ 
 			    case "demographics_pregnancy": 
 			        {System.out.println("demographics_pregnancy");
@@ -100,7 +100,111 @@ public class Intermediate_Layer {
 				break; //patient
 			    default: 
 			        System.out.println("no match"); 
-			} 
+			}*/ 
+			criterions_list[i]="["+current_criterion.substring(0,current_criterion.length()-0)+"]";
+			criterions_list[i]=criterions_list[i].replace("},","}");
+			//System.out.println("The criterion name is: "+criterion_name);
+		}
+		String res1=Arrays.toString(criterions_list);
+		String res2=res1.substring(1, res1.length()-2).replace("{,", "");//.replaceAll("", "");
+		String res3=res2.replace("}]}", "}]]}");//}]}
+		//System.out.println("The result is: "+ res3+"END"); //{,
+		return res3;
+	}
+	
+	public static String preProcess_nestedJSON(String inputJSON) {
+		String outputJSON = inputJSON.replaceAll("\\s+","");//.replace("[", "[[").replaceFirst("]", "]]");
+		
+		String[] criterions_list = outputJSON.split("\\{\"nested_criterion\":");  //{\"criterion\":
+		criterions_list[0]=criterions_list[0]+"{";
+		/*System.out.println("A§"+criterions_list[0]+"B§");
+		System.out.println("A§"+criterions_list[1]+"B§");*/
+		
+		for (int i=1; i<criterions_list.length; i++) {
+			String current_criterion = "{\"criterion\":"+criterions_list[i];
+			System.out.println("position: "+i+" contents: "+ current_criterion);
+			String criterion_name = "";
+			if(current_criterion.contains(",")) criterion_name = current_criterion.substring(current_criterion.indexOf("\"criterion\":\""), current_criterion.indexOf("\","));
+			else criterion_name = current_criterion.substring(current_criterion.indexOf("\"criterion\":\""), current_criterion.indexOf("\"}"));
+			criterion_name=criterion_name.replace("\"criterion\":\"","");
+			//System.out.println("The name is: "+criterion_name);
+			//System.out.println("lala1: "+current_criterion);
+			current_criterion=current_criterion.replace("{\"criterion\"", "\"criterionManager."+criterion_name+"\", {\"criterion\"");
+			//System.out.println("A§"+current_criterion+"B§");
+			
+			/*switch(criterion_name) 
+			{ 
+			    case "demographics_pregnancy": 
+			        {System.out.println("demographics_pregnancy");
+			        current_criterion=auto_fill_JSON_elements_demographics_pregnancy(current_criterion);}
+			    break; 
+			    case "lifestyle_smoking": 
+			    	{System.out.println("lifestyle_smoking"); 
+			    	current_criterion=auto_fill_JSON_elements_lifestyle_smoking(current_criterion);}
+			    break; 
+			    case "condition_symptom": 
+			    	{System.out.println("condition_symptom"); 
+			    	current_criterion=auto_fill_JSON_elements_condition_symptom(current_criterion);}
+			    break; 
+			    case "condition_diagnosis": 
+			    	{System.out.println("condition_diagnosis");  
+			    	current_criterion=auto_fill_JSON_elements_condition_diagnosis(current_criterion);}
+			    break; 
+			    case "intervention_medication": 
+			    	{System.out.println("intervention_medication"); 
+			    	current_criterion=auto_fill_JSON_elements_intervention_medication(current_criterion);} 
+			    break; 
+			    case "intervention_chemotherapy": 
+			        {System.out.println("intervention_chemotherapy"); //condition_diagnosis
+			        current_criterion=auto_fill_JSON_elements_intervention_chemotherapy(current_criterion);}
+			    break; 
+			    case "intervention_surgery": 
+			        {System.out.println("intervention_surgery"); //condition_diagnosis
+			        current_criterion=auto_fill_JSON_elements_intervention_surgery(current_criterion);}			        
+			    break;  
+			    case "examination_lab_test": 
+		        	{System.out.println("examination_lab_test"); //condition_diagnosis
+		        	current_criterion=auto_fill_JSON_elements_examination_lab_test(current_criterion);}			        
+		        break; //
+			    case "examination_biopsy": 
+	        		{System.out.println("examination_biopsy"); //condition_diagnosis
+	        		current_criterion=auto_fill_JSON_elements_examination_biopsy(current_criterion);}			        
+	        	break; 
+			    case "examination_medical_imaging_test": 
+        			{System.out.println("examination_medical_imaging_test"); 
+        			current_criterion=auto_fill_JSON_elements_examination_medical_imaging_test(current_criterion);}			        
+        		break; 
+			    case "examination_questionnaire_score": 
+    				{System.out.println("examination_questionnaire_score"); 
+    				current_criterion=auto_fill_JSON_elements_examination_questionnaire_score(current_criterion);}		       
+    			break; 
+			    case "examination_essdai_domain": 
+					{System.out.println("examination_essdai_domain"); 
+					current_criterion=auto_fill_JSON_elements_examination_essdai_domain(current_criterion);}       
+				break; 
+			    case "examination_caci_condition": 
+					{System.out.println("examination_caci_condition"); 
+					current_criterion=auto_fill_JSON_elements_examination_caci_condition(current_criterion);}       
+				break; //other_healthcare_visit
+			    case "other_healthcare_visit": 
+					{System.out.println("other_healthcare_visit"); 
+					current_criterion=auto_fill_JSON_elements_other_healthcare_visit(current_criterion);}       
+				break; //other_healthcare_visit
+			    case "other_family_history": 
+					{System.out.println("other_family_history"); 
+					current_criterion=auto_fill_JSON_elements_other_family_history(current_criterion);}       
+				break; 
+			    case "other_clinical_trials": 
+					{System.out.println("other_clinical_trials"); 
+					current_criterion=auto_fill_JSON_elements_other_clinical_trials(current_criterion);}       
+				break; 
+			    case "patient": 
+					{System.out.println("patient"); 
+					current_criterion=auto_fill_JSON_elements_patient(current_criterion);}       
+				break; //patient
+			    default: 
+			        System.out.println("no match"); 
+			}*/ 
 			criterions_list[i]="["+current_criterion.substring(0,current_criterion.length()-0)+"]";
 			criterions_list[i]=criterions_list[i].replace("},","}");
 			//System.out.println("The criterion name is: "+criterion_name);
