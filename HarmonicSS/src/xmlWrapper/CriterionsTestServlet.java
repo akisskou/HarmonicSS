@@ -166,6 +166,7 @@ public class CriterionsTestServlet extends HttpServlet {
     private ArrayList<String> createNestedQueries(ArrayList<Criterion> list_of_criterions, boolean mode, boolean isMax) throws JSONException, JsonParseException, JsonMappingException, IOException {
     	//String results_of_one_Criterion="";
     	ArrayList<String> nestedCriteria = new ArrayList<String>();
+    	boolean oneDatePregnancy = true;
     	for(int i=0; i<list_of_criterions.size(); i++) {
 			Criterion current_Criterion=list_of_criterions.get(i); //current_criterion
 			String query="";
@@ -176,18 +177,17 @@ public class CriterionsTestServlet extends HttpServlet {
 				  String tables = "patient, demo_pregnancy_data";
 				  String where_clause = "patient.ID = demo_pregnancy_data.PATIENT_ID";
 				  
-				  if(!(crit_demo_pregnancy_obj.getCONCEPTION_DATE_YEAR()/* + crit_demo_pregnancy_obj.conception_exact_month + 
-				  	crit_demo_pregnancy_obj.conception_exact_day */).isEmpty()) {
+				  if(!(crit_demo_pregnancy_obj.getCONCEPTION_DATE_YEAR()).isEmpty()) {
 					  tables += ", dt_date as dt_date1";
 					  where_clause += Make_specific_date_query(true, mode, "demo_pregnancy_data.CONCEPTION_DATE_ID","dt_date1",crit_demo_pregnancy_obj.getCONCEPTION_DATE_YEAR(),
 							  crit_demo_pregnancy_obj.getCONCEPTION_DATE_MONTH(),crit_demo_pregnancy_obj.getCONCEPTION_DATE_DAY());					  		
 				  
-				  } else if(!(crit_demo_pregnancy_obj.getCONCEPTION_period_begin_year()/* + crit_demo_pregnancy_obj.getCONCEPTION_period_begin_month() + crit_demo_pregnancy_obj.getCONCEPTION_period_begin_day()*/).isEmpty() || !(crit_demo_pregnancy_obj.getCONCEPTION_period_end_year()).isEmpty()) {
+				  } else if(!(crit_demo_pregnancy_obj.getCONCEPTION_period_begin_year()).isEmpty() || !(crit_demo_pregnancy_obj.getCONCEPTION_period_end_year()).isEmpty()) {
 					  tables += ", dt_date as dt_date1";
 					  where_clause += Make_begin_end_date_query (true, mode,"demo_pregnancy_data.CONCEPTION_DATE_ID", "dt_date1",crit_demo_pregnancy_obj.getCONCEPTION_period_begin_year(), crit_demo_pregnancy_obj.getCONCEPTION_period_begin_month(), crit_demo_pregnancy_obj.getCONCEPTION_period_begin_day(), crit_demo_pregnancy_obj.getCONCEPTION_period_end_year(), crit_demo_pregnancy_obj.getCONCEPTION_period_end_month(),
 							  crit_demo_pregnancy_obj.getCONCEPTION_period_end_day());			  
 				  
-				  } else if(!(crit_demo_pregnancy_obj.getCONCEPTION_until_date_year()/* + crit_demo_pregnancy_obj.getCONCEPTION_until_date_month() + crit_demo_pregnancy_obj.getCONCEPTION_until_date_day()*/).isEmpty()) {
+				  } else if(!(crit_demo_pregnancy_obj.getCONCEPTION_until_date_year()).isEmpty()) {
 					  tables += ", dt_date as dt_date1";
 					  where_clause += Make_begin_end_date_query (true, mode,"demo_pregnancy_data.CONCEPTION_DATE_ID","dt_date1", "1800", "1", "1", crit_demo_pregnancy_obj.getCONCEPTION_until_date_year(), 
 							  crit_demo_pregnancy_obj.getCONCEPTION_until_date_month(), crit_demo_pregnancy_obj.getCONCEPTION_until_date_day()); 
@@ -207,8 +207,7 @@ public class CriterionsTestServlet extends HttpServlet {
 					  where_clause += ")";
 				  }
 				  
-				  if(!crit_demo_pregnancy_obj.outcome_exact_year.isEmpty()) {/* + crit_demo_pregnancy_obj.outcome_exact_month + 
-				  	crit_demo_pregnancy_obj.outcome_exact_day).isEmpty()) {*/
+				  if(!crit_demo_pregnancy_obj.outcome_exact_year.isEmpty()) {
 					  tables += ", dt_date as dt_date2";
 					  where_clause += Make_specific_date_query(true, mode, "demo_pregnancy_data.OUTCOME_DATE_ID","dt_date2", crit_demo_pregnancy_obj.getOUTCOME_DATE_YEAR(),
 							  crit_demo_pregnancy_obj.getOUTCOME_DATE_MONTH(),crit_demo_pregnancy_obj.getOUTCOME_DATE_DAY());	
@@ -248,8 +247,62 @@ public class CriterionsTestServlet extends HttpServlet {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_demo_pregnancy_obj.getCount();
 					}
 				  	
-				  	query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
-				  	
+				  	if(crit_demo_pregnancy_obj.getTypeNested().equals("outcome")) {
+				  		if(!tables.contains("dt_date2")) {
+				  			tables += ", dt_date as dt_date2";
+				  			where_clause += " AND demo_pregnancy_data.OUTCOME_DATE_ID=dt_date2.ID";
+				  		}	
+				  		if(isMax) query = "(SELECT MAX(dt_date2.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+						else query = "(SELECT MIN(dt_date2.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  		if(!crit_demo_pregnancy_obj.getOutcomeYearsNested().isEmpty()) {
+							query += " + ("+crit_demo_pregnancy_obj.getOutcomeYearsNested()+")";
+						}  
+				  	}
+				  	else if(crit_demo_pregnancy_obj.getTypeNested().equals("conception")) {
+				  		if(!tables.contains("dt_date1")) {
+				  			tables += ", dt_date as dt_date1";
+				  			where_clause += " AND demo_pregnancy_data.CONCEPTION_DATE_ID=dt_date1.ID";
+				  		}
+				  		if(isMax) query = "(SELECT MAX(dt_date1.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+						else query = "(SELECT MIN(dt_date1.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  		if(!crit_demo_pregnancy_obj.getConceptionYearsNested().isEmpty()) {
+							query += " + ("+crit_demo_pregnancy_obj.getConceptionYearsNested()+")";
+						} 
+				  	}
+				  	else if(crit_demo_pregnancy_obj.getTypeNested().equals("both")) {
+				  		oneDatePregnancy=false;
+				  		String tables1 = tables;
+				  		String tables2 = tables;
+				  		String where_clause1 = where_clause;
+				  		String where_clause2 = where_clause;
+				  		if(!tables1.contains("dt_date1")) {
+				  			tables1 += ", dt_date as dt_date1";
+				  			where_clause1 += " AND demo_pregnancy_data.CONCEPTION_DATE_ID=dt_date1.ID";
+				  		}
+				  		if(!tables2.contains("dt_date2")) {
+				  			tables2 += ", dt_date as dt_date2";
+				  			where_clause2 += " AND demo_pregnancy_data.OUTCOME_DATE_ID=dt_date2.ID";
+				  		}
+				  		String query1;
+				  		String query2;
+				  		if(isMax) {
+				  			query1 = "(SELECT MAX(dt_date1.YEAR) FROM " + tables1 + " WHERE patient.UID=outerr.UID AND " + where_clause1 +")";
+				  			query2 = "(SELECT MAX(dt_date2.YEAR) FROM " + tables2 + " WHERE patient.UID=outerr.UID AND " + where_clause2 +")";
+				  		}
+				  		else {
+				  			query1 = "(SELECT MIN(dt_date1.YEAR) FROM " + tables1 + " WHERE patient.UID=outerr.UID AND " + where_clause1 +")";
+				  			query2 = "(SELECT MIN(dt_date2.YEAR) FROM " + tables2 + " WHERE patient.UID=outerr.UID AND " + where_clause2 +")";
+				  		}
+				  		if(!crit_demo_pregnancy_obj.getConceptionYearsNested().isEmpty()) {
+							query1 += " + ("+crit_demo_pregnancy_obj.getConceptionYearsNested()+")";
+						} 
+				  		if(!crit_demo_pregnancy_obj.getOutcomeYearsNested().isEmpty()) {
+							query2 += " + ("+crit_demo_pregnancy_obj.getOutcomeYearsNested()+")";
+						}
+				  		
+				  		query=query1+"#"+query2;
+				  	}
+				  					  	
 			  } break;
 			  
 			  case "lifestyle_smoking": { //Check if user provided the info of all the fields 
@@ -1396,7 +1449,13 @@ public class CriterionsTestServlet extends HttpServlet {
 			} 
 			query=query.replace("WHERE  AND", "WHERE");
 			query=query.replace("WHERE AND", "WHERE");
-			nestedCriteria.add(query);
+			if(!oneDatePregnancy) {
+				oneDatePregnancy=true;
+				String[] twoQueries = query.split("#");
+				nestedCriteria.add(twoQueries[0]);
+				nestedCriteria.add(twoQueries[1]);
+			}
+			else nestedCriteria.add(query);
     	}
     	return nestedCriteria;
     }
@@ -1545,8 +1604,89 @@ public class CriterionsTestServlet extends HttpServlet {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_demo_pregnancy_obj.getCount();
 					}
 				  	
-				  	query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  	if(!crit_demo_pregnancy_obj.getOutcomeMaxNested().isEmpty()) {
+						  String crit_max_nested = makeCriterionList(crit_demo_pregnancy_obj.getOutcomeMaxNested());
+						  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
+						  ArrayList<Criterion> list_of_max_nested=null;
+						  list_of_max_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+						  ArrayList<String> maxNestedQueries = createNestedQueries(list_of_max_nested, false, true);
+						  if(!tables.contains("dt_date")) {
+							  tables += ", dt_date";
+							  where_clause += " AND demo_pregnancy_data.OUTCOME_DATE_ID=dt_date.ID";
+						  }
+						  for(int k=0; k<maxNestedQueries.size(); k++) {
+							  where_clause += " AND dt_date.YEAR <= "+maxNestedQueries.get(k);
+						  }  
+						  if(!crit_demo_pregnancy_obj.getOutcomeMinNested().isEmpty()) {
+							  String crit_min_nested = makeCriterionList(crit_demo_pregnancy_obj.getOutcomeMinNested());
+							  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_min_nested);
+							  ArrayList<Criterion> list_of_min_nested=null;
+							  list_of_min_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+							  ArrayList<String> minNestedQueries = createNestedQueries(list_of_min_nested, false, false);
+							  for(int k=0; k<minNestedQueries.size(); k++) {
+								  where_clause += " AND dt_date.YEAR >= "+minNestedQueries.get(k);
+							  }  
+						  }
+						  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+					  }
+					  else if(!crit_demo_pregnancy_obj.getOutcomeMinNested().isEmpty()) {
+						  String crit_min_nested = makeCriterionList(crit_demo_pregnancy_obj.getOutcomeMinNested());
+						  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_min_nested);
+						  ArrayList<Criterion> list_of_min_nested=null;
+						  list_of_min_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+						  ArrayList<String> minNestedQueries = createNestedQueries(list_of_min_nested, false, false);
+						  if(!tables.contains("dt_date")) {
+							  tables += ", dt_date";
+							  where_clause += " AND demo_pregnancy_data.OUTCOME_DATE_ID=dt_date.ID";
+						  }
+						  for(int k=0; k<minNestedQueries.size(); k++) {
+							  where_clause += " AND dt_date.YEAR >= "+minNestedQueries.get(k);
+						  }  
+						  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+					  }
+					  else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 				  	
+				  	if(!crit_demo_pregnancy_obj.getConceptionMaxNested().isEmpty()) {
+						  String crit_max_nested = makeCriterionList(crit_demo_pregnancy_obj.getConceptionMaxNested());
+						  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
+						  ArrayList<Criterion> list_of_max_nested=null;
+						  list_of_max_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+						  ArrayList<String> maxNestedQueries = createNestedQueries(list_of_max_nested, false, true);
+						  if(!tables.contains("dt_date")) {
+							  tables += ", dt_date";
+							  where_clause += " AND demo_pregnancy_data.CONCEPTION_DATE_ID=dt_date.ID";
+						  }
+						  for(int k=0; k<maxNestedQueries.size(); k++) {
+							  where_clause += " AND dt_date.YEAR <= "+maxNestedQueries.get(k);
+						  }  
+						  if(!crit_demo_pregnancy_obj.getConceptionMinNested().isEmpty()) {
+							  String crit_min_nested = makeCriterionList(crit_demo_pregnancy_obj.getConceptionMinNested());
+							  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_min_nested);
+							  ArrayList<Criterion> list_of_min_nested=null;
+							  list_of_min_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+							  ArrayList<String> minNestedQueries = createNestedQueries(list_of_min_nested, false, false);
+							  for(int k=0; k<minNestedQueries.size(); k++) {
+								  where_clause += " AND dt_date.YEAR >= "+minNestedQueries.get(k);
+							  }  
+						  }
+						  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+					  }
+					  else if(!crit_demo_pregnancy_obj.getConceptionMinNested().isEmpty()) {
+						  String crit_min_nested = makeCriterionList(crit_demo_pregnancy_obj.getConceptionMinNested());
+						  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_min_nested);
+						  ArrayList<Criterion> list_of_min_nested=null;
+						  list_of_min_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+						  ArrayList<String> minNestedQueries = createNestedQueries(list_of_min_nested, false, false);
+						  if(!tables.contains("dt_date")) {
+							  tables += ", dt_date";
+							  where_clause += " AND demo_pregnancy_data.CONCEPTION_DATE_ID=dt_date.ID";
+						  }
+						  for(int k=0; k<minNestedQueries.size(); k++) {
+							  where_clause += " AND dt_date.YEAR >= "+minNestedQueries.get(k);
+						  }  
+						  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+					  }
+				  	  				  	
 			  } break;
 			  
 			  case "lifestyle_smoking": { //Check if user provided the info of all the fields 
