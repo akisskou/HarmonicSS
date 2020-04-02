@@ -63,8 +63,9 @@
 <br>
 <h3>Condition</h3>
 <h4>Symptoms/Signs</h4>
-<p>Diagnosed with dry mouth: {"criterion":"condition_symptom","sign_coded":"SYMPT-020"}</p>
-<p>Diagnosed with dry eyes between 2000 and 2008: {"criterion":"condition_symptom","sign_coded":"SYMPT-030","sign_date_interval_start_year":"2000", "sign_date_interval_end_year":"2008"}</p>
+<p>Dry mouth observed: {"criterion":"condition_symptom","sign_coded":"SYMPT-020"}</p>
+<p>Dry eyes observed between 2000 and 2008: {"criterion":"condition_symptom","sign_coded":"SYMPT-030","sign_date_interval_start_year":"2000", "sign_date_interval_end_year":"2008"}</p>
+<p>Fatigue observed at least 2 years before diagnosed with Arthritis: {"criterion":"condition_symptom","sign_coded":"SYMPT-160","max_nested":"{\"nested_criterion\":\"condition_diagnosis\",\"condition\":\"COND-101000\",\"years_nested\":\"-2\"}"}</p>
 <h4>Diseases</h4>
 <p>Diagnosed with cancer: {"criterion":"condition_diagnosis","condition":"COND-140000"}</p>
 <p>Diagnosed with cancer before 2015: {"criterion":"condition_diagnosis","condition":"COND-140000","date_until_year":"2014"}</p>
