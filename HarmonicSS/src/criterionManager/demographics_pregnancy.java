@@ -30,6 +30,13 @@ public class demographics_pregnancy extends Criterion {
 	public String outcome_ss_related = ""; 						//Column: SS_CONCORDANT_ID
 	public String statement = "";
 	public String count = "";
+	public String max_outcome_nested = "";
+	public String min_outcome_nested = "";
+	public String years_outcome_nested = "";
+	public String max_conception_nested = "";
+	public String min_conception_nested = "";
+	public String years_conception_nested = "";
+	public String type_nested = "";
 	
 
 	public demographics_pregnancy(String criterion_name, String CONCEPTION_DATE_YEAR, String CONCEPTION_DATE_MONTH, String CONCEPTION_DATE_DAY,  
@@ -41,7 +48,7 @@ public class demographics_pregnancy extends Criterion {
 			
 			String OUTCOME_period_begin_year, String OUTCOME_period_begin_month, String OUTCOME_period_begin_day,
 			String OUTCOME_period_end_year, String OUTCOME_period_end_month, String OUTCOME_period_end_day,
-			String OUTCOME_until_year, String OUTCOME_until_month, String OUTCOME_until_day, String statement, String count) {
+			String OUTCOME_until_year, String OUTCOME_until_month, String OUTCOME_until_day, String statement, String count, String max_outcome_nested, String min_outcome_nested, String years_outcome_nested, String max_conception_nested, String min_conception_nested, String years_conception_nested, String type_nested) {
 		super(criterion_name);
 		this.conception_exact_year = CONCEPTION_DATE_YEAR;						//Column: CONCEPTION_DATE_ID
 		this.conception_exact_month = CONCEPTION_DATE_MONTH;						//Column: CONCEPTION_DATE_ID
@@ -71,6 +78,13 @@ public class demographics_pregnancy extends Criterion {
 		this.outcome_ss_related = voc_confirmation_CODE;						//Column: SS_CONCORDANT_ID
 		this.statement = statement;
 		this.count = count;
+		this.max_outcome_nested = max_conception_nested;
+		this.min_outcome_nested = min_conception_nested;
+		this.years_outcome_nested = years_conception_nested;
+		this.max_conception_nested = max_conception_nested;
+		this.min_conception_nested = min_conception_nested;
+		this.years_conception_nested = years_conception_nested;
+		this.type_nested = type_nested;
 	}
 
 	public demographics_pregnancy() {
@@ -102,6 +116,13 @@ public class demographics_pregnancy extends Criterion {
 		this.outcome_ss_related = "";						//Column: SS_CONCORDANT_ID
 		this.statement = "";
 		this.count = "";
+		this.max_outcome_nested = "";
+		this.min_outcome_nested = "";
+		this.years_outcome_nested = "";
+		this.max_conception_nested = "";
+		this.min_conception_nested = "";
+		this.years_conception_nested = "";
+		this.type_nested = "";
 	}
 	
 	public String getCONCEPTION_DATE_YEAR() {
@@ -327,5 +348,58 @@ public class demographics_pregnancy extends Criterion {
 	
 	public void setCount(String count) {
 		this.count = count;
+	}
+	
+	public String getOutcomeMaxNested() {
+		return max_outcome_nested;
+	}
+	
+	public void setOutcomeMaxNested(String max_outcome_nested) {
+		this.max_outcome_nested = max_outcome_nested;
+	}
+	
+	public String getOutcomeMinNested() {
+		return min_outcome_nested;
+	}
+	
+	public void setOutcomeMinNested(String min_outcome_nested) {
+		this.min_outcome_nested = min_outcome_nested;
+	}
+	public String getOutcomeYearsNested() {
+		return years_outcome_nested;
+	}
+	
+	public void setOutcomeYearsNested(String years_outcome_nested) {
+		this.years_outcome_nested = years_outcome_nested;
+	}
+	
+	public String getConceptionMaxNested() {
+		return max_conception_nested;
+	}
+	
+	public void setConceptionMaxNested(String max_conception_nested) {
+		this.max_conception_nested = max_conception_nested;
+	}
+	
+	public String getConceptionMinNested() {
+		return min_conception_nested;
+	}
+	
+	public void setConceptionMinNested(String min_conception_nested) {
+		this.min_conception_nested = min_conception_nested;
+	}
+	public String getConceptionYearsNested() {
+		return years_conception_nested;
+	}
+	
+	public void setConceptionYearsNested(String years_conception_nested) {
+		this.years_conception_nested = years_conception_nested;
+	}
+	public String getTypeNested() {
+		return type_nested;
+	}
+	
+	public void setTypeNested(String type_nested) {
+		this.type_nested = type_nested;
 	}
 }

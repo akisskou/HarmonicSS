@@ -22,6 +22,9 @@ public class examination_medical_imaging_test extends Criterion{
 	public String test_period_of_time_until_day = "";			//dt_date
 	
 	public String count = "";
+	public String max_nested = "";
+	public String min_nested = "";
+	public String years_nested = "";
 	
 	
 	public examination_medical_imaging_test(String criterion_name, String test_id, String assessment,
@@ -30,7 +33,7 @@ public class examination_medical_imaging_test extends Criterion{
 			String test_period_of_time_interval_start_month, String test_period_of_time_interval_start_day,
 			String test_period_of_time_interval_end_year, String test_period_of_time_interval_end_month,
 			String test_period_of_time_interval_end_day, String test_period_of_time_until_year,
-			String test_period_of_time_until_month, String test_period_of_time_until_day, String count) {
+			String test_period_of_time_until_month, String test_period_of_time_until_day, String count, String max_nested, String min_nested, String years_nested) {
 		super(criterion_name);
 		this.test_id = test_id;
 		this.assessment = assessment;
@@ -47,6 +50,9 @@ public class examination_medical_imaging_test extends Criterion{
 		this.test_period_of_time_until_month = test_period_of_time_until_month;
 		this.test_period_of_time_until_day = test_period_of_time_until_day;
 		this.count = count;
+		this.max_nested = max_nested;
+		this.min_nested = min_nested;
+		this.years_nested = years_nested;
 	}
 	
 	public examination_medical_imaging_test() {
@@ -66,6 +72,9 @@ public class examination_medical_imaging_test extends Criterion{
 		this.test_period_of_time_until_month = "";
 		this.test_period_of_time_until_day = "";
 		this.count = "";
+		this.max_nested = "";
+		this.min_nested = "";
+		this.years_nested = "";
 	}
 	
 	public String getTest_id() {
@@ -161,4 +170,27 @@ public class examination_medical_imaging_test extends Criterion{
 		this.count = count;
 	}
 
+	public String getMaxNested() {
+		return max_nested;
+	}
+	
+	public void setMaxNested(String max_nested) {
+		this.max_nested = max_nested;
+	}
+	
+	public String getMinNested() {
+		return min_nested;
+	}
+	
+	public void setMinNested(String min_nested) {
+		this.min_nested = min_nested;
+	}
+	
+	public String getYearsNested() {
+		return years_nested;
+	}
+	
+	public void setYearsNested(String years_nested) {
+		this.years_nested = years_nested;
+	}
 }

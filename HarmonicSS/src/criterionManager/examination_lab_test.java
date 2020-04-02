@@ -23,6 +23,8 @@ public class examination_lab_test extends Criterion{
 	public String sample_period_of_time_until_month = "";			//dt_date
 	public String sample_period_of_time_until_day = "";				//dt_date
 	public String count = "";
+	public String max_nested = "";
+	public String min_nested = "";
 	public String years_nested = "";
 	
 	
@@ -34,7 +36,7 @@ public class examination_lab_test extends Criterion{
 			String sample_period_of_time_interval_start_day, String sample_period_of_time_interval_end_year,
 			String sample_period_of_time_interval_end_month, String sample_period_of_time_interval_end_day,
 			String sample_period_of_time_until_year, String sample_period_of_time_until_month,
-			String sample_period_of_time_until_day, String count, String years_nested) {
+			String sample_period_of_time_until_day, String count, String max_nested, String min_nested, String years_nested) {
 		super(criterion_name);
 		this.test_id = test_id;
 		this.outcome_amount_unit = outcome_amount_unit;
@@ -57,6 +59,8 @@ public class examination_lab_test extends Criterion{
 		this.sample_period_of_time_until_month = sample_period_of_time_until_month;
 		this.sample_period_of_time_until_day = sample_period_of_time_until_day;
 		this.count = count;
+		this.max_nested = max_nested;
+		this.min_nested = min_nested;
 		this.years_nested = years_nested;
 	}
 
@@ -83,6 +87,8 @@ public class examination_lab_test extends Criterion{
 		this.sample_period_of_time_until_month = "";
 		this.sample_period_of_time_until_day = "";
 		this.count = "";
+		this.max_nested = "";
+		this.min_nested = "";
 		this.years_nested = "";
 	}
 	
@@ -252,6 +258,22 @@ public class examination_lab_test extends Criterion{
 	
 	public void setCount(String count) {
 		this.count = count;
+	}
+	
+	public String getMaxNested() {
+		return max_nested;
+	}
+	
+	public void setMaxNested(String max_nested) {
+		this.max_nested = max_nested;
+	}
+	
+	public String getMinNested() {
+		return min_nested;
+	}
+	
+	public void setMinNested(String min_nested) {
+		this.min_nested = min_nested;
 	}
 	
 	public String getYearsNested() {
