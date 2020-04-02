@@ -67,14 +67,15 @@ public class TestCreateServlet extends HttpServlet {
     	CriteriaList inclCriteriaList = new CriteriaList();
 		String[] inclCriteria;
 		if(!jsonInclCriteria.trim().isEmpty()) {
-			if (!jsonInclCriteria.contains("{") || !jsonInclCriteria.contains("}") || !jsonInclCriteria.contains(":")) throw e;
+			if (!jsonInclCriteria.contains("{\"criterion\":") || !jsonInclCriteria.contains("}")) throw e;
 			else {
-				inclCriteria = jsonInclCriteria.split("}");
-				for(int i=0; i<inclCriteria.length; i++) {
-					inclCriteria[i] = inclCriteria[i].trim()+"}";
+				//String inputJSON = jsonInclCriteria.replaceAll("\\s+","");
+				inclCriteria = jsonInclCriteria.split("\\{\"criterion\":");
+				for(int i=1; i<inclCriteria.length; i++) {
+					inclCriteria[i] = "{\"criterion\":"+inclCriteria[i].trim();
 					Criterion inclCriterion = new Criterion();
-		    		if(i+1<10) inclCriterion.setUID("CRIT-ID-0"+(i+1));
-		    		else inclCriterion.setUID("CRIT-ID-"+(i+1));
+		    		if(i<10) inclCriterion.setUID("CRIT-ID-0"+i);
+		    		else inclCriterion.setUID("CRIT-ID-"+i);
 		    		inclCriterion.setName("-");
 		    		inclCriterion.setDescription(inclCriteria[i]);
 		    		FormalExpression myFormExp = new FormalExpression();
@@ -96,14 +97,14 @@ public class TestCreateServlet extends HttpServlet {
 		CriteriaList exclCriteriaList = new CriteriaList();
 		String[] exclCriteria; 
 		if(!jsonExclCriteria.trim().isEmpty()) {
-			if(!jsonExclCriteria.contains("{") || !jsonExclCriteria.contains("}") || !jsonExclCriteria.contains(":")) throw e;
+			if(!jsonExclCriteria.contains("{\"criterion\":") || !jsonExclCriteria.contains("}")) throw e;
 			else {
-				exclCriteria = jsonExclCriteria.split("}");
-				for(int i=0; i<exclCriteria.length; i++) {
-					exclCriteria[i] = exclCriteria[i].trim()+"}";
+				exclCriteria = jsonExclCriteria.split("\\{\"criterion\":");
+				for(int i=1; i<exclCriteria.length; i++) {
+					exclCriteria[i] = "{\"criterion\":"+exclCriteria[i].trim();
 					Criterion exclCriterion = new Criterion();
-		    		if(i+inclCriteriaList.getCriterion().size()+1<10) exclCriterion.setUID("CRIT-ID-0"+(i+inclCriteriaList.getCriterion().size()+1));
-		    		else exclCriterion.setUID("CRIT-ID-"+(i+inclCriteriaList.getCriterion().size()+1));
+		    		if(i+inclCriteriaList.getCriterion().size()<10) exclCriterion.setUID("CRIT-ID-0"+(i+inclCriteriaList.getCriterion().size()));
+		    		else exclCriterion.setUID("CRIT-ID-"+(i+inclCriteriaList.getCriterion().size()));
 		    		exclCriterion.setName("-");
 		    		exclCriterion.setDescription(exclCriteria[i]);
 		    		FormalExpression myFormExp = new FormalExpression();

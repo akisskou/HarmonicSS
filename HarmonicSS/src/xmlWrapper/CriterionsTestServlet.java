@@ -3357,7 +3357,7 @@ public class CriterionsTestServlet extends HttpServlet {
 						  else inClause += ","+previousResults[j];
 					  }
 					  inClause += ")";
-					  query=query.replace("WHERE","WHERE patient.UID IN "+inClause+" AND");
+					  query=query.replaceFirst("WHERE","WHERE UID IN "+inClause+" AND");
 				}
 				//System.out.println("The query is: "+query);
 				System.out.println("We are ready to execute the query: "+query);
