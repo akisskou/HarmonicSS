@@ -167,7 +167,6 @@ public class TestServlet extends HttpServlet {
 	// TODO: Close connections
 	
 	private static int createRequest(String username, String password, String submitDate, String serviceId, String justification) throws IOException, JSONException{
-			HttpServletResponse response = null;
 			URL url = new URL("https://private.harmonicss.eu/index.php/apps/coh/api/1.0/dar");
 	        String authString = username + ":" + password;
 	        byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());

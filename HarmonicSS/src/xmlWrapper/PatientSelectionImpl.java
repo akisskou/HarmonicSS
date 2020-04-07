@@ -33,6 +33,8 @@ import org.semanticweb.owlapi.model.OWLOntologyCreationException;
 import org.semanticweb.owlapi.model.OWLOntologyManager;
 //import org.semanticweb.owlapi.model.OWLSubClassOfAxiom;
 
+import com.github.sardine.Sardine;
+import com.github.sardine.SardineFactory;
 import com.google.gson.Gson;
 
 import jsonProcess.*;
@@ -50,13 +52,17 @@ import static queries.SQL_aux_functions.Make_begin_end_period_query;
 import static queries.SQL_aux_functions.Make_specific_age_query;
 import static queries.SQL_aux_functions.Make_specific_date_query;
 
+import java.io.BufferedReader;
 import java.io.FileInputStream;
 import java.io.PrintWriter;
+import java.io.Reader;
 import java.io.StringReader;
 import java.io.StringWriter;
+import java.net.HttpURLConnection;
 import java.net.MalformedURLException;
 import java.net.URL;
 import java.net.URLConnection;
+import java.nio.charset.StandardCharsets;
 import java.sql.Connection;
 import java.sql.DriverManager;
 import java.sql.PreparedStatement;
@@ -3674,7 +3680,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	  }
 
     
-    public void writeXMLResponse(int cohortIndex, boolean createXML, int cohortID, String statusID){
+    public void writeXMLResponse(int cohortIndex, boolean createXML, int cohortID, String statusID, String username){
     	try{
     		if(cohortIndex==0) {
     		xmljaxbContext = JAXBContext.newInstance(ObjectFactory.class);
@@ -3682,7 +3688,8 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     		xmljaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
     		patientsSelectionResponse = new PatientsSelectionResponse();
     		//jaxbMarshaller.marshal(patientsSelectionResponse, responseXML);
-    		patientsSelectionResponse.setUserID(patientsSelectionRequest.getUserID());
+    		//patientsSelectionResponse.setUserID(patientsSelectionRequest.getUserID());
+    		patientsSelectionResponse.setUserID(username);
     		patientsSelectionResponse.setSessionID(patientsSelectionRequest.getSessionID());
     		GregorianCalendar gregorianCalendar = new GregorianCalendar();
             DatatypeFactory datatypeFactory = DatatypeFactory.newInstance();
@@ -3865,12 +3872,15 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     	//}
 	    JSONArray cohorts = new JSONArray(getCohortsC4(darID, username, password));
 	    boolean createXML = false;
+	    String cohort_ids = "";
     	for(int i=0; i<cohorts.length(); i++){
     		patients_found = true;
     		String cohortName = "";
     		int mycohortid = Integer.valueOf(cohorts.getJSONObject(i).get("cohortId").toString());
     		if(mycohortid<10) cohortName = "chdb00"+mycohortid;
     		else cohortName = "chdb0"+mycohortid;
+    		if(i==0) cohort_ids += mycohortid;
+    		else cohort_ids += ","+mycohortid;
     		if(cohorts.getJSONObject(i).get("statusId").equals("2")) {
     			JSONObject credentials = getCredentials(mycohortid, username, password);
     			//String cohortName = cohorts.getJSONObject(i).get("cohortName").toString();
@@ -3887,7 +3897,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     	    	System.out.println("everything's gooooooood");
     			criterionDBmatching(list_of_inclusive_criterions,list_of_exclusive_criterions);
     			if(i==cohorts.length()-1) createXML=true;
-    			writeXMLResponse(i, createXML, mycohortid, "2");	
+    			writeXMLResponse(i, createXML, mycohortid, "2", username);	
     			inclusion_criteria.clear();
     			exclusion_criteria.clear();
     			if(patientsSelectionRequest.getRequestID().value().equals("ELIGIBLE_PATIENTS_IDS")) {
@@ -3902,10 +3912,10 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     		else {
     			if(i==cohorts.length()-1) createXML=true;
     			if(cohorts.getJSONObject(i).get("statusId").equals("1")) {
-    				writeXMLResponse(i, createXML, mycohortid, "1");
+    				writeXMLResponse(i, createXML, mycohortid, "1", username);
     			}
     			else {
-    				writeXMLResponse(i, createXML, mycohortid, "3");
+    				writeXMLResponse(i, createXML, mycohortid, "3", username);
     			}
     		}
     			
@@ -3936,6 +3946,47 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
         }
     	System.out.println("-------------------------------- Execution data saved to database -------------------------------");
     	
+    	final Sardine upSardine = SardineFactory.begin(username, password);
+    	byte[] reqBytes = myReqXML.getBytes(StandardCharsets.UTF_8);
+    	String requestFile = username+"-"+((Timestamp) param).toString().replace("-","").replace(" ","").replace(":","")+"-"+requestID+"-Request.xml";
+    	upSardine.put("http://83.212.104.6/hcloud/remote.php/webdav/"+requestFile, reqBytes);
+    	byte[] respBytes = myRespXML.getBytes(StandardCharsets.UTF_8);
+	    String responseFile = username+"-"+((Timestamp) param).toString().replace("-","").replace(" ","").replace(":","")+"-"+requestID+"-Response.xml";
+    	upSardine.put("http://83.212.104.6/hcloud/remote.php/webdav/"+responseFile, respBytes);
+    	JSONObject dbData = setCohortHistory(username, password, (Timestamp) param, cohort_ids, requestFile, responseFile);
+    	System.out.println(dbData);
+    }
+    
+    private static JSONObject setCohortHistory(String username, String password, Timestamp submitDate, String cohort_ids, String jsonfileInput, String jsonfileOutput) throws IOException, JSONException{
+		URL url = new URL("https://private.harmonicss.eu/index.php/apps/coh/api/1.0/history");
+        String authString = username + ":" + password;
+        byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
+        String authStringEnc = new String(authEncBytes);
+		JSONObject params = new JSONObject();
+		params.put("userId", username);
+		params.put("serviceId", "1");
+	    params.put("submitdate", submitDate);
+	    params.put("cohortIds", cohort_ids);
+	    
+	    params.put("jsonfileInput", jsonfileInput);
+	    params.put("jsonfileOutput", jsonfileOutput);
+	    params.put("comment", "");
+	    String postData = params.toString();
+	    byte[] postDataBytes = postData.getBytes("UTF-8");
+	    HttpURLConnection conn = (HttpURLConnection)url.openConnection();
+	    conn.setRequestMethod("POST");
+	    conn.setRequestProperty("Content-Type", "application/json");
+	    conn.setRequestProperty("Authorization", "Basic " + authStringEnc);
+	    conn.setRequestProperty("Content-Length", String.valueOf(postDataBytes.length));
+	    conn.setDoOutput(true);
+	    conn.getOutputStream().write(postDataBytes);
+	    Reader in = new BufferedReader(new InputStreamReader(conn.getInputStream(), "UTF-8"));
+	    StringBuilder sb = new StringBuilder();
+	    for (int c; (c = in.read()) >= 0;)
+	        sb.append((char)c);
+	    String resp = sb.toString();
+	    JSONObject dbData = new JSONObject(resp);
+	    return dbData;
     }
     
     /*private static String readLineByLineJava8(String filePath) 

@@ -13,6 +13,6 @@ import criterionManager.Criterion;
 
 public interface XMLFileManager {
 	public String readXMLbyRequestID(String requestID, String username, String password) throws JAXBException, IOException;
-	public void writeXMLResponse(int cohortIndex, boolean createXML, int cohortID, String statusID);
+	public void writeXMLResponse(int cohortIndex, boolean createXML, int cohortID, String statusID, String username);
 	public void accessCohorts(String darID, String uesrname, String password, ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions) throws MalformedURLException, IOException, JSONException, SQLException, ClassNotFoundException;
 }
