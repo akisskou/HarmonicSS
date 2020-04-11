@@ -3947,17 +3947,20 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     	System.out.println("-------------------------------- Execution data saved to database -------------------------------");
     	
     	final Sardine upSardine = SardineFactory.begin(username, password);
+    	if(!upSardine.exists("http://83.212.104.6/hcloud/remote.php/webdav/Patient-Selection-Execution-Results")){
+    		upSardine.createDirectory("http://83.212.104.6/hcloud/remote.php/webdav/Patient-Selection-Execution-Results");
+    	}
     	byte[] reqBytes = myReqXML.getBytes(StandardCharsets.UTF_8);
-    	String requestFile = username+"-"+((Timestamp) param).toString().replace("-","").replace(" ","").replace(":","")+"-"+requestID+"-Request.xml";
-    	upSardine.put("http://83.212.104.6/hcloud/remote.php/webdav/"+requestFile, reqBytes);
+    	String requestFile = username+"-"+((Timestamp) param).toString().replace("-","").replace(" ","").replace(":","").split("\\.")[0]+"-"+requestID+"-Request.xml";
+    	upSardine.put("http://83.212.104.6/hcloud/remote.php/webdav/Patient-Selection-Execution-Results/"+requestFile, reqBytes);
     	byte[] respBytes = myRespXML.getBytes(StandardCharsets.UTF_8);
-	    String responseFile = username+"-"+((Timestamp) param).toString().replace("-","").replace(" ","").replace(":","")+"-"+requestID+"-Response.xml";
-    	upSardine.put("http://83.212.104.6/hcloud/remote.php/webdav/"+responseFile, respBytes);
-    	JSONObject dbData = setCohortHistory(username, password, (Timestamp) param, cohort_ids, requestFile, responseFile);
+	    String responseFile = username+"-"+((Timestamp) param).toString().replace("-","").replace(" ","").replace(":","").split("\\.")[0]+"-"+requestID+"-Response.xml";
+    	upSardine.put("http://83.212.104.6/hcloud/remote.php/webdav/Patient-Selection-Execution-Results/"+responseFile, respBytes);
+    	JSONObject dbData = setCohortHistory(username, password, ((Timestamp) param).toString().split("\\.")[0], cohort_ids, requestFile, responseFile);
     	System.out.println(dbData);
     }
     
-    private static JSONObject setCohortHistory(String username, String password, Timestamp submitDate, String cohort_ids, String jsonfileInput, String jsonfileOutput) throws IOException, JSONException{
+    private static JSONObject setCohortHistory(String username, String password, String submitDate, String cohort_ids, String jsonfileInput, String jsonfileOutput) throws IOException, JSONException{
 		URL url = new URL("https://private.harmonicss.eu/index.php/apps/coh/api/1.0/history");
         String authString = username + ":" + password;
         byte[] authEncBytes = Base64.encodeBase64(authString.getBytes());
@@ -3971,6 +3974,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	    params.put("jsonfileInput", jsonfileInput);
 	    params.put("jsonfileOutput", jsonfileOutput);
 	    params.put("comment", "");
+	    params.put("darId", requestID);
 	    String postData = params.toString();
 	    byte[] postDataBytes = postData.getBytes("UTF-8");
 	    HttpURLConnection conn = (HttpURLConnection)url.openConnection();

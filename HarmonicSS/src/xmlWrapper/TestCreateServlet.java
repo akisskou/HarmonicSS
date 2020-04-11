@@ -67,10 +67,10 @@ public class TestCreateServlet extends HttpServlet {
     	CriteriaList inclCriteriaList = new CriteriaList();
 		String[] inclCriteria;
 		if(!jsonInclCriteria.trim().isEmpty()) {
-			if (!jsonInclCriteria.contains("{\"criterion\":") || !jsonInclCriteria.contains("}")) throw e;
+			if (!jsonInclCriteria.contains("{") || !jsonInclCriteria.contains("}")) throw e;
 			else {
-				//String inputJSON = jsonInclCriteria.replaceAll("\\s+","");
-				inclCriteria = jsonInclCriteria.split("\\{\"criterion\":");
+				String inputJSON = jsonInclCriteria.replaceAll("\\s+","");
+				inclCriteria = inputJSON.split("\\{\"criterion\":");
 				for(int i=1; i<inclCriteria.length; i++) {
 					inclCriteria[i] = "{\"criterion\":"+inclCriteria[i].trim();
 					Criterion inclCriterion = new Criterion();
@@ -97,9 +97,10 @@ public class TestCreateServlet extends HttpServlet {
 		CriteriaList exclCriteriaList = new CriteriaList();
 		String[] exclCriteria; 
 		if(!jsonExclCriteria.trim().isEmpty()) {
-			if(!jsonExclCriteria.contains("{\"criterion\":") || !jsonExclCriteria.contains("}")) throw e;
+			if(!jsonExclCriteria.contains("{") || !jsonExclCriteria.contains("}")) throw e;
 			else {
-				exclCriteria = jsonExclCriteria.split("\\{\"criterion\":");
+				String inputJSON = jsonExclCriteria.replaceAll("\\s+","");
+				exclCriteria = inputJSON.split("\\{\"criterion\":");
 				for(int i=1; i<exclCriteria.length; i++) {
 					exclCriteria[i] = "{\"criterion\":"+exclCriteria[i].trim();
 					Criterion exclCriterion = new Criterion();

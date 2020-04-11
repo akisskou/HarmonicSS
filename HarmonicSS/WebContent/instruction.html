@@ -1,0 +1,28 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Insert title here</title>
+</head>
+<body>
+<p><a href="home.html">Back to main menu</a></p>
+<h2>Instruction for developers</h2><br>
+<h3>Request execution <b>POST</b> service</h3>
+<h4>Service url: </h4>http://harm.harmonicss.eu:8989/HarmonicSS/PatientSelectionImpl
+<h4>json input example, for user test1 to execute request with darID=333:</h4>
+<p>{"username":"test1","password":"1test12!","requestID":"333"}</p>
+<h4>json output, xml response string:</h4>
+<p>{"responseXML":"..."}</p><br>
+<h3>View execution data <b>GET</b> service</h3>
+<h4>Service url, with appropriate parameters to view execution data of request with darID=313, executed by user test1:</h4>
+<p>http://harm.harmonicss.eu:8989/HarmonicSS/ReqRespList?userID=test1&requestID=313</p>
+<h4>json output, execution data list, with data of each execution as json object:</h4>
+<p>{"request_response_list":[{...},...,{...}]}</p><br>
+<h3>View patient IDs <b>POST</b> service</h3>
+<h4>Service url: </h4>http://harm.harmonicss.eu:8989/HarmonicSS/FindIDsByRequestID
+<h4>json input example, for user test2 to view patient IDs execution results of request with darID=334, executed at cohort 35:</h4>
+<p>{"username":"test2","password":"1test22!","requestID":"334","mycohort":"35"}</p>
+<h4>json output, a list of patient IDs lists, with data of each execution as json object:</h4>
+<p>{"patient_IDs_list":[{...},...,{...}]}</p>
+</body>
+</html>
