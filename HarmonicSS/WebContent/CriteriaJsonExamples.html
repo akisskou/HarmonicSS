@@ -35,8 +35,8 @@
 <h4>Pregnancies</h4>
 <p>There was an abortion, conception before 2015: {"criterion":"demographics_pregnancy", "outcome_coded_value":"PREG-OUT-300", "conception_interval_end_year":"2015"}</p>
 <p>Single was born after 2013: {"criterion":"demographics_pregnancy", "outcome_coded_value":"PREG-OUT-100", "outcome_interval_start_year":"2013"}</p>
-<!-->p>Patients with 2 or more pregnancies: {"criterion":"demographics_pregnancy", "count":"2"}</p>
-<p>Abortions that took place at least one year before Urine Specific Gravity lab test conducted: {"criterion":"demographics_pregnancy","outcome_coded_value":"PREG-OUT-300","max_conception_nested":"{\"nested_criterion\":\"examination_lab_test\",\"test_id\":\"URINE-130\",\"years_nested\":\"-1\"}"}</p-->
+<!-->p>Patients with 2 or more pregnancies: {"criterion":"demographics_pregnancy", "min_count":"2"}</p>
+<p>Abortions that took place at least one year before Urine Specific Gravity lab test conducted: {"criterion":"demographics_pregnancy","outcome_coded_value":"PREG-OUT-300","max_conception_year_nested":"{\"nested_criterion\":\"examination_lab_test\",\"test_id\":\"URINE-130\",\"years_nested\":\"-1\"}"}</p-->
 <h4>Smoking Status</h4>
 <p>Active Smoker with more than 200 cigarettes each year, between 2005 and 2012: {"criterion":"lifestyle_smoking", "status_coded_value":"SMOK-STAT-01", "amount_unit":"UNITEXP-18", "amount_range_min_value":"200", "interval_start_year":"2005", "interval_end_year":"2012"}</p>
 <br>
@@ -65,16 +65,16 @@
 <h4>Symptoms/Signs</h4>
 <p>Dry mouth observed: {"criterion":"condition_symptom","sign_coded":"SYMPT-020"}</p>
 <p>Dry eyes observed between 2000 and 2008: {"criterion":"condition_symptom","sign_coded":"SYMPT-030","sign_date_interval_start_year":"2000", "sign_date_interval_end_year":"2008"}</p>
-<!--p>Fatigue observed at least 2 years before diagnosed with Arthritis: {"criterion":"condition_symptom","sign_coded":"SYMPT-160","max_nested":"{\"nested_criterion\":\"condition_diagnosis\",\"condition\":\"COND-101000\",\"years_nested\":\"-2\"}"}</p-->
+<!--p>Fatigue observed at least 2 years before diagnosed with Arthritis: {"criterion":"condition_symptom","sign_coded":"SYMPT-160","max_year_nested":"{\"nested_criterion\":\"condition_diagnosis\",\"condition\":\"COND-101000\",\"years_nested\":\"-2\"}"}</p-->
 <h4>Diseases</h4>
 <p>Diagnosed with cancer: {"criterion":"condition_diagnosis","condition":"COND-140000"}</p>
 <p>Diagnosed with cancer before 2015: {"criterion":"condition_diagnosis","condition":"COND-140000","date_until_year":"2014"}</p>
 <p>Diagnosed with Hematologic disease at lymph nodes: {"criterion":"condition_diagnosis","condition":"COND-110000","organ":"ORGAN-07","date_interval_start_year":"2013", "date_interval_end_year":"2016"}</p>
 <p>Diagnosed with Liver disease, stage II, grade 3: {"criterion":"condition_diagnosis","condition":"COND-021000","organ":"ORGAN-05", "stage":"STAGE-02", "performance_status":"PERFORM-03"}</p>
-<!--p>Diagnosed with digestive system disease 2 or more times: {"criterion":"condition_diagnosis","condition":"COND-020000","count":"2"}</p>
-<p>Diagnosed with cancer at least 10 years after Urine Specific Gravity lab test and at least 2 years before CD4 lab test conducted: {"criterion":"condition_diagnosis","condition":"COND-140000","min_nested":"{\"nested_criterion\":\"examination_lab_test\",\"test_id\":\"URINE-130\",\"years_nested\":\"10\"}","max_nested":"{\"nested_criterion\":\"examination_lab_test\",\"test_id\":\"BLOOD-720\",\"years_nested\":\"-2\"}"}</p>
-<p>Diagnosed with cancer after getting pregnant, and at least 3 years after the abortion: {"criterion":"condition_diagnosis","condition":"COND-140000","min_nested":"{\"nested_criterion\":\"demographics_pregnancy\",\"outcome_coded_value\":\"PREG-OUT-300\",\"type_nested\":\"both\",\"years_outcome_nested\":\"-3\"}"}</p>
-<p>Diagnosed with cancer at least 3 years after getting pregnant, and at least 2 years before the abortion: {"criterion":"condition_diagnosis","condition":"COND-140000","min_nested":"{\"nested_criterion\":\"demographics_pregnancy\",\"outcome_coded_value\":\"PREG-OUT-300\",\"type_nested\":\"conception\",\"years_conception_nested\":\"3\"}","max_nested":"{\"nested_criterion\":\"demographics_pregnancy\",\"outcome_coded_value\":\"PREG-OUT-300\",\"type_nested\":\"outcome\",\"years_outcome_nested\":\"-2\"}"}</p-->
+<!--p>Diagnosed with digestive system disease 3 or less times: {"criterion":"condition_diagnosis","condition":"COND-020000","max_count":"3"}</p>
+<p>Diagnosed with cancer at least 10 years after Urine Specific Gravity lab test and at least 2 years before CD4 lab test conducted: {"criterion":"condition_diagnosis","condition":"COND-140000","min_year_nested":"{\"nested_criterion\":\"examination_lab_test\",\"test_id\":\"URINE-130\",\"years_nested\":\"10\"}","max_year_nested":"{\"nested_criterion\":\"examination_lab_test\",\"test_id\":\"BLOOD-720\",\"years_nested\":\"-2\"}"}</p>
+<p>Diagnosed with cancer after getting pregnant, and at least 3 years after the abortion: {"criterion":"condition_diagnosis","condition":"COND-140000","min_year_nested":"{\"nested_criterion\":\"demographics_pregnancy\",\"outcome_coded_value\":\"PREG-OUT-300\",\"type_nested\":\"both\",\"years_outcome_nested\":\"3\"}"}</p>
+<p>Diagnosed with cancer at least 3 years after getting pregnant, and at least 2 years before the abortion: {"criterion":"condition_diagnosis","condition":"COND-140000","min_year_nested":"{\"nested_criterion\":\"demographics_pregnancy\",\"outcome_coded_value\":\"PREG-OUT-300\",\"type_nested\":\"conception\",\"years_conception_nested\":\"3\"}","max_year_nested":"{\"nested_criterion\":\"demographics_pregnancy\",\"outcome_coded_value\":\"PREG-OUT-300\",\"type_nested\":\"outcome\",\"years_outcome_nested\":\"-2\"}"}</p-->
 <br>
 <h3>Intervention</h3>
 <h4>Medications/Drugs</h4>
