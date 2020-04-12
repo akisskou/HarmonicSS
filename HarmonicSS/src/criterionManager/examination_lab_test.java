@@ -22,9 +22,10 @@ public class examination_lab_test extends Criterion{
 	public String sample_period_of_time_until_year = "";			//dt_date
 	public String sample_period_of_time_until_month = "";			//dt_date
 	public String sample_period_of_time_until_day = "";				//dt_date
-	public String count = "";
-	public String max_nested = "";
-	public String min_nested = "";
+	public String min_count = "";
+	public String max_count = "";
+	public String max_year_nested = "";
+	public String min_year_nested = "";
 	public String years_nested = "";
 	
 	
@@ -36,7 +37,7 @@ public class examination_lab_test extends Criterion{
 			String sample_period_of_time_interval_start_day, String sample_period_of_time_interval_end_year,
 			String sample_period_of_time_interval_end_month, String sample_period_of_time_interval_end_day,
 			String sample_period_of_time_until_year, String sample_period_of_time_until_month,
-			String sample_period_of_time_until_day, String count, String max_nested, String min_nested, String years_nested) {
+			String sample_period_of_time_until_day, String min_count, String max_count, String max_year_nested, String min_year_nested, String years_nested) {
 		super(criterion_name);
 		this.test_id = test_id;
 		this.outcome_amount_unit = outcome_amount_unit;
@@ -58,9 +59,10 @@ public class examination_lab_test extends Criterion{
 		this.sample_period_of_time_until_year = sample_period_of_time_until_year;
 		this.sample_period_of_time_until_month = sample_period_of_time_until_month;
 		this.sample_period_of_time_until_day = sample_period_of_time_until_day;
-		this.count = count;
-		this.max_nested = max_nested;
-		this.min_nested = min_nested;
+		this.min_count = min_count;
+		this.max_count = max_count;
+		this.max_year_nested = max_year_nested;
+		this.min_year_nested = min_year_nested;
 		this.years_nested = years_nested;
 	}
 
@@ -86,9 +88,10 @@ public class examination_lab_test extends Criterion{
 		this.sample_period_of_time_until_year = "";
 		this.sample_period_of_time_until_month = "";
 		this.sample_period_of_time_until_day = "";
-		this.count = "";
-		this.max_nested = "";
-		this.min_nested = "";
+		this.min_count = "";
+		this.max_count = "";
+		this.max_year_nested = "";
+		this.min_year_nested = "";
 		this.years_nested = "";
 	}
 	
@@ -252,28 +255,36 @@ public class examination_lab_test extends Criterion{
 		this.sample_period_of_time_until_day = sample_period_of_time_until_day;
 	}
 	
-	public String getCount() {
-		return count;
+	public String getMinCount() {
+		return min_count;
 	}
 	
-	public void setCount(String count) {
-		this.count = count;
+	public void setMinCount(String min_count) {
+		this.min_count = min_count;
+	}
+	
+	public String getMaxCount() {
+		return max_count;
+	}
+	
+	public void setMaxCount(String max_count) {
+		this.max_count = max_count;
 	}
 	
 	public String getMaxNested() {
-		return max_nested;
+		return max_year_nested;
 	}
 	
-	public void setMaxNested(String max_nested) {
-		this.max_nested = max_nested;
+	public void setMaxNested(String max_year_nested) {
+		this.max_year_nested = max_year_nested;
 	}
 	
 	public String getMinNested() {
-		return min_nested;
+		return min_year_nested;
 	}
 	
-	public void setMinNested(String min_nested) {
-		this.min_nested = min_nested;
+	public void setMinNested(String min_year_nested) {
+		this.min_year_nested = min_year_nested;
 	}
 	
 	public String getYearsNested() {

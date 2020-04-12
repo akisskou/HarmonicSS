@@ -20,7 +20,8 @@ public class intervention_medication extends Criterion {
 	public String period_of_time_until_month = "";
 	public String period_of_time_until_day = "";
 	public String statement = "";
-	public String count = "";
+	public String min_count = "";
+	public String max_count = "";
 
 
 	public intervention_medication(String criterion_name, String voc_pharm_drug_CODE, 
@@ -28,7 +29,7 @@ public class intervention_medication extends Criterion {
 			String DOSAGE_ID_dt_amount_UNIT_ID_CODE, String dosage_amount_unit,
 			String medication_exact_date_year, String medication_exact_date_month, String medication_exact_date_day, String medication_period_begin_year,
 			String medication_period_begin_month, String medication_period_begin_day, String medication_period_end_year, String medication_period_end_month,
-			String medication_period_end_day, String medication_until_date_year, String medication_until_date_month, String medication_until_date_day, String statement, String count) {
+			String medication_period_end_day, String medication_until_date_year, String medication_until_date_month, String medication_until_date_day, String statement, String min_count, String max_count) {
 		super(criterion_name);
 		this.pharmacological_drug = voc_pharm_drug_CODE; 												//Column: MEDICATION_ID voc_pharm_drug
 		this.dosage_amount_unit = dosage_amount_unit;						//Column: DOSAGE_ID dt_amount	
@@ -48,7 +49,8 @@ public class intervention_medication extends Criterion {
 		this.period_of_time_until_month = medication_until_date_month;
 		this.period_of_time_until_day = medication_until_date_day;
 		this.statement=statement;
-		this.count = count;
+		this.min_count = min_count;
+		this.max_count = max_count;
 	}
 
 	public intervention_medication() {
@@ -71,7 +73,8 @@ public class intervention_medication extends Criterion {
 		this.period_of_time_until_month = "";
 		this.period_of_time_until_day = "";
 		this.statement="";
-		this.count = "";
+		this.min_count = "";
+		this.max_count = "";
 	}
 
 	public String getDosage_amount_exact_value() {
@@ -218,11 +221,19 @@ public class intervention_medication extends Criterion {
 		this.statement = statement;
 	}
 
-	public String getCount() {
-		return count;
+	public String getMinCount() {
+		return min_count;
 	}
 	
-	public void setCount(String count) {
-		this.count = count;
+	public void setMinCount(String min_count) {
+		this.min_count = min_count;
+	}
+	
+	public String getMaxCount() {
+		return max_count;
+	}
+	
+	public void setMaxCount(String max_count) {
+		this.max_count = max_count;
 	}
 }

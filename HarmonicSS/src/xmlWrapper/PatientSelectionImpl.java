@@ -464,9 +464,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  	
 				  	where_clause += " AND demo_pregnancy_data.STMT_ID=1";
 				
-				  	if(!crit_demo_pregnancy_obj.getCount().isEmpty()) {
+				  	/*if(!crit_demo_pregnancy_obj.getCount().isEmpty()) {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_demo_pregnancy_obj.getCount();
-					}
+					}*/
 				  	
 				  	if(crit_demo_pregnancy_obj.getTypeNested().equals("outcome")) {
 				  		if(!tables.contains("dt_date2")) {
@@ -589,9 +589,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  
 				  where_clause += " AND lifestyle_smoking.STMT_ID=1";
 				  
-				  if(!crit_lifestyle_smoking_obj.getCount().isEmpty()) {
+				  /*if(!crit_lifestyle_smoking_obj.getCount().isEmpty()) {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_lifestyle_smoking_obj.getCount();
-				  }
+				  }*/
 					  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;		
 				  
@@ -655,9 +655,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  
 				  where_clause += " AND cond_symptom.STMT_ID=1";
 				  
-				  if(!crit_cond_symptom_obj.getCount().isEmpty()) {
+				  /*if(!crit_cond_symptom_obj.getCount().isEmpty()) {
 					  where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_cond_symptom_obj.getCount();
-				  }
+				  }*/
 				  
 				  if(!tables.contains("dt_date")) {
 					  tables += ", dt_date";
@@ -739,9 +739,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  }
 				  where_clause += " AND cond_diagnosis.STMT_ID=1";
 				  
-				  if(!condition_diagnosis_obj.getCount().isEmpty()) {
+				  /*if(!condition_diagnosis_obj.getCount().isEmpty()) {
 					  where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+condition_diagnosis_obj.getCount();
-				  }
+				  }*/
 				  
 				  if(!tables.contains("dt_date")) {
 					  tables += ", dt_date";
@@ -830,9 +830,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  
 				  where_clause += " AND interv_medication.STMT_ID=1";
 				  
-				  if(!crit_interv_medication_obj.getCount().isEmpty()) {
+				  /*if(!crit_interv_medication_obj.getCount().isEmpty()) {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_interv_medication_obj.getCount();
-				  }
+				  }*/
 				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 					
@@ -874,9 +874,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  
 				  where_clause += " AND interv_chemotherapy.STMT_ID=1";
 				  
-				  if(!crit_interv_chemotherapy_obj.getCount().isEmpty()) {
+				  /*if(!crit_interv_chemotherapy_obj.getCount().isEmpty()) {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_interv_chemotherapy_obj.getCount();
-				  }
+				  }*/
 				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
@@ -918,9 +918,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  
 				  where_clause += " AND interv_surgery.STMT_ID=1";
 				  
-				  if(!crit_interv_surgery_obj.getCount().isEmpty()) {
+				  /*if(!crit_interv_surgery_obj.getCount().isEmpty()) {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_interv_surgery_obj.getCount();
-				  }
+				  }*/
 				  
 				  if(!tables.contains("dt_date")) {
 					  tables += ", dt_date";
@@ -1073,9 +1073,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 									  examination_lab_test_obj.getSample_period_of_time_until_day()); 
 						  }
 				  
-				  if(!examination_lab_test_obj.getCount().isEmpty()) {
+				  /*if(!examination_lab_test_obj.getCount().isEmpty()) {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_lab_test_obj.getCount();
-				  }
+				  }*/
 					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
 					//System.out.println("We executed: "+crit_exam_lab_test_obj.criterion_name+"\nThe Query is: "+query); 
 				  
@@ -1201,9 +1201,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 									  examination_biopsy_obj.getBiopsy_period_of_time_until_day()); 
 						  }
 				  
-				  if(!examination_biopsy_obj.getCount().isEmpty()) {
+				  /*if(!examination_biopsy_obj.getCount().isEmpty()) {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_biopsy_obj.getCount();
-				  }
+				  }*/
 				  
 				  if(!tables.contains("dt_date")) {
 					  tables += ", dt_date";
@@ -1272,9 +1272,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 							  examination_medical_imaging_test_obj.getTest_period_of_time_until_day()); 
 				  }
 				  
-				  if(!examination_medical_imaging_test_obj.getCount().isEmpty()) {
+				  /*if(!examination_medical_imaging_test_obj.getCount().isEmpty()) {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_medical_imaging_test_obj.getCount();
-				  }
+				  }*/
 				  
 				  if(!tables.contains("dt_date")) {
 					  tables += ", dt_date";
@@ -1375,9 +1375,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 							  examination_questionnaire_score_obj.getQuestionnaire_period_of_time_until_day()); 
 				  }
 				  
-				  if(!examination_questionnaire_score_obj.getCount().isEmpty()) {
+				  /*if(!examination_questionnaire_score_obj.getCount().isEmpty()) {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_questionnaire_score_obj.getCount();
-				  }
+				  }*/
 				  
 				  if(!tables.contains("dt_date")) {
 					  tables += ", dt_date";
@@ -1434,9 +1434,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 							  examination_essdai_domain_obj.getQuestionnaire_period_of_time_until_day()); 
 				  }
 				  
-				  if(!examination_essdai_domain_obj.getCount().isEmpty()) {
+				  /*if(!examination_essdai_domain_obj.getCount().isEmpty()) {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_essdai_domain_obj.getCount();
-				  }
+				  }*/
 				  
 				  if(!tables.contains("dt_date")) {
 					  tables += ", dt_date";
@@ -1483,9 +1483,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 							  examination_caci_condition_obj.getQuestionnaire_period_of_time_until_day()); 
 				  }
 				  
-				  if(!examination_caci_condition_obj.getCount().isEmpty()) {
+				  /*if(!examination_caci_condition_obj.getCount().isEmpty()) {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_caci_condition_obj.getCount();
-				  }
+				  }*/
 				  
 				  if(!tables.contains("dt_date")) {
 					  tables += ", dt_date";
@@ -1534,9 +1534,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 							  other_healthcare_visit_obj.getPeriod_of_time_until_day()); 
 				  }
 				  
-				  if(!other_healthcare_visit_obj.getCount().isEmpty()) {
+				  /*if(!other_healthcare_visit_obj.getCount().isEmpty()) {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+other_healthcare_visit_obj.getCount();
-				  }
+				  }*/
 				  
 				  if(!tables.contains("dt_date")) {
 					  tables += ", dt_date";
@@ -1581,9 +1581,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			
 			where_clause += " AND other_clinical_trials.STMT_ID=1";
 			
-			 if(!other_clinical_trials_obj.getCount().isEmpty()) {
+			 /*if(!other_clinical_trials_obj.getCount().isEmpty()) {
 			  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+other_clinical_trials_obj.getCount();
-			  }
+			  }*/
 			
 			query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 
@@ -1894,8 +1894,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  	
 				  	where_clause += " AND demo_pregnancy_data.STMT_ID=1";
 				  	
-				  	if(!crit_demo_pregnancy_obj.getCount().isEmpty()) {
-				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_demo_pregnancy_obj.getCount();
+				  	if(!crit_demo_pregnancy_obj.getMinCount().isEmpty()) {
+				  		if(!crit_demo_pregnancy_obj.getMaxCount().isEmpty()) {
+				  			where_clause += " GROUP BY patient.UID HAVING COUNT(*) BETWEEN "+crit_demo_pregnancy_obj.getMinCount()+" AND "+crit_demo_pregnancy_obj.getMaxCount();
+				  		}
+				  		else where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_demo_pregnancy_obj.getMinCount();
+					}
+				  	else if(!crit_demo_pregnancy_obj.getMaxCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+crit_demo_pregnancy_obj.getMaxCount();
 					}
 				  	
 				  	if(!crit_demo_pregnancy_obj.getOutcomeMaxNested().isEmpty()) {
@@ -2072,8 +2078,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  
 				  where_clause += " AND lifestyle_smoking.STMT_ID=1";
 				  
-				  if(!crit_lifestyle_smoking_obj.getCount().isEmpty()) {
-				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_lifestyle_smoking_obj.getCount();
+				  if(!crit_lifestyle_smoking_obj.getMinCount().isEmpty()) {
+				  		if(!crit_lifestyle_smoking_obj.getMaxCount().isEmpty()) {
+				  			where_clause += " GROUP BY patient.UID HAVING COUNT(*) BETWEEN "+crit_lifestyle_smoking_obj.getMinCount()+" AND "+crit_lifestyle_smoking_obj.getMaxCount();
+				  		}
+				  		else where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_lifestyle_smoking_obj.getMinCount();
+				  }
+				  else if(!crit_lifestyle_smoking_obj.getMaxCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+crit_lifestyle_smoking_obj.getMaxCount();
 				  }
 				  /*if(incl) where_clause += " AND lifestyle_smoking.STMT_ID=1";
 				  else where_clause += " AND lifestyle_smoking.STMT_ID=2";*/
@@ -2165,8 +2177,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  }
 				  where_clause += " AND cond_symptom.STMT_ID=1";
 				  
-				  if(!crit_cond_symptom_obj.getCount().isEmpty()) {
-					  where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_cond_symptom_obj.getCount();
+				  if(!crit_cond_symptom_obj.getMinCount().isEmpty()) {
+				  		if(!crit_cond_symptom_obj.getMaxCount().isEmpty()) {
+				  			where_clause += " GROUP BY patient.UID HAVING COUNT(*) BETWEEN "+crit_cond_symptom_obj.getMinCount()+" AND "+crit_cond_symptom_obj.getMaxCount();
+				  		}
+				  		else where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_cond_symptom_obj.getMinCount();
+				  }
+				  else if(!crit_cond_symptom_obj.getMaxCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+crit_cond_symptom_obj.getMaxCount();
 				  }
 				  
 				  if(!crit_cond_symptom_obj.getMaxNested().isEmpty()) {
@@ -2288,8 +2306,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  }
 				  where_clause += " AND cond_diagnosis.STMT_ID=1";
 				  
-				  if(!condition_diagnosis_obj.getCount().isEmpty()) {
-					  where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+condition_diagnosis_obj.getCount();
+				  if(!condition_diagnosis_obj.getMinCount().isEmpty()) {
+				  		if(!condition_diagnosis_obj.getMaxCount().isEmpty()) {
+				  			where_clause += " GROUP BY patient.UID HAVING COUNT(*) BETWEEN "+condition_diagnosis_obj.getMinCount()+" AND "+condition_diagnosis_obj.getMaxCount();
+				  		}
+				  		else where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+condition_diagnosis_obj.getMinCount();
+				  }
+				  else if(!condition_diagnosis_obj.getMaxCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+condition_diagnosis_obj.getMaxCount();
 				  }
 				  
 				  if(!condition_diagnosis_obj.getMaxNested().isEmpty()) {
@@ -2417,8 +2441,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  where_clause += " AND interv_medication.STMT_ID=1";
 				  /*if(incl) where_clause += " AND interv_medication.STMT_ID=1";
 				  else where_clause += " AND interv_medication.STMT_ID=2";*/
-				  if(!crit_interv_medication_obj.getCount().isEmpty()) {
-				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_interv_medication_obj.getCount();
+				  if(!crit_interv_medication_obj.getMinCount().isEmpty()) {
+				  		if(!crit_interv_medication_obj.getMaxCount().isEmpty()) {
+				  			where_clause += " GROUP BY patient.UID HAVING COUNT(*) BETWEEN "+crit_interv_medication_obj.getMinCount()+" AND "+crit_interv_medication_obj.getMaxCount();
+				  		}
+				  		else where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_interv_medication_obj.getMinCount();
+				  }
+				  else if(!crit_interv_medication_obj.getMaxCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+crit_interv_medication_obj.getMaxCount();
 				  }
 				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
@@ -2464,8 +2494,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  }
 				  where_clause += " AND interv_chemotherapy.STMT_ID=1";
 				  
-				  if(!crit_interv_chemotherapy_obj.getCount().isEmpty()) {
-				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_interv_chemotherapy_obj.getCount();
+				  if(!crit_interv_chemotherapy_obj.getMinCount().isEmpty()) {
+				  		if(!crit_interv_chemotherapy_obj.getMaxCount().isEmpty()) {
+				  			where_clause += " GROUP BY patient.UID HAVING COUNT(*) BETWEEN "+crit_interv_chemotherapy_obj.getMinCount()+" AND "+crit_interv_chemotherapy_obj.getMaxCount();
+				  		}
+				  		else where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_interv_chemotherapy_obj.getMinCount();
+				  }
+				  else if(!crit_interv_chemotherapy_obj.getMaxCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+crit_interv_chemotherapy_obj.getMaxCount();
 				  }
 				  /*if(incl) where_clause += " AND interv_chemotherapy.STMT_ID=1";
 				  else where_clause += " AND interv_chemotherapy.STMT_ID=2";*/
@@ -2515,8 +2551,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  
 				  where_clause += " AND interv_surgery.STMT_ID=1";
 				  
-				  if(!crit_interv_surgery_obj.getCount().isEmpty()) {
-				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_interv_surgery_obj.getCount();
+				  if(!crit_interv_surgery_obj.getMinCount().isEmpty()) {
+				  		if(!crit_interv_surgery_obj.getMaxCount().isEmpty()) {
+				  			where_clause += " GROUP BY patient.UID HAVING COUNT(*) BETWEEN "+crit_interv_surgery_obj.getMinCount()+" AND "+crit_interv_surgery_obj.getMaxCount();
+				  		}
+				  		else where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_interv_surgery_obj.getMinCount();
+				  }
+				  else if(!crit_interv_surgery_obj.getMaxCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+crit_interv_surgery_obj.getMaxCount();
 				  }
 				  
 				  if(!crit_interv_surgery_obj.getMaxNested().isEmpty()) {
@@ -2710,8 +2752,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 									  examination_lab_test_obj.getSample_period_of_time_until_day()); 
 						  }
 				  
-				  if(!examination_lab_test_obj.getCount().isEmpty()) {
-				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_lab_test_obj.getCount();
+				  if(!examination_lab_test_obj.getMinCount().isEmpty()) {
+				  		if(!examination_lab_test_obj.getMaxCount().isEmpty()) {
+				  			where_clause += " GROUP BY patient.UID HAVING COUNT(*) BETWEEN "+examination_lab_test_obj.getMinCount()+" AND "+examination_lab_test_obj.getMaxCount();
+				  		}
+				  		else where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_lab_test_obj.getMinCount();
+				  }
+				  else if(!examination_lab_test_obj.getMaxCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+examination_lab_test_obj.getMaxCount();
 				  }
 				  if(!examination_lab_test_obj.getMaxNested().isEmpty()) {
 					  String crit_max_nested = makeCriterionList(examination_lab_test_obj.getMaxNested());
@@ -2870,8 +2918,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 									  examination_biopsy_obj.getBiopsy_period_of_time_until_day()); 
 						  }
 				  
-				  if(!examination_biopsy_obj.getCount().isEmpty()) {
-				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_biopsy_obj.getCount();
+				  if(!examination_biopsy_obj.getMinCount().isEmpty()) {
+				  		if(!examination_biopsy_obj.getMaxCount().isEmpty()) {
+				  			where_clause += " GROUP BY patient.UID HAVING COUNT(*) BETWEEN "+examination_biopsy_obj.getMinCount()+" AND "+examination_biopsy_obj.getMaxCount();
+				  		}
+				  		else where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_biopsy_obj.getMinCount();
+				  }
+				  else if(!examination_biopsy_obj.getMaxCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+examination_biopsy_obj.getMaxCount();
 				  }
 				  
 				  if(!examination_biopsy_obj.getMaxNested().isEmpty()) {
@@ -2974,8 +3028,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 							  examination_medical_imaging_test_obj.getTest_period_of_time_until_day()); 
 				  }
 				  
-				  if(!examination_medical_imaging_test_obj.getCount().isEmpty()) {
-				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_medical_imaging_test_obj.getCount();
+				  if(!examination_medical_imaging_test_obj.getMinCount().isEmpty()) {
+				  		if(!examination_medical_imaging_test_obj.getMaxCount().isEmpty()) {
+				  			where_clause += " GROUP BY patient.UID HAVING COUNT(*) BETWEEN "+examination_medical_imaging_test_obj.getMinCount()+" AND "+examination_medical_imaging_test_obj.getMaxCount();
+				  		}
+				  		else where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_medical_imaging_test_obj.getMinCount();
+				  }
+				  else if(!examination_medical_imaging_test_obj.getMaxCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+examination_medical_imaging_test_obj.getMaxCount();
 				  }
 				  
 				  if(!examination_medical_imaging_test_obj.getMaxNested().isEmpty()) {
@@ -3108,8 +3168,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 							  examination_questionnaire_score_obj.getQuestionnaire_period_of_time_until_day()); 
 				  }
 				  
-				  if(!examination_questionnaire_score_obj.getCount().isEmpty()) {
-				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_questionnaire_score_obj.getCount();
+				  if(!examination_questionnaire_score_obj.getMinCount().isEmpty()) {
+				  		if(!examination_questionnaire_score_obj.getMaxCount().isEmpty()) {
+				  			where_clause += " GROUP BY patient.UID HAVING COUNT(*) BETWEEN "+examination_questionnaire_score_obj.getMinCount()+" AND "+examination_questionnaire_score_obj.getMaxCount();
+				  		}
+				  		else where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_questionnaire_score_obj.getMinCount();
+				  }
+				  else if(!examination_questionnaire_score_obj.getMaxCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+examination_questionnaire_score_obj.getMaxCount();
 				  }
 				  
 				  if(!examination_questionnaire_score_obj.getMaxNested().isEmpty()) {
@@ -3190,8 +3256,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 							  examination_essdai_domain_obj.getQuestionnaire_period_of_time_until_day()); 
 				  }
 				  
-				  if(!examination_essdai_domain_obj.getCount().isEmpty()) {
-				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_essdai_domain_obj.getCount();
+				  if(!examination_essdai_domain_obj.getMinCount().isEmpty()) {
+				  		if(!examination_essdai_domain_obj.getMaxCount().isEmpty()) {
+				  			where_clause += " GROUP BY patient.UID HAVING COUNT(*) BETWEEN "+examination_essdai_domain_obj.getMinCount()+" AND "+examination_essdai_domain_obj.getMaxCount();
+				  		}
+				  		else where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_essdai_domain_obj.getMinCount();
+				  }
+				  else if(!examination_essdai_domain_obj.getMaxCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+examination_essdai_domain_obj.getMaxCount();
 				  }
 				  
 				  if(!examination_essdai_domain_obj.getMaxNested().isEmpty()) {
@@ -3270,8 +3342,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 							  examination_caci_condition_obj.getQuestionnaire_period_of_time_until_day()); 
 				  }
 				  
-				  if(!examination_caci_condition_obj.getCount().isEmpty()) {
-				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_caci_condition_obj.getCount();
+				  if(!examination_caci_condition_obj.getMinCount().isEmpty()) {
+				  		if(!examination_caci_condition_obj.getMaxCount().isEmpty()) {
+				  			where_clause += " GROUP BY patient.UID HAVING COUNT(*) BETWEEN "+examination_caci_condition_obj.getMinCount()+" AND "+examination_caci_condition_obj.getMaxCount();
+				  		}
+				  		else where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+examination_caci_condition_obj.getMinCount();
+				  }
+				  else if(!examination_caci_condition_obj.getMaxCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+examination_caci_condition_obj.getMaxCount();
 				  }
 				  
 				  if(!examination_caci_condition_obj.getMaxNested().isEmpty()) {
@@ -3345,8 +3423,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 							  other_healthcare_visit_obj.getPeriod_of_time_until_day()); 
 				  }
 				  
-				  if(!other_healthcare_visit_obj.getCount().isEmpty()) {
-				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+other_healthcare_visit_obj.getCount();
+				  if(!other_healthcare_visit_obj.getMinCount().isEmpty()) {
+				  		if(!other_healthcare_visit_obj.getMaxCount().isEmpty()) {
+				  			where_clause += " GROUP BY patient.UID HAVING COUNT(*) BETWEEN "+other_healthcare_visit_obj.getMinCount()+" AND "+other_healthcare_visit_obj.getMaxCount();
+				  		}
+				  		else where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+other_healthcare_visit_obj.getMinCount();
+				  }
+				  else if(!other_healthcare_visit_obj.getMaxCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+other_healthcare_visit_obj.getMaxCount();
 				  }
 				  
 				  if(!other_healthcare_visit_obj.getMaxNested().isEmpty()) {
@@ -3430,8 +3514,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  }
 				  where_clause += " AND other_family_history.STMT_ID=1";
 				  
-				  if(!other_family_history_obj.getCount().isEmpty()) {
-				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+other_family_history_obj.getCount();
+				  if(!other_family_history_obj.getMinCount().isEmpty()) {
+				  		if(!other_family_history_obj.getMaxCount().isEmpty()) {
+				  			where_clause += " GROUP BY patient.UID HAVING COUNT(*) BETWEEN "+other_family_history_obj.getMinCount()+" AND "+other_family_history_obj.getMaxCount();
+				  		}
+				  		else where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+other_family_history_obj.getMinCount();
+				  }
+				  else if(!other_family_history_obj.getMaxCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+other_family_history_obj.getMaxCount();
 				  }
 				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
@@ -3469,8 +3559,14 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 			}
 			where_clause += " AND other_clinical_trials.STMT_ID=1";
 			
-			 if(!other_clinical_trials_obj.getCount().isEmpty()) {
-			  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+other_clinical_trials_obj.getCount();
+			 if(!other_clinical_trials_obj.getMinCount().isEmpty()) {
+			  		if(!other_clinical_trials_obj.getMaxCount().isEmpty()) {
+			  			where_clause += " GROUP BY patient.UID HAVING COUNT(*) BETWEEN "+other_clinical_trials_obj.getMinCount()+" AND "+other_clinical_trials_obj.getMaxCount();
+			  		}
+			  		else where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+other_clinical_trials_obj.getMinCount();
+			  }
+			  else if(!other_clinical_trials_obj.getMaxCount().isEmpty()) {
+			  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+other_clinical_trials_obj.getMaxCount();
 			  }
 			
 			query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;

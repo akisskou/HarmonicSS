@@ -16,16 +16,17 @@ public class intervention_surgery extends Criterion {
 	public String procedure_date_until_month = "";
 	public String procedure_date_until_day = "";
 	public String statement = "";
-	public String count = "";
-	public String max_nested = "";
-	public String min_nested = "";
+	public String min_count = "";
+	public String max_count = "";
+	public String max_year_nested = "";
+	public String min_year_nested = "";
 	public String years_nested = "";
 	
 	
 	public intervention_surgery(String criterion_name, String DUE_TO_PSS_ID_voc_confirmation_CODE, String surgery_exact_date_year, String surgery_exact_date_month,
 			String surgery_exact_date_day, String surgery_period_begin_year, String surgery_period_begin_month, String surgery_period_begin_day, String surgery_period_end_year,
 			String surgery_period_end_month, String surgery_period_end_day, String surgery_until_date_year, String surgery_until_date_month, String surgery_until_date_day,
-			String statement, String count, String max_nested, String min_nested, String years_nested) {
+			String statement, String min_count, String max_count, String max_year_nested, String min_year_nested, String years_nested) {
 		super(criterion_name);
 		this.reason = DUE_TO_PSS_ID_voc_confirmation_CODE;		
 		this.procedure_date_exact_year = surgery_exact_date_year;						
@@ -41,9 +42,10 @@ public class intervention_surgery extends Criterion {
 		this.procedure_date_until_month = surgery_until_date_month;
 		this.procedure_date_until_day = surgery_until_date_day;	
 		this.statement = statement;
-		this.count = count;
-		this.max_nested = max_nested;
-		this.min_nested = min_nested;
+		this.min_count = min_count;
+		this.max_count = max_count;
+		this.max_year_nested = max_year_nested;
+		this.min_year_nested = min_year_nested;
 		this.years_nested = years_nested;
 	}
 
@@ -63,9 +65,10 @@ public class intervention_surgery extends Criterion {
 		this.procedure_date_until_month = "";
 		this.procedure_date_until_day = "";
 		this.statement = "";
-		this.count = "";
-		this.max_nested = "";
-		this.min_nested = "";
+		this.min_count = "";
+		this.max_count = "";
+		this.max_year_nested = "";
+		this.min_year_nested = "";
 		this.years_nested = "";
 	}
 
@@ -181,28 +184,36 @@ public class intervention_surgery extends Criterion {
 		this.statement = statement;
 	}
 	
-	public String getCount() {
-		return count;
+	public String getMinCount() {
+		return min_count;
 	}
 	
-	public void setCount(String count) {
-		this.count = count;
+	public void setMinCount(String min_count) {
+		this.min_count = min_count;
+	}
+	
+	public String getMaxCount() {
+		return max_count;
+	}
+	
+	public void setMaxCount(String max_count) {
+		this.max_count = max_count;
 	}
 	
 	public String getMaxNested() {
-		return max_nested;
+		return max_year_nested;
 	}
 	
-	public void setMaxNested(String max_nested) {
-		this.max_nested = max_nested;
+	public void setMaxNested(String max_year_nested) {
+		this.max_year_nested = max_year_nested;
 	}
 	
 	public String getMinNested() {
-		return min_nested;
+		return min_year_nested;
 	}
 	
-	public void setMinNested(String min_nested) {
-		this.min_nested = min_nested;
+	public void setMinNested(String min_year_nested) {
+		this.min_year_nested = min_year_nested;
 	}
 	public String getYearsNested() {
 		return years_nested;
