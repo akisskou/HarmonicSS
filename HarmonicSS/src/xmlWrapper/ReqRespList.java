@@ -176,8 +176,9 @@ public class ReqRespList extends HttpServlet {
 	  	  		myjson.put("request_synopsis", requestSynopsis);*/
 				myjson.put("requestXML",requestXML);
 				myjson.put("execution_date", rs.getString("EXECUTION_DATE").replace("\t","").replace("\n", "").replace("\r", ""));
-				
-				String responseXML = rs.getString("RESPONSE_XML").replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("\t", "").replace("\n", "").replace("\r", "");
+				String responseXML = rs.getString("RESPONSE_XML");
+				if(!rs.wasNull()) responseXML = responseXML.replace("&lt;", "<").replace("&gt;", ">").replace("&quot;", "\"").replace("\t", "").replace("\n", "").replace("\r", "");
+				else responseXML = "";
 				/*FileWriter pw = new FileWriter(getServletContext().getRealPath("/WEB-INF/tempResponse.xml"));
 			    pw.write(responseXML);
 			    pw.close();

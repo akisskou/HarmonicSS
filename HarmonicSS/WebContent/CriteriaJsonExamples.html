@@ -8,20 +8,20 @@
 <h2>Criteria Json Examples</h2>
 <h3>Demographics</h3>
 <h4>Patient</h4>
-<p>Patients born before 1964: {"criterion":"patient", "birth_period_of_time_until_year":"1964"}</p>
-<p>Patients born after 1964: {"criterion":"patient", "birth_period_of_time_interval_start_year":"1964"}</p>
+<p>Patients born before 1964 (inclusive): {"criterion":"patient", "birth_period_of_time_until_year":"1964"}</p>
+<p>Patients born after 1964 (inclusive): {"criterion":"patient", "birth_period_of_time_interval_start_year":"1964"}</p>
 <p>Patients born between 1950 and 1964: {"criterion":"patient", "birth_period_of_time_interval_start_year":"1950", "birth_period_of_time_interval_end_year":"1964"}</p>
 <p>Patients born in 1964: {"criterion":"patient", "birth_period_of_time_exact_year":"1964"}</p>
-<p>Patients born before 22-11-1965: {"criterion":"patient", "birth_period_of_time_until_year":"1965", "birth_period_of_time_until_month":"11", "birth_period_of_time_until_day":"22"}</p>
+<p>Patients born before 22-11-1965 (inclusive): {"criterion":"patient", "birth_period_of_time_until_year":"1965", "birth_period_of_time_until_month":"11", "birth_period_of_time_until_day":"22"}</p>
 <!--p>Patients over 55 years old: {"criterion":"patient", "min_age":"56"}</p>
 <p>Patients under 55 years old: {"criterion":"patient", "max_age":"54"}</p>
 <p>Patients between 45 and 60 years old: {"criterion":"patient", "min_age":"45", "max_age":"60"}</p-->
 <!--p>Patients under 55 years old when included in cohort: {"criterion":"patient", "max_age_of_cohort_inclusion":"54"}</p>
 <p>Patients over 55 years old when initially diagnosed with a disease: {"criterion":"patient", "min_age_of_diagnosis":"56"}</p>
 <p>Patients under 55 years old when first symptom appeared: {"criterion":"patient", "max_age_of_sign":"54"}</p-->
-<p>Patients included in cohort before 2014: {"criterion":"patient", "cohort_inclusion_period_of_time_until_year":"2014"}</p>
-<p>Patients initially diagnosed with a disease after 2014: {"criterion":"patient", "diagnosis_period_of_time_interval_start_year":"2014"}</p>
-<p>Patients with first symptom appeared before 2014: {"criterion":"patient", "symptoms_onset_period_of_time_until_year":"2014"}</p>
+<p>Patients included in cohort before 2014 (inclusive): {"criterion":"patient", "cohort_inclusion_period_of_time_until_year":"2014"}</p>
+<p>Patients initially diagnosed with a disease after 2014 (inclusive): {"criterion":"patient", "diagnosis_period_of_time_interval_start_year":"2014"}</p>
+<p>Patients with first symptom appeared before 2014 (inclusive): {"criterion":"patient", "symptoms_onset_period_of_time_until_year":"2014"}</p>
 <h4>Gender</h4>
 <p>Female patients: {"criterion":"demographics_gender", "gender":"SEX-02"}</p>
 <h4>Ethnicity</h4>
@@ -33,30 +33,31 @@
 <h4>Body Mass Index</h4>
 <p>Normal weight: {"criterion":"demographics_weight", "body_mass_index":"BMI-02"}</p>
 <h4>Pregnancies</h4>
-<p>There was an abortion, conception before 2015: {"criterion":"demographics_pregnancy", "outcome_coded_value":"PREG-OUT-300", "conception_interval_end_year":"2015"}</p>
-<p>Single was born after 2013: {"criterion":"demographics_pregnancy", "outcome_coded_value":"PREG-OUT-100", "outcome_interval_start_year":"2013"}</p>
-<!-->p>Patients with 2 or more pregnancies: {"criterion":"demographics_pregnancy", "min_count":"2"}</p>
+<p>There was an abortion, conception before 2015 (inclusive): {"criterion":"demographics_pregnancy", "outcome_coded_value":"PREG-OUT-300", "conception_interval_end_year":"2015"}</p>
+<p>Single was born after 2013 (inclusive): {"criterion":"demographics_pregnancy", "outcome_coded_value":"PREG-OUT-100", "outcome_interval_start_year":"2013"}</p>
+<!--p>Patients with 2 or more pregnancies: {"criterion":"demographics_pregnancy", "min_count":"2"}</p>
 <p>Abortions that took place at least one year before Urine Specific Gravity lab test conducted: {"criterion":"demographics_pregnancy","outcome_coded_value":"PREG-OUT-300","max_conception_year_nested":"{\"nested_criterion\":\"examination_lab_test\",\"test_id\":\"URINE-130\",\"years_nested\":\"-1\"}"}</p-->
 <h4>Smoking Status</h4>
-<p>Active Smoker with more than 200 cigarettes each year, between 2005 and 2012: {"criterion":"lifestyle_smoking", "status_coded_value":"SMOK-STAT-01", "amount_unit":"UNITEXP-18", "amount_range_min_value":"200", "interval_start_year":"2005", "interval_end_year":"2012"}</p>
+<p>Active Smoker with more than or equal to 200 cigarettes each year, between 2005 and 2012: {"criterion":"lifestyle_smoking", "status_coded_value":"SMOK-STAT-01", "amount_unit":"UNITEXP-18", "amount_range_min_value":"200", "interval_start_year":"2005", "interval_end_year":"2012"}</p>
 <br>
 <h3>Examination</h3>
 <h4>Lab Tests</h4>
 <p>Presence of Anti-Ro/SSA between 2010 and 2017: {"criterion":"examination_lab_test","test_id":"BLOOD-530","outcome_term":"CONFIRM-01", "sample_period_of_time_interval_start_year":"2010", "sample_period_of_time_interval_end_year":"2017"}</p>
 <p>Schrimer’s Test value was abnormal: {"criterion":"examination_lab_test","test_id":"OCULAR-01","outcome_assessment":"ASSESS-20"}</p>
-<p>Leukocytes was less than 3000 mm3 before 2015: {"criterion":"examination_lab_test","test_id":"BLOOD-120","outcome_amount_range_max_value":"3000","outcome_amount_unit":"UNITEXP-01","sample_period_of_time_interval_end_year":"2015"}</p>
+<p>Leukocytes was less than or equal to 3000 mm3 before 2015 (inclusive): {"criterion":"examination_lab_test","test_id":"BLOOD-120","outcome_amount_range_max_value":"3000","outcome_amount_unit":"UNITEXP-01","sample_period_of_time_interval_end_year":"2015"}</p>
 <p>ANA pattern was Nucleolar: {"criterion":"examination_lab_test","test_id":"BLOOD-523","outcome_term":"ANA-PAT-03"}</p>
 <h4>Biopsy Tests</h4>
-<p>Minor Salivary Gland, Greenspan Focus Score > 1: {"criterion":"examination_biopsy","test_id":"BIOPSY-21","outcome_amount_range_min_value":"1","outcome_amount_unit":"UNITEXP-19"}</p>
-<p>Labial Gland, Greenspan Focus Score between 1 and 2 (normal): {"criterion":"examination_biopsy","biopsy_type":"SAL-BIO-21","test_id":"BIOPSY-21","outcome_amount_range_min_value":"1", "outcome_amount_range_max_value":"2", "outcome_amount_unit":"UNITEXP-19","assessment":"ASSESS-10"}</p>
-<p>Germinal Centers, 7 IU/ml in normal range, between 2010 and 2017: {"criterion":"examination_biopsy", "test_id":"BIOPSY-11", "normal_range_value":"7", "outcome_amount_unit":"UNITEXP-06", "biopsy_period_of_time_interval_start_year":"2010", "biopsy_period_of_time_interval_end_year":"2017"}</p>
+<p>Minor Salivary Gland, Greenspan Focus Score >= 1: {"criterion":"examination_biopsy","biopsy_type":"SAL-BIO-20","test_id":"BIOPSY-21","outcome_amount_range_min_value":"1","outcome_amount_unit":"UNITEXP-19"}</p>
+<p>Labial Gland, Greenspan Focus Score normal: {"criterion":"examination_biopsy","biopsy_type":"SAL-BIO-21","test_id":"BIOPSY-21","assessment":"ASSESS-10"}</p>
+<p>Germinal Centers presence, between 2010 and 2017: {"criterion":"examination_biopsy", "test_id":"BIOPSY-11", "outcome_check":"CONFIRM-01", "biopsy_period_of_time_interval_start_year":"2010", "biopsy_period_of_time_interval_end_year":"2017"}</p>
 <h4>Imaging Tests</h4>
-<p>MRI of Major Salivary Gland between 2010 and 2017(abnormal):{"criterion":"examination_medical_imaging_test", "test_id":"IMG-14", "assessment":"ASSESS-20", "test_period_of_time_interval_start_year":"2010", "test_period_of_time_interval_end_year":"2017"}</p>
+<p>MRI of Major Salivary Glands abnormal, between 2010 and 2017:{"criterion":"examination_medical_imaging_test", "test_id":"IMG-14", "assessment":"ASSESS-20", "test_period_of_time_interval_start_year":"2010", "test_period_of_time_interval_end_year":"2017"}</p>
 <h4>Questionnaire Score</h4>
-<p>ESSDAI score = 2: {"criterion":"examination_questionnaire_score","score":"QUEST-010", "value":"2"}</p>
-<p>ESSDAI score 8 is in normal range: {"criterion":"examination_questionnaire_score","score":"QUEST-010", "normal_range_value":"8"}</p>
+<p>ESSDAI score >= 2: {"criterion":"examination_questionnaire_score","score":"QUEST-010", "range_min_value":"2"}</p>
+<p>ESSDAI score between 4 and 6: {"criterion":"examination_questionnaire_score","score":"QUEST-010", "range_min_value":"4", "range_max_value":"6"}</p>
+<p>ESSDAI score normal: {"criterion":"examination_questionnaire_score","score":"QUEST-010","assessment":"ASSESS-10"}</p>
 <h4>ESSDAI Domain</h4>
-<p>Constitutional ESSDAI domain activity level HIGH before 2014: {"criterion":"examination_essdai_domain","domain":"ESSDAI-01","activity_level":"ACTLVL-03","questionnaire_period_of_time_until_year":"2014"}</p>
+<p>Constitutional ESSDAI domain activity level HIGH before 2014 (inclusive): {"criterion":"examination_essdai_domain","domain":"ESSDAI-01","activity_level":"ACTLVL-03","questionnaire_period_of_time_until_year":"2014"}</p>
 <p>Pulmonary ESSDAI domain with no activity level between 2010 and 2018:{"criterion":"examination_essdai_domain","domain":"ESSDAI-06","activity_level":"ACTLVL-00", "questionnaire_period_of_time_interval_start_year":"2010","questionnaire_period_of_time_interval_end_year":"2018"}</p>
 <h4>CACI Condition</h4>
 <p>Caci condition: {"criterion":"examination_caci_condition","caci":"CACI-06","value":"CONFIRM-01"}</p>
@@ -68,8 +69,8 @@
 <!--p>Fatigue observed at least 2 years before diagnosed with Arthritis: {"criterion":"condition_symptom","sign_coded":"SYMPT-160","max_year_nested":"{\"nested_criterion\":\"condition_diagnosis\",\"condition\":\"COND-101000\",\"years_nested\":\"-2\"}"}</p-->
 <h4>Diseases</h4>
 <p>Diagnosed with cancer: {"criterion":"condition_diagnosis","condition":"COND-140000"}</p>
-<p>Diagnosed with cancer before 2015: {"criterion":"condition_diagnosis","condition":"COND-140000","date_until_year":"2014"}</p>
-<p>Diagnosed with Hematologic disease at lymph nodes: {"criterion":"condition_diagnosis","condition":"COND-110000","organ":"ORGAN-07","date_interval_start_year":"2013", "date_interval_end_year":"2016"}</p>
+<p>Diagnosed with cancer before 2015 (inclusive): {"criterion":"condition_diagnosis","condition":"COND-140000","date_until_year":"2015"}</p>
+<p>Diagnosed with Hematologic disease at lymph nodes between 2013 and 2016: {"criterion":"condition_diagnosis","condition":"COND-110000","organ":"ORGAN-07","date_interval_start_year":"2013", "date_interval_end_year":"2016"}</p>
 <p>Diagnosed with Liver disease, stage II, grade 3: {"criterion":"condition_diagnosis","condition":"COND-021000","organ":"ORGAN-05", "stage":"STAGE-02", "performance_status":"PERFORM-03"}</p>
 <!--p>Diagnosed with digestive system disease 3 or less times: {"criterion":"condition_diagnosis","condition":"COND-020000","max_count":"3"}</p>
 <p>Diagnosed with cancer at least 10 years after Urine Specific Gravity lab test and at least 2 years before CD4 lab test conducted: {"criterion":"condition_diagnosis","condition":"COND-140000","min_year_nested":"{\"nested_criterion\":\"examination_lab_test\",\"test_id\":\"URINE-130\",\"years_nested\":\"10\"}","max_year_nested":"{\"nested_criterion\":\"examination_lab_test\",\"test_id\":\"BLOOD-720\",\"years_nested\":\"-2\"}"}</p>
@@ -79,19 +80,18 @@
 <h3>Intervention</h3>
 <h4>Medications/Drugs</h4>
 <p>Received Glucocorticoids: {"criterion":"intervention_medication","pharmacological_drug":"CHEM-10000"}</p>
-<p>Received Glucocorticoids in the past (before now): {"criterion":"intervention_medication","pharmacological_drug":"CHEM-10000","period_of_time_until_year":"2019"}</p>
+<p>Received Glucocorticoids in the past (before now): {"criterion":"intervention_medication","pharmacological_drug":"CHEM-10000","period_of_time_until_year":"2020"}</p>
 <p>Received Conventional Disease-modifying Antirheumatic Drug (cDMARD), minimum 10 mg/day, between 2005 and 2010: {"criterion":"intervention_medication","pharmacological_drug":"CHEM-21000", "dosage_amount_range_min_value":"10", "dosage_amount_unit":"UNITEXP-21", "period_of_time_interval_start_year":"2005", "period_of_time_interval_end_year":"2010"}</p>
 <h4>Chemotherapies</h4>
-<p>Chemotherapy between 2010 and 2015: {"criterion":"intervention_chemotherapy", "reason":"CONFIRM-01", "period_of_time_interval_start_year":"2010", "period_of_time_interval_end_year":"2015"}</p>
+<p>Chemotherapy between 2010 and 2015: {"criterion":"intervention_chemotherapy", "period_of_time_interval_start_year":"2010", "period_of_time_interval_end_year":"2015"}</p>
 <h4>Surgeries</h4>
 <p>Surgery between 2010 and 2016: {"criterion":"intervention_surgery", "procedure_date_interval_start_year":"2010", "procedure_date_interval_end_year":"2016"}</p>
-<p>Surgery between 2008 and 2012, loss of work beacause of it: {"criterion":"intervention_surgery", "reason":"CONFIRM-01", "procedure_date_interval_start_year":"2008", "procedure_date_interval_end_year":"2012"}</p>
 <br>
 <h3>Other criteria</h3>
 <h4>Other Healthcare Entity</h4>
 <p>Visited a Pulmonologist between 2015 and 2017: {"criterion":"other_healthcare_visit", "specialist":"SPEC-05", "period_of_time_interval_start_year":"2015", "period_of_time_interval_end_year":"2017"}</p>
 <h4>Family history</h4>
-<p>Third-degree digestive system disease: {"criterion":"other_family_history", "medical_condition":"COND-020000", "relative_degree":"REL-DEG-03"}</p>
+<p>Third-degree relative with digestive system disease: {"criterion":"other_family_history", "medical_condition":"COND-020000", "relative_degree":"REL-DEG-03"}</p>
 <h4>Clinical Trials</h4>
 <p>Clinical trial between 2010 and 2015: { "criterion" : "other_clinical_trials" , "period_of_time_interval_start_year" : "2010", "period_of_time_interval_end_year":"2015"}</p>
 </body>

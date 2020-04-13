@@ -2807,11 +2807,11 @@ public class CriterionsTestServlet extends HttpServlet {
 				  }*/
 				  
 				  if(!examination_questionnaire_score_obj.getExactValue().isEmpty()){
-					  where_clause += " AND (exam_questionnaire_score.VALUE="+ examination_questionnaire_score_obj.getExactValue() +" OR (exam_questionnaire_score.VALUE<="+examination_questionnaire_score_obj.getExactValue()+" AND exam_questionnaire_score.VALUE2>="+examination_questionnaire_score_obj.getExactValue()+")) ";
+					  where_clause += " AND exam_questionnaire_score.VALUE="+ examination_questionnaire_score_obj.getExactValue(); // +" OR (exam_questionnaire_score.VALUE<="+examination_questionnaire_score_obj.getExactValue()+" AND exam_questionnaire_score.VALUE2>="+examination_questionnaire_score_obj.getExactValue()+")) ";
 				  }
 				  
 				  if(!examination_questionnaire_score_obj.getRangeMinValue().isEmpty()){
-					  	where_clause += " AND (exam_questionnaire_score.VALUE>=" + examination_questionnaire_score_obj.getRangeMinValue() +" OR exam_questionnaire_score.VALUE2>=" + examination_questionnaire_score_obj.getRangeMinValue() +") "; 
+					  	where_clause += " AND exam_questionnaire_score.VALUE>=" + examination_questionnaire_score_obj.getRangeMinValue(); // +" OR exam_questionnaire_score.VALUE2>=" + examination_questionnaire_score_obj.getRangeMinValue() +") "; 
 					  	if(!examination_questionnaire_score_obj.getRangeMaxValue().isEmpty()) {
 					  		where_clause += " AND exam_questionnaire_score.VALUE<=" + examination_questionnaire_score_obj.getRangeMaxValue();
 					  	}

@@ -3109,11 +3109,11 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 				  }*/
 				  
 				  if(!examination_questionnaire_score_obj.getExactValue().isEmpty()){
-					  where_clause += " AND (exam_questionnaire_score.VALUE="+examination_questionnaire_score_obj.getExactValue()+" OR (exam_questionnaire_score.VALUE<="+examination_questionnaire_score_obj.getExactValue()+" AND exam_questionnaire_score.VALUE2>="+examination_questionnaire_score_obj.getExactValue()+")) ";
+					  where_clause += " AND exam_questionnaire_score.VALUE="+examination_questionnaire_score_obj.getExactValue(); //+" OR (exam_questionnaire_score.VALUE<="+examination_questionnaire_score_obj.getExactValue()+" AND exam_questionnaire_score.VALUE2>="+examination_questionnaire_score_obj.getExactValue()+")) ";
 				  }
 				  
 				  if(!examination_questionnaire_score_obj.getRangeMinValue().isEmpty()){
-					  	where_clause += " AND (exam_questionnaire_score.VALUE>=" + examination_questionnaire_score_obj.getRangeMinValue()+" OR exam_questionnaire_score.VALUE2>="+examination_questionnaire_score_obj.getRangeMinValue()+")"; 
+					  	where_clause += " AND exam_questionnaire_score.VALUE>=" + examination_questionnaire_score_obj.getRangeMinValue(); //+" OR exam_questionnaire_score.VALUE2>="+examination_questionnaire_score_obj.getRangeMinValue()+")"; 
 					  	if(!examination_questionnaire_score_obj.getRangeMaxValue().isEmpty()) {
 					  		where_clause += " AND exam_questionnaire_score.VALUE<=" + examination_questionnaire_score_obj.getRangeMaxValue();
 					  	}
@@ -3778,7 +3778,17 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     
     public void writeXMLResponse(int cohortIndex, boolean createXML, int cohortID, String statusID, String username){
     	try{
-    		if(cohortIndex==0) {
+    		if(createXML) {
+        		//File fXmlFile = new File(getServletContext().getRealPath("/WEB-INF/Response"+requestID+".xml"));
+        		//File fXmlFile = new File("Response"+requestID+".xml");
+        		ObjectFactory objectFactory = new ObjectFactory();
+        		JAXBElement<PatientsSelectionResponse> je =  objectFactory.createPatientsSelectionResponse(patientsSelectionResponse);
+        		//xmljaxbMarshaller.marshal(je, fXmlFile);
+        		StringWriter sw = new StringWriter();
+        		xmljaxbMarshaller.marshal(je, sw);
+        		myRespXML = sw.toString();
+        	}
+    		else if(cohortIndex==0) {
     		xmljaxbContext = JAXBContext.newInstance(ObjectFactory.class);
     		xmljaxbMarshaller = xmljaxbContext.createMarshaller();
     		xmljaxbMarshaller.setProperty(Marshaller.JAXB_FORMATTED_OUTPUT, true);
@@ -3794,7 +3804,7 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
             now.setTimezone(DatatypeConstants.FIELD_UNDEFINED);
     		patientsSelectionResponse.setResponseDate(now);
     		//for(String cohortID: patientsSelectionRequest.getCohortID()){
-    		}
+    		}else {
     			CohortResponse cohortResponse = new CohortResponse();
     			//cohortResponse.setCohortID(patientsSelectionRequest.getCohortID().get(cohortIndex));
     			if (cohortID<10) cohortResponse.setCohortID("COHORT-ID-0"+cohortID);
@@ -3851,18 +3861,10 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     			}
     			
     			cohortResponse.setEligibilityCriteriaUsed(inclAndExclCriteriaUsed);
-    			}
     			patientsSelectionResponse.getCohortResponse().add(cohortResponse);
+    			}
+    			
     		//}
-    		if(createXML) {
-    		//File fXmlFile = new File(getServletContext().getRealPath("/WEB-INF/Response"+requestID+".xml"));
-    		//File fXmlFile = new File("Response"+requestID+".xml");
-    		ObjectFactory objectFactory = new ObjectFactory();
-    		JAXBElement<PatientsSelectionResponse> je =  objectFactory.createPatientsSelectionResponse(patientsSelectionResponse);
-    		//xmljaxbMarshaller.marshal(je, fXmlFile);
-    		StringWriter sw = new StringWriter();
-    		xmljaxbMarshaller.marshal(je, sw);
-    		myRespXML = sw.toString();
     		}
     	}
     	catch(Exception e){
@@ -3969,6 +3971,9 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
 	    JSONArray cohorts = new JSONArray(getCohortsC4(darID, username, password));
 	    boolean createXML = false;
 	    String cohort_ids = "";
+	    int cohortIndex = 0;
+	    writeXMLResponse(cohortIndex, createXML, 0, "1", username);
+	    cohortIndex++;
     	for(int i=0; i<cohorts.length(); i++){
     		patients_found = true;
     		String cohortName = "";
@@ -3992,8 +3997,8 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     	    	long startTime = System.nanoTime();
     	    	System.out.println("everything's gooooooood");
     			criterionDBmatching(list_of_inclusive_criterions,list_of_exclusive_criterions);
-    			if(i==cohorts.length()-1) createXML=true;
-    			writeXMLResponse(i, createXML, mycohortid, "2", username);	
+    			//if(i==cohorts.length()-1) createXML=true;
+    			writeXMLResponse(cohortIndex, createXML, mycohortid, "2", username);	
     			inclusion_criteria.clear();
     			exclusion_criteria.clear();
     			if(patientsSelectionRequest.getRequestID().value().equals("ELIGIBLE_PATIENTS_IDS")) {
@@ -4005,18 +4010,23 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     			System.out.println("End");
     	    }
     		}
-    		else {
-    			if(i==cohorts.length()-1) createXML=true;
+    		/*else {
+    			if(i==cohorts.length()-1) {
+    				createXML=true;
+    				writeXMLResponse(cohortIndex, createXML, 0, "1", username);
+    			}
     			if(cohorts.getJSONObject(i).get("statusId").equals("1")) {
     				writeXMLResponse(i, createXML, mycohortid, "1", username);
     			}
     			else {
     				writeXMLResponse(i, createXML, mycohortid, "3", username);
     			}
-    		}
+    		}*/
     			
     		
     	}
+    	createXML=true;
+    	writeXMLResponse(cohortIndex, createXML, 0, "1", username);
     	inclusion_queries.clear();
     	exclusion_queries.clear();
     	Class.forName("com.mysql.jdbc.Driver");

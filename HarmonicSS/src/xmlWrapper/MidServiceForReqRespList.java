@@ -63,7 +63,7 @@ public class MidServiceForReqRespList extends HttpServlet {
         // load a properties file
         prop.load(input);
         JSONObject myresult = new JSONObject();
-        System.out.println(prop.getProperty("domain")+":"+prop.getProperty("port"));
+        //System.out.println(prop.getProperty("domain")+":"+prop.getProperty("port"));
 		try {
 	        String webPage = "http://"+prop.getProperty("domain").trim()+":"+prop.getProperty("port").trim()+"/HarmonicSS/ReqRespList?userID="+userID+"&requestID="+requestID;
 			//String webPage = "http://harm.harmonicss.eu:8989/HarmonicSS/ReqRespList?userID="+userID+"&requestID="+requestID;
@@ -121,7 +121,8 @@ public class MidServiceForReqRespList extends HttpServlet {
 	  	  		pw.write(responseXML);
 	  	  		pw.close();*/
 	  	  		String responseSynopsis = "";
-	  	  		if(!responseXML.equals("")) {
+	  	  		if(!responseXML.contentEquals("")) {
+	  	  			
 	  	  			//File myXMLResponse = new File(getServletContext().getRealPath("/WEB-INF/tempResponse.xml"));
 	  	  			jaxbContext = JAXBContext.newInstance(ObjectFactory.class);
 	  	  			jaxbUnmarshaller = jaxbContext.createUnmarshaller();
