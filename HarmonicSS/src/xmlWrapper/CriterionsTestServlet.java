@@ -2941,8 +2941,7 @@ public class CriterionsTestServlet extends HttpServlet {
 			  
 				  if(!(examination_essdai_domain_obj.getActivity_level()).isEmpty()) {
 					  tables += ", voc_activity_level";
-					  where_clause += " AND exam_essdai_domain.ACTIVITY_LEVEL_ID = voc_activity_level.ID " +
-					  	"AND voc_activity_level.CODE = '" + examination_essdai_domain_obj.getActivity_level() +"' "; //'BLOOD-100'
+					  where_clause += " AND exam_essdai_domain.ACTIVITY_LEVEL_ID = voc_activity_level.ID AND " + Make_OR_of_CODES("voc_activity_level.CODE", examination_essdai_domain_obj.getActivity_level());
 				  }
 				  
 				  if(!(examination_essdai_domain_obj.getQuestionnaire_period_of_time_exact_year()).isEmpty()) {
