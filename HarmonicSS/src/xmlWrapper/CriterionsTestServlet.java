@@ -163,6 +163,327 @@ public class CriterionsTestServlet extends HttpServlet {
     	return result_incl;
     }
     
+    private ArrayList<String> createPeriodNestedQueries(ArrayList<Criterion> list_of_criterions, boolean mode, boolean isPeriodStart) throws JSONException, JsonParseException, JsonMappingException, IOException {
+    	ArrayList<String> nestedCriteria = new ArrayList<String>();
+    	for(int i=0; i<list_of_criterions.size(); i++) {
+    		Criterion current_Criterion=list_of_criterions.get(i);
+    		String query="";
+    		switch(current_Criterion.getCriterion()) {
+    		case "lifestyle_smoking": { //Check if user provided the info of all the fields 
+				  lifestyle_smoking crit_lifestyle_smoking_obj =  (lifestyle_smoking)current_Criterion;
+				  
+				  String tables = "patient, lifestyle_smoking";
+				  String where_clause = "patient.ID = lifestyle_smoking.PATIENT_ID";  			  
+
+				  if(!crit_lifestyle_smoking_obj.getVoc_smoking_status_CODE().isEmpty()) {
+						 tables += ", voc_smoking_status";
+						 where_clause += " AND lifestyle_smoking.STATUS_ID = voc_smoking_status.ID AND "+Make_OR_of_CODES("voc_smoking_status.CODE", crit_lifestyle_smoking_obj.getVoc_smoking_status_CODE());
+					 }
+				  
+				  if(!(crit_lifestyle_smoking_obj.getSmoking_exact_date_year()).isEmpty()) {
+					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
+					  where_clause += Make_begin_end_period_query (mode,"lifestyle_smoking.PERIOD_ID", "dt_date1", "dt_date2", crit_lifestyle_smoking_obj.getSmoking_exact_date_year(), 
+							  crit_lifestyle_smoking_obj.getSmoking_exact_date_month(), crit_lifestyle_smoking_obj.getSmoking_exact_date_day(),
+							  crit_lifestyle_smoking_obj.getSmoking_exact_date_year(), crit_lifestyle_smoking_obj.getSmoking_exact_date_month(),
+							  crit_lifestyle_smoking_obj.getSmoking_exact_date_day()); 
+					  	 							  
+				  } else if(!(crit_lifestyle_smoking_obj.getSmoking_period_begin_year()).isEmpty() || !(crit_lifestyle_smoking_obj.getSmoking_period_end_year()).isEmpty()) {
+						tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
+						where_clause += Make_begin_end_period_query (mode,"lifestyle_smoking.PERIOD_ID", "dt_date1", "dt_date2", crit_lifestyle_smoking_obj.getSmoking_period_begin_year(), 
+								  crit_lifestyle_smoking_obj.getSmoking_period_begin_month(), crit_lifestyle_smoking_obj.getSmoking_period_begin_day(),
+								  crit_lifestyle_smoking_obj.getSmoking_period_end_year(), crit_lifestyle_smoking_obj.getSmokimg_period_end_month(),
+								  crit_lifestyle_smoking_obj.getSmoking_period_end_day()); 
+																
+					} else if(!(crit_lifestyle_smoking_obj.getSmoking_until_date_year()).isEmpty()) {
+						tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
+						where_clause += Make_begin_end_period_query (mode,"lifestyle_smoking.PERIOD_ID", "dt_date1", "dt_date2", "1800", 
+								  "1", "1",crit_lifestyle_smoking_obj.getSmoking_until_date_year(), crit_lifestyle_smoking_obj.getSmoking_until_date_month(),
+								  crit_lifestyle_smoking_obj.getSmoking_until_date_day());
+						 								
+					}  
+				   
+				  if(!crit_lifestyle_smoking_obj.getAmount_exact_value().isEmpty()){
+					  	tables += ", dt_amount, voc_unit";
+					  where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND (dt_amount.value=" + crit_lifestyle_smoking_obj.getAmount_exact_value() +" OR (dt_amount.value<=" + crit_lifestyle_smoking_obj.getAmount_exact_value() + " AND dt_amount.value2>=" + crit_lifestyle_smoking_obj.getAmount_exact_value() + ")) AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE() + "' ";
+					  
+				  }
+				  
+				  if(!crit_lifestyle_smoking_obj.getAmount_range_min_value().isEmpty()){
+					  	tables += ", dt_amount, voc_unit";
+					  where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND (dt_amount.value>=" + crit_lifestyle_smoking_obj.getAmount_range_min_value()+" OR dt_amount.value2>=" + crit_lifestyle_smoking_obj.getAmount_range_min_value()+")";
+					  if(!crit_lifestyle_smoking_obj.getAmount_range_max_value().isEmpty()){
+						  where_clause += " AND dt_amount.value<=" + crit_lifestyle_smoking_obj.getAmount_range_max_value();
+					  }
+					  where_clause += " AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE() + "'";
+					  
+				  }
+				  
+				  else if(!crit_lifestyle_smoking_obj.getAmount_range_max_value().isEmpty()){
+					  	tables += ", dt_amount, voc_unit";
+					  where_clause += " AND lifestyle_smoking.AMOUNT_ID = dt_amount.ID AND dt_amount.value<=" + crit_lifestyle_smoking_obj.getAmount_range_max_value() + " AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_lifestyle_smoking_obj.getDt_amount_voc_unit_CODE() + "'";
+					  
+				  }
+				  
+				  if(!crit_lifestyle_smoking_obj.getStatement().isEmpty()){
+					  tables += ", voc_confirmation";
+					  where_clause += " AND lifestyle_smoking.STMT_ID=voc_confirmation.ID AND voc_confirmation.CODE='" + crit_lifestyle_smoking_obj.getStatement() + "'";	
+					 
+				  }
+				  
+				  where_clause += " AND lifestyle_smoking.STMT_ID=1";
+				  
+				  /*if(!crit_lifestyle_smoking_obj.getCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_lifestyle_smoking_obj.getCount();
+				  }*/
+					  
+				  if(isPeriodStart) {
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date AS dt_date1, dt_period_of_time";
+						  where_clause += " AND lifestyle_smoking.PERIOD_ID=dt_period_of_time.ID AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  query = "(SELECT MIN(dt_date1.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  }
+				  else {
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date AS dt_date2, dt_period_of_time";
+						  where_clause += " AND lifestyle_smoking.PERIOD_ID=dt_period_of_time.ID AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  query = "(SELECT MAX(dt_date2.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  }
+					  
+				  if(!crit_lifestyle_smoking_obj.getYearsNested().isEmpty()) {
+					  query += " + ("+crit_lifestyle_smoking_obj.getYearsNested()+")";
+				  }			
+				  
+				  //TODO 	will voc_unit.CODE take one value or more than one I also think that voc_direction_CODE() will take one value?
+				  
+				  //if(!crit_lifestyle_smoking_obj.getDt_period_of_time_voc_confirmation_CODE().isEmpty()) query += "AND dt_period_of_time.EXACT_ID = voc_confirmation.ID AND voc_confirmation.CODE='"+crit_lifestyle_smoking_obj.getDt_period_of_time_voc_confirmation_CODE()+"' "; 
+				  //if(!crit_lifestyle_smoking_obj.getDt_period_of_time_BEFORE_PERIOD_ID().isEmpty()) query += "AND dt_period_of_time.BEFORE_PERIOD_ID = '"+crit_lifestyle_smoking_obj.getDt_period_of_time_BEFORE_PERIOD_ID()+"' ";
+			  System.out.println("The Query is: "+ query);
+			  } break;
+			  
+    		case "intervention_medication": { //Check if user provided the info of all the fields 
+				  intervention_medication  crit_interv_medication_obj =  (intervention_medication )current_Criterion;
+				  String tables = "patient, interv_medication";
+				  String where_clause = "patient.ID = interv_medication.PATIENT_ID";
+				  
+				  if(!crit_interv_medication_obj.getVoc_pharm_drug_CODE().isEmpty()) {
+					  tables += ", voc_pharm_drug";
+					  where_clause += " AND interv_medication.MEDICATION_ID = voc_pharm_drug.ID AND (" + Make_OR_of_CODES("voc_pharm_drug.CODE", crit_interv_medication_obj.getVoc_pharm_drug_CODE());
+					  String codes[] = crit_interv_medication_obj.getVoc_pharm_drug_CODE().split(",");
+					  for(int k=0; k<codes.length; k++) {
+						  String narrowTerms = getTermsWithNarrowMeaning(codes[k].trim());
+						  String[] allNarrowTerms = narrowTerms.split(",");
+						  for(int c=1; c<allNarrowTerms.length; c++) {
+							  where_clause += " OR " + Make_OR_of_CODES("voc_pharm_drug.CODE", allNarrowTerms[c]);
+						  }
+					  }
+					  where_clause += ")";
+				  }
+				  
+				  
+				  
+				  //if(!crit_interv_medication_obj.getVoc_pharm_drug_BROADER_TERM_ID().isEmpty()) query += "AND voc_pharm_drug.BROADER_TERM_ID = '"+crit_interv_medication_obj.getVoc_pharm_drug_BROADER_TERM_ID()+"' "; //Do we need the Broader_Term_ID? (`BROADER_TERM_ID`) REFERENCES `voc_pharm_drug` (`ID`)
+					  
+				  if(!crit_interv_medication_obj.getDosage_amount_exact_value().isEmpty()) {
+					  tables += ", dt_amount, voc_unit";
+					  where_clause += " AND interv_medication.DOSAGE_ID = dt_amount.ID AND (dt_amount.VALUE ='" +crit_interv_medication_obj.getDosage_amount_exact_value()+"' OR (dt_amount.VALUE <="+ crit_interv_medication_obj.getDosage_amount_exact_value() +" AND dt_amount.VALUE2 >="+ crit_interv_medication_obj.getDosage_amount_exact_value() +")) "+
+							  "AND dt_amount.UNIT_ID=voc_unit.ID " +
+							  	"AND voc_unit.CODE ='"+crit_interv_medication_obj.getDOSAGE_ID_dt_amount_VALUE()+"'";;
+				  }
+				  
+				  if(!crit_interv_medication_obj.getDosage_amount_range_min_value().isEmpty()){
+					  	tables += ", dt_amount, voc_unit";
+					  where_clause += " AND interv_medication.DOSAGE_ID = dt_amount.ID AND (dt_amount.value>=" + crit_interv_medication_obj.getDosage_amount_range_min_value() + " OR dt_amount.value2>=" + crit_interv_medication_obj.getDosage_amount_range_min_value() + ")";
+					  if(!crit_interv_medication_obj.getDosage_amount_range_max_value().isEmpty()){
+						  where_clause += " AND dt_amount.value<=" + crit_interv_medication_obj.getDosage_amount_range_max_value();
+					  }
+					  where_clause += " AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_interv_medication_obj.getDOSAGE_ID_dt_amount_VALUE() + "'";
+					  
+				  }
+				  
+				  else if(!crit_interv_medication_obj.getDosage_amount_range_max_value().isEmpty()){
+					  	tables += ", dt_amount, voc_unit";
+					  where_clause += " AND interv_medication.DOSAGE_ID = dt_amount.ID AND dt_amount.value<=" + crit_interv_medication_obj.getDosage_amount_range_max_value() + " AND dt_amount.UNIT_ID=voc_unit.ID AND voc_unit.CODE ='" + crit_interv_medication_obj.getDOSAGE_ID_dt_amount_VALUE() + "'";
+					  
+				  }
+				  
+				  if(!(crit_interv_medication_obj.getMedication_exact_date_year()).isEmpty()) {	
+					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
+					  where_clause += Make_begin_end_period_query (mode,"interv_medication.PERIOD_ID", "dt_date1", "dt_date2", crit_interv_medication_obj.getMedication_exact_date_year(), 
+					  			crit_interv_medication_obj.getMedication_exact_date_month(), crit_interv_medication_obj.getMedication_exact_date_day(),
+					  			crit_interv_medication_obj.getMedication_exact_date_year(), crit_interv_medication_obj.getMedication_exact_date_month(),
+					  			crit_interv_medication_obj.getMedication_exact_date_day());
+							  
+				  } else if(!crit_interv_medication_obj.getMedication_period_begin_year().isEmpty() || !(crit_interv_medication_obj.getMedication_period_end_year()).isEmpty()) {
+					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
+					  where_clause += Make_begin_end_period_query (mode,"interv_medication.PERIOD_ID", "dt_date1", "dt_date2", crit_interv_medication_obj.getMedication_period_begin_year(), 
+								crit_interv_medication_obj.getMedication_period_begin_month(), crit_interv_medication_obj.getMedication_period_begin_day(),
+								crit_interv_medication_obj.getMedication_period_end_year(), crit_interv_medication_obj.getMedication_period_end_month(),
+								crit_interv_medication_obj.getMedication_period_end_day()); 												
+				  
+				  } else if(!(crit_interv_medication_obj.getMedication_until_date_year()).isEmpty()) {
+					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
+					  where_clause += Make_begin_end_period_query (mode,"interv_medication.PERIOD_ID", "dt_date1", "dt_date2", "1800", 
+							  "1", "1",crit_interv_medication_obj.getMedication_until_date_year(), crit_interv_medication_obj.getMedication_until_date_month(),
+							  crit_interv_medication_obj.getMedication_until_date_day()); 							
+				  } 
+				  
+				  if(!crit_interv_medication_obj.getStatement().isEmpty()) {
+					  tables += ", voc_confirmation";
+					  where_clause += " AND interv_medication.STMT_ID=voc_confirmation.ID AND voc_confirmation.CODE='"+crit_interv_medication_obj.getStatement() + "'";
+				  }
+				  
+				  where_clause += " AND interv_medication.STMT_ID=1";
+				  
+				  /*if(!crit_interv_medication_obj.getCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_interv_medication_obj.getCount();
+				  }*/
+				  
+				  if(isPeriodStart) {
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date AS dt_date1, dt_period_of_time";
+						  where_clause += " AND interv_medication.PERIOD_ID=dt_period_of_time.ID AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  query = "(SELECT MIN(dt_date1.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  }
+				  else {
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date AS dt_date2, dt_period_of_time";
+						  where_clause += " AND interv_medication.PERIOD_ID=dt_period_of_time.ID AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  query = "(SELECT MAX(dt_date2.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  }
+					  
+				  if(!crit_interv_medication_obj.getYearsNested().isEmpty()) {
+					  query += " + ("+crit_interv_medication_obj.getYearsNested()+")";
+				  }	
+					
+			  } break;
+    		case "intervention_chemotherapy": { //Check if user provided the info of all the fields 
+				  intervention_chemotherapy  crit_interv_chemotherapy_obj =  (intervention_chemotherapy)current_Criterion;
+				  String tables = "patient, interv_chemotherapy";
+				  String where_clause = "patient.ID = interv_chemotherapy.PATIENT_ID";
+				  
+				  if(!crit_interv_chemotherapy_obj.getReason().isEmpty()) {
+					  tables += ", voc_confirmation AS conf_1";
+					  where_clause += " AND interv_chemotherapy.DUE_TO_PSS_ID = conf_1.ID AND " + Make_OR_of_CODES("conf_1.CODE", crit_interv_chemotherapy_obj.getReason());
+				  }
+				  
+				  if(!(crit_interv_chemotherapy_obj.getChem_exact_date_year()).isEmpty()) {	
+					  tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
+					  where_clause += Make_begin_end_period_query (mode,"interv_chemotherapy.PERIOD_ID", "dt_date1", "dt_date2", crit_interv_chemotherapy_obj.getChem_exact_date_year(), 
+					  			crit_interv_chemotherapy_obj.getChem_exact_date_month(), crit_interv_chemotherapy_obj.getChem_exact_date_day(),
+					  			crit_interv_chemotherapy_obj.getChem_exact_date_year(), crit_interv_chemotherapy_obj.getChem_exact_date_month(),
+					  			crit_interv_chemotherapy_obj.getChem_exact_date_day()); 						  
+					} else if(!(crit_interv_chemotherapy_obj.getChem_period_begin_year()).isEmpty() || !(crit_interv_chemotherapy_obj.getChem_period_end_year()).isEmpty()) {
+						tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
+						where_clause += Make_begin_end_period_query (mode,"interv_chemotherapy.PERIOD_ID", "dt_date1", "dt_date2", crit_interv_chemotherapy_obj.getChem_period_begin_year(), 
+								crit_interv_chemotherapy_obj.getChem_period_begin_month(), crit_interv_chemotherapy_obj.getChem_period_begin_day(),
+								crit_interv_chemotherapy_obj.getChem_period_end_year(), crit_interv_chemotherapy_obj.getChem_period_end_month(),
+								crit_interv_chemotherapy_obj.getChem_period_end_day()); 												
+					} else if(!(crit_interv_chemotherapy_obj.getChem_until_date_year()).isEmpty()) {
+						tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
+						where_clause += Make_begin_end_period_query (mode,"interv_chemotherapy.PERIOD_ID", "dt_date1", "dt_date2", "1800", 
+								  "1", "1",crit_interv_chemotherapy_obj.getChem_until_date_year(), crit_interv_chemotherapy_obj.getChem_until_date_month(),
+								  crit_interv_chemotherapy_obj.getChem_until_date_day()); 								
+					}
+				  
+				  if(!crit_interv_chemotherapy_obj.getStatement().isEmpty()) {
+					  tables += ", voc_confirmation AS conf_2";
+					  where_clause += " AND interv_chemotherapy.STMT_ID=conf_2.ID AND conf_2.CODE='"+crit_interv_chemotherapy_obj.getStatement() + "'";
+				  }
+				  
+				  where_clause += " AND interv_chemotherapy.STMT_ID=1";
+				  
+				  /*if(!crit_interv_chemotherapy_obj.getCount().isEmpty()) {
+				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_interv_chemotherapy_obj.getCount();
+				  }*/
+				  
+				  if(isPeriodStart) {
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date AS dt_date1, dt_period_of_time";
+						  where_clause += " AND interv_chemotherapy.PERIOD_ID=dt_period_of_time.ID AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  query = "(SELECT MIN(dt_date1.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  }
+				  else {
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date AS dt_date2, dt_period_of_time";
+						  where_clause += " AND interv_chemotherapy.PERIOD_ID=dt_period_of_time.ID AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  query = "(SELECT MAX(dt_date2.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  }
+					  
+				  if(!crit_interv_chemotherapy_obj.getYearsNested().isEmpty()) {
+					  query += " + ("+crit_interv_chemotherapy_obj.getYearsNested()+")";
+				  }	
+					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
+					//System.out.println("We executed: "+crit_interv_chemotherapy_obj.criterion_name+"\nThe Query is: "+query); 
+			  } break;
+    		case "other_clinical_trials": { //Check if user provided the info of all the fields 
+				  other_clinical_trials  other_clinical_trials_obj =  (other_clinical_trials)current_Criterion;
+				  
+				  String tables = "patient, other_clinical_trials";
+				  String where_clause = "patient.ID = other_clinical_trials.PATIENT_ID";
+						  
+				  if(!(other_clinical_trials_obj.getPeriod_of_time_exact_year()).isEmpty()) {
+						tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
+						where_clause += Make_begin_end_period_query(mode, "other_clinical_trials.PERIOD_ID","dt_date1","dt_date2",other_clinical_trials_obj.getPeriod_of_time_exact_year(), 
+								  other_clinical_trials_obj.getPeriod_of_time_exact_month(), other_clinical_trials_obj.getPeriod_of_time_exact_day(),other_clinical_trials_obj.getPeriod_of_time_exact_year(), 
+								  other_clinical_trials_obj.getPeriod_of_time_exact_month(), other_clinical_trials_obj.getPeriod_of_time_exact_day());					  		
+					} else if(!other_clinical_trials_obj.getPeriod_of_time_interval_start_year().isEmpty() || !(other_clinical_trials_obj.getPeriod_of_time_interval_end_year()).isEmpty()) {
+						tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
+						where_clause += Make_begin_end_period_query (mode,"other_clinical_trials.PERIOD_ID", "dt_date1","dt_date2",other_clinical_trials_obj.getPeriod_of_time_interval_start_year(), 
+								  other_clinical_trials_obj.getPeriod_of_time_interval_start_month(), other_clinical_trials_obj.getPeriod_of_time_interval_start_day(),
+								  other_clinical_trials_obj.getPeriod_of_time_interval_end_year(), other_clinical_trials_obj.getPeriod_of_time_interval_end_month(),
+								  other_clinical_trials_obj.getPeriod_of_time_interval_end_day()); 			  
+					} else if(!(other_clinical_trials_obj.getPeriod_of_time_until_year()).isEmpty()) {
+						tables += ", dt_date AS dt_date1, dt_date AS dt_date2, dt_period_of_time";
+						where_clause += Make_begin_end_period_query ( mode,"other_clinical_trials.PERIOD_ID","dt_date1","dt_date2", "1800", "1", "1", other_clinical_trials_obj.getPeriod_of_time_until_year(), other_clinical_trials_obj.getPeriod_of_time_until_month(),
+								  other_clinical_trials_obj.getPeriod_of_time_until_day()); 
+					}
+			
+			if(!other_clinical_trials_obj.getStatement().isEmpty()) 
+		  		query += "AND other_clinical_trials.STMT_ID=voc_confirmation.ID " +
+		  				 "AND voc_confirmation.CODE='"+other_clinical_trials_obj.getStatement() + "'";
+			
+			where_clause += " AND other_clinical_trials.STMT_ID=1";
+			
+			 /*if(!other_clinical_trials_obj.getCount().isEmpty()) {
+			  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+other_clinical_trials_obj.getCount();
+			  }*/
+			
+			if(isPeriodStart) {
+				  if(!tables.contains("dt_date")) {
+					  tables += ", dt_date AS dt_date1, dt_period_of_time";
+					  where_clause += " AND other_clinical_trials.PERIOD_ID=dt_period_of_time.ID AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+				  }
+				  query = "(SELECT MIN(dt_date1.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+			  }
+			  else {
+				  if(!tables.contains("dt_date")) {
+					  tables += ", dt_date AS dt_date2, dt_period_of_time";
+					  where_clause += " AND other_clinical_trials.PERIOD_ID=dt_period_of_time.ID AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+				  }
+				  query = "(SELECT MAX(dt_date2.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+			  }
+				  
+			  if(!other_clinical_trials_obj.getYearsNested().isEmpty()) {
+				  query += " + ("+other_clinical_trials_obj.getYearsNested()+")";
+			  }
+
+			  } break;
+    		default:
+				  System.out.println("Undefined criterion-name-"+(i+1)+" in the input JSON file.");
+			} 
+			query=query.replace("WHERE  AND", "WHERE");
+			query=query.replace("WHERE AND", "WHERE");
+			nestedCriteria.add(query);
+    	}
+  	return nestedCriteria;
+    }
+    
     private ArrayList<String> createNestedQueries(ArrayList<Criterion> list_of_criterions, boolean mode, boolean isMax) throws JSONException, JsonParseException, JsonMappingException, IOException {
     	//String results_of_one_Criterion="";
     	ArrayList<String> nestedCriteria = new ArrayList<String>();
@@ -376,7 +697,24 @@ public class CriterionsTestServlet extends HttpServlet {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_lifestyle_smoking_obj.getCount();
 				  }*/
 					  
-				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;		
+				  if(isMax) {
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date AS dt_date1, dt_period_of_time";
+						  where_clause += " AND lifestyle_smoking.PERIOD_ID=dt_period_of_time.ID AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  query = "(SELECT MAX(dt_date1.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  }
+				  else {
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date AS dt_date2, dt_period_of_time";
+						  where_clause += " AND lifestyle_smoking.PERIOD_ID=dt_period_of_time.ID AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  query = "(SELECT MIN(dt_date2.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  }
+					  
+				  if(!crit_lifestyle_smoking_obj.getYearsNested().isEmpty()) {
+					  query += " + ("+crit_lifestyle_smoking_obj.getYearsNested()+")";
+				  }			
 				  
 				  //TODO 	will voc_unit.CODE take one value or more than one I also think that voc_direction_CODE() will take one value?
 				  
@@ -617,7 +955,24 @@ public class CriterionsTestServlet extends HttpServlet {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_interv_medication_obj.getCount();
 				  }*/
 				  
-				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  if(isMax) {
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date AS dt_date1, dt_period_of_time";
+						  where_clause += " AND interv_medication.PERIOD_ID=dt_period_of_time.ID AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  query = "(SELECT MAX(dt_date1.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  }
+				  else {
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date AS dt_date2, dt_period_of_time";
+						  where_clause += " AND interv_medication.PERIOD_ID=dt_period_of_time.ID AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  query = "(SELECT MIN(dt_date2.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  }
+					  
+				  if(!crit_interv_medication_obj.getYearsNested().isEmpty()) {
+					  query += " + ("+crit_interv_medication_obj.getYearsNested()+")";
+				  }	
 					
 			  } break;
 			  
@@ -661,7 +1016,24 @@ public class CriterionsTestServlet extends HttpServlet {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+crit_interv_chemotherapy_obj.getCount();
 				  }*/
 				  
-				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  if(isMax) {
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date AS dt_date1, dt_period_of_time";
+						  where_clause += " AND interv_chemotherapy.PERIOD_ID=dt_period_of_time.ID AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  query = "(SELECT MAX(dt_date1.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  }
+				  else {
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date AS dt_date2, dt_period_of_time";
+						  where_clause += " AND interv_chemotherapy.PERIOD_ID=dt_period_of_time.ID AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  query = "(SELECT MIN(dt_date2.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  }
+					  
+				  if(!crit_interv_chemotherapy_obj.getYearsNested().isEmpty()) {
+					  query += " + ("+crit_interv_chemotherapy_obj.getYearsNested()+")";
+				  }	
 					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
 					//System.out.println("We executed: "+crit_interv_chemotherapy_obj.criterion_name+"\nThe Query is: "+query); 
 			  } break;
@@ -1368,7 +1740,24 @@ public class CriterionsTestServlet extends HttpServlet {
 			  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) >= "+other_clinical_trials_obj.getCount();
 			  }*/
 			
-			query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+			if(isMax) {
+				  if(!tables.contains("dt_date")) {
+					  tables += ", dt_date AS dt_date1, dt_period_of_time";
+					  where_clause += " AND other_clinical_trials.PERIOD_ID=dt_period_of_time.ID AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+				  }
+				  query = "(SELECT MAX(dt_date1.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+			  }
+			  else {
+				  if(!tables.contains("dt_date")) {
+					  tables += ", dt_date AS dt_date2, dt_period_of_time";
+					  where_clause += " AND other_clinical_trials.PERIOD_ID=dt_period_of_time.ID AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+				  }
+				  query = "(SELECT MIN(dt_date2.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+			  }
+				  
+			  if(!other_clinical_trials_obj.getYearsNested().isEmpty()) {
+				  query += " + ("+other_clinical_trials_obj.getYearsNested()+")";
+			  }
 
 			  } break;
 			  
@@ -1699,6 +2088,8 @@ public class CriterionsTestServlet extends HttpServlet {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+crit_demo_pregnancy_obj.getMaxCount();
 					}
 				  	
+				  	query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  	
 				  	if(!crit_demo_pregnancy_obj.getOutcomeMaxNested().isEmpty()) {
 						  String crit_max_nested = makeCriterionList(crit_demo_pregnancy_obj.getOutcomeMaxNested());
 						  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
@@ -1710,7 +2101,7 @@ public class CriterionsTestServlet extends HttpServlet {
 							  where_clause += " AND demo_pregnancy_data.OUTCOME_DATE_ID=dt_date.ID";
 						  }
 						  for(int k=0; k<maxNestedQueries.size(); k++) {
-							  where_clause += " AND dt_date.YEAR <= "+maxNestedQueries.get(k);
+							  where_clause += " AND (dt_date.YEAR2 <= "+maxNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+maxNestedQueries.get(k)+"))";
 						  }  
 						  if(!crit_demo_pregnancy_obj.getOutcomeMinNested().isEmpty()) {
 							  String crit_min_nested = makeCriterionList(crit_demo_pregnancy_obj.getOutcomeMinNested());
@@ -1739,7 +2130,6 @@ public class CriterionsTestServlet extends HttpServlet {
 						  }  
 						  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
 					  }
-					  else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 				  	
 				  	if(!crit_demo_pregnancy_obj.getConceptionMaxNested().isEmpty()) {
 						  String crit_max_nested = makeCriterionList(crit_demo_pregnancy_obj.getConceptionMaxNested());
@@ -1752,7 +2142,7 @@ public class CriterionsTestServlet extends HttpServlet {
 							  where_clause += " AND demo_pregnancy_data.CONCEPTION_DATE_ID=dt_date.ID";
 						  }
 						  for(int k=0; k<maxNestedQueries.size(); k++) {
-							  where_clause += " AND dt_date.YEAR <= "+maxNestedQueries.get(k);
+							  where_clause += " AND (dt_date.YEAR2 <= "+maxNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+maxNestedQueries.get(k)+"))";
 						  }  
 						  if(!crit_demo_pregnancy_obj.getConceptionMinNested().isEmpty()) {
 							  String crit_min_nested = makeCriterionList(crit_demo_pregnancy_obj.getConceptionMinNested());
@@ -1778,6 +2168,88 @@ public class CriterionsTestServlet extends HttpServlet {
 						  }
 						  for(int k=0; k<minNestedQueries.size(); k++) {
 							  where_clause += " AND dt_date.YEAR >= "+minNestedQueries.get(k);
+						  }  
+						  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+					  }
+				  	
+				  	if(!crit_demo_pregnancy_obj.getOutcomeEndPeriodNested().isEmpty()) {
+						  String crit_end_period_nested = makeCriterionList(crit_demo_pregnancy_obj.getOutcomeEndPeriodNested());
+						  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+						  ArrayList<Criterion> list_of_end_period_nested=null;
+						  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+						  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+						  if(!tables.contains("dt_date")) {
+							  tables += ", dt_date";
+							  where_clause += " AND demo_pregnancy_data.OUTCOME_DATE_ID=dt_date.ID";
+						  }
+						  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+							  where_clause += " AND (dt_date.YEAR2 <= "+endPeriodNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+endPeriodNestedQueries.get(k)+"))";
+						  }  
+						  if(!crit_demo_pregnancy_obj.getOutcomeStartPeriodNested().isEmpty()) {
+							  String crit_start_period_nested = makeCriterionList(crit_demo_pregnancy_obj.getOutcomeStartPeriodNested());
+							  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+							  ArrayList<Criterion> list_of_start_period_nested=null;
+							  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+							  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+							  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+								  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+							  }  
+						  }
+						  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+					  }
+					  else if(!crit_demo_pregnancy_obj.getOutcomeStartPeriodNested().isEmpty()) {
+						  String crit_start_period_nested = makeCriterionList(crit_demo_pregnancy_obj.getOutcomeStartPeriodNested());
+						  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+						  ArrayList<Criterion> list_of_start_period_nested=null;
+						  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+						  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+						  if(!tables.contains("dt_date")) {
+							  tables += ", dt_date";
+							  where_clause += " AND demo_pregnancy_data.OUTCOME_DATE_ID=dt_date.ID";
+						  }
+						  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+							  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+						  }  
+						  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+					  }
+				  	
+				  	if(!crit_demo_pregnancy_obj.getConceptionEndPeriodNested().isEmpty()) {
+						  String crit_end_period_nested = makeCriterionList(crit_demo_pregnancy_obj.getConceptionEndPeriodNested());
+						  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+						  ArrayList<Criterion> list_of_end_period_nested=null;
+						  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+						  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+						  if(!tables.contains("dt_date")) {
+							  tables += ", dt_date";
+							  where_clause += " AND demo_pregnancy_data.CONCEPTION_DATE_ID=dt_date.ID";
+						  }
+						  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+							  where_clause += " AND (dt_date.YEAR2 <= "+endPeriodNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+endPeriodNestedQueries.get(k)+"))";
+						  }  
+						  if(!crit_demo_pregnancy_obj.getConceptionStartPeriodNested().isEmpty()) {
+							  String crit_start_period_nested = makeCriterionList(crit_demo_pregnancy_obj.getConceptionStartPeriodNested());
+							  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+							  ArrayList<Criterion> list_of_start_period_nested=null;
+							  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+							  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+							  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+								  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+							  }  
+						  }
+						  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+					  }
+					  else if(!crit_demo_pregnancy_obj.getConceptionStartPeriodNested().isEmpty()) {
+						  String crit_start_period_nested = makeCriterionList(crit_demo_pregnancy_obj.getConceptionStartPeriodNested());
+						  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+						  ArrayList<Criterion> list_of_start_period_nested=null;
+						  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+						  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+						  if(!tables.contains("dt_date")) {
+							  tables += ", dt_date";
+							  where_clause += " AND demo_pregnancy_data.CONCEPTION_DATE_ID=dt_date.ID";
+						  }
+						  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+							  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
 						  }  
 						  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
 					  }
@@ -1856,8 +2328,167 @@ public class CriterionsTestServlet extends HttpServlet {
 				  else if(!crit_lifestyle_smoking_obj.getMaxCount().isEmpty()) {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+crit_lifestyle_smoking_obj.getMaxCount();
 				  }
+				  
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 					  
-				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;		
+				  if(!crit_lifestyle_smoking_obj.getEndBeforeStartNested().isEmpty()) {
+					  String crit_max_nested = makeCriterionList(crit_lifestyle_smoking_obj.getEndBeforeStartNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
+					  ArrayList<Criterion> list_of_max_nested=null;
+					  list_of_max_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> maxNestedQueries = createNestedQueries(list_of_max_nested, false, true);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND lifestyle_smoking.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date2")) {
+						  tables += ", dt_date AS dt_date2";
+						  where_clause += " AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  for(int k=0; k<maxNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date2.YEAR <= "+maxNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  if(!crit_lifestyle_smoking_obj.getStartBeforeStartNested().isEmpty()) {
+					  String crit_max_nested = makeCriterionList(crit_lifestyle_smoking_obj.getStartBeforeStartNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
+					  ArrayList<Criterion> list_of_max_nested=null;
+					  list_of_max_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> maxNestedQueries = createNestedQueries(list_of_max_nested, false, true);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND lifestyle_smoking.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date1")) {
+						  tables += ", dt_date AS dt_date1";
+						  where_clause += " AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  for(int k=0; k<maxNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date1.YEAR <= "+maxNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
+				  if(!crit_lifestyle_smoking_obj.getStartAfterEndNested().isEmpty()) {
+					  String crit_min_nested = makeCriterionList(crit_lifestyle_smoking_obj.getStartAfterEndNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_min_nested);
+					  ArrayList<Criterion> list_of_min_nested=null;
+					  list_of_min_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> minNestedQueries = createNestedQueries(list_of_min_nested, false, false);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND lifestyle_smoking.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date1")) {
+						  tables += ", dt_date AS dt_date1";
+						  where_clause += " AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  for(int k=0; k<minNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date1.YEAR >= "+minNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  } 
+				  
+				  if(!crit_lifestyle_smoking_obj.getEndAfterEndNested().isEmpty()) {
+					  String crit_min_nested = makeCriterionList(crit_lifestyle_smoking_obj.getEndAfterEndNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_min_nested);
+					  ArrayList<Criterion> list_of_min_nested=null;
+					  list_of_min_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> minNestedQueries = createNestedQueries(list_of_min_nested, false, false);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND lifestyle_smoking.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date2")) {
+						  tables += ", dt_date AS dt_date2";
+						  where_clause += " AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  for(int k=0; k<minNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date2.YEAR >= "+minNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  } 
+				  
+				  if(!crit_lifestyle_smoking_obj.getEndAfterStartNested().isEmpty()) {
+					  String crit_start_period_nested = makeCriterionList(crit_lifestyle_smoking_obj.getEndAfterStartNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+					  ArrayList<Criterion> list_of_start_period_nested=null;
+					  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND lifestyle_smoking.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date2")) {
+						  tables += ", dt_date AS dt_date2";
+						  where_clause += " AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date2.YEAR >= "+startPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
+				  if(!crit_lifestyle_smoking_obj.getEndBeforeEndNested().isEmpty()) {
+					  String crit_end_period_nested = makeCriterionList(crit_lifestyle_smoking_obj.getEndBeforeEndNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+					  ArrayList<Criterion> list_of_end_period_nested=null;
+					  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND lifestyle_smoking.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date2")) {
+						  tables += ", dt_date AS dt_date2";
+						  where_clause += " AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date2.YEAR <= "+endPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
+				  if(!crit_lifestyle_smoking_obj.getStartBeforeEndNested().isEmpty()) {
+					  String crit_end_period_nested = makeCriterionList(crit_lifestyle_smoking_obj.getStartBeforeEndNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+					  ArrayList<Criterion> list_of_end_period_nested=null;
+					  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND lifestyle_smoking.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date1")) {
+						  tables += ", dt_date AS dt_date1";
+						  where_clause += " AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date1.YEAR <= "+endPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
+				  if(!crit_lifestyle_smoking_obj.getStartAfterStartNested().isEmpty()) {
+					  String crit_start_period_nested = makeCriterionList(crit_lifestyle_smoking_obj.getStartAfterStartNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+					  ArrayList<Criterion> list_of_start_period_nested=null;
+					  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND lifestyle_smoking.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date1")) {
+						  tables += ", dt_date AS dt_date1";
+						  where_clause += " AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date1.YEAR >= "+startPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
 				  
 				  //TODO 	will voc_unit.CODE take one value or more than one I also think that voc_direction_CODE() will take one value?
 				  
@@ -1929,6 +2560,8 @@ public class CriterionsTestServlet extends HttpServlet {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+crit_cond_symptom_obj.getMaxCount();
 				  }
 				  
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  
 				  if(!crit_cond_symptom_obj.getMaxNested().isEmpty()) {
 					  String crit_max_nested = makeCriterionList(crit_cond_symptom_obj.getMaxNested());
 					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
@@ -1940,7 +2573,7 @@ public class CriterionsTestServlet extends HttpServlet {
 						  where_clause += " AND cond_symptom.OBSERVE_DATE_ID=dt_date.ID";
 					  }
 					  for(int k=0; k<maxNestedQueries.size(); k++) {
-						  where_clause += " AND dt_date.YEAR <= "+maxNestedQueries.get(k);
+						  where_clause += " AND (dt_date.YEAR2 <= "+maxNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+maxNestedQueries.get(k)+"))";
 					  }  
 					  if(!crit_cond_symptom_obj.getMinNested().isEmpty()) {
 						  String crit_min_nested = makeCriterionList(crit_cond_symptom_obj.getMinNested());
@@ -1969,7 +2602,48 @@ public class CriterionsTestServlet extends HttpServlet {
 					  }  
 					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
 				  }
-				  else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  
+				  if(!crit_cond_symptom_obj.getEndPeriodNested().isEmpty()) {
+					  String crit_end_period_nested = makeCriterionList(crit_cond_symptom_obj.getEndPeriodNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+					  ArrayList<Criterion> list_of_end_period_nested=null;
+					  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND cond_symptom.OBSERVE_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND (dt_date.YEAR2 <= "+endPeriodNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+endPeriodNestedQueries.get(k)+"))";
+					  }  
+					  if(!crit_cond_symptom_obj.getStartPeriodNested().isEmpty()) {
+						  String crit_start_period_nested = makeCriterionList(crit_cond_symptom_obj.getStartPeriodNested());
+						  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+						  ArrayList<Criterion> list_of_start_period_nested=null;
+						  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+						  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+						  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+							  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+						  }  
+					  }
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  else if(!crit_cond_symptom_obj.getStartPeriodNested().isEmpty()) {
+					  String crit_start_period_nested = makeCriterionList(crit_cond_symptom_obj.getStartPeriodNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+					  ArrayList<Criterion> list_of_start_period_nested=null;
+					  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND cond_symptom.OBSERVE_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
 			  } break;
 			  
 			  case "condition_diagnosis": { //Check if user provided the info of all the fields 
@@ -2049,6 +2723,8 @@ public class CriterionsTestServlet extends HttpServlet {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+condition_diagnosis_obj.getMaxCount();
 				  }
 				  
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  
 				  if(!condition_diagnosis_obj.getMaxNested().isEmpty()) {
 					  String crit_max_nested = makeCriterionList(condition_diagnosis_obj.getMaxNested());
 					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
@@ -2060,7 +2736,7 @@ public class CriterionsTestServlet extends HttpServlet {
 						  where_clause += " AND cond_diagnosis.DIAGNOSIS_DATE_ID=dt_date.ID";
 					  }
 					  for(int k=0; k<maxNestedQueries.size(); k++) {
-						  where_clause += " AND dt_date.YEAR <= "+maxNestedQueries.get(k);
+						  where_clause += " AND (dt_date.YEAR2 <= "+maxNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+maxNestedQueries.get(k)+"))";
 					  }  
 					  if(!condition_diagnosis_obj.getMinNested().isEmpty()) {
 						  String crit_min_nested = makeCriterionList(condition_diagnosis_obj.getMinNested());
@@ -2089,7 +2765,48 @@ public class CriterionsTestServlet extends HttpServlet {
 					  }  
 					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
 				  }
-				  else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  
+				  if(!condition_diagnosis_obj.getEndPeriodNested().isEmpty()) {
+					  String crit_end_period_nested = makeCriterionList(condition_diagnosis_obj.getEndPeriodNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+					  ArrayList<Criterion> list_of_end_period_nested=null;
+					  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND cond_diagnosis.DIAGNOSIS_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND (dt_date.YEAR2 <= "+endPeriodNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+endPeriodNestedQueries.get(k)+"))";
+					  }  
+					  if(!condition_diagnosis_obj.getStartPeriodNested().isEmpty()) {
+						  String crit_start_period_nested = makeCriterionList(condition_diagnosis_obj.getStartPeriodNested());
+						  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+						  ArrayList<Criterion> list_of_start_period_nested=null;
+						  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+						  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+						  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+							  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+						  }  
+					  }
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  else if(!condition_diagnosis_obj.getStartPeriodNested().isEmpty()) {
+					  String crit_start_period_nested = makeCriterionList(condition_diagnosis_obj.getStartPeriodNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+					  ArrayList<Criterion> list_of_start_period_nested=null;
+					  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND cond_diagnosis.DIAGNOSIS_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
 			  } break;
 			  
 			  case "intervention_medication": { //Check if user provided the info of all the fields 
@@ -2175,9 +2892,168 @@ public class CriterionsTestServlet extends HttpServlet {
 				  else if(!crit_interv_medication_obj.getMaxCount().isEmpty()) {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+crit_interv_medication_obj.getMaxCount();
 				  }
-				  
+
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
-					
+				  
+				  if(!crit_interv_medication_obj.getEndBeforeStartNested().isEmpty()) {
+					  String crit_max_nested = makeCriterionList(crit_interv_medication_obj.getEndBeforeStartNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
+					  ArrayList<Criterion> list_of_max_nested=null;
+					  list_of_max_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> maxNestedQueries = createNestedQueries(list_of_max_nested, false, true);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND interv_medication.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date2")) {
+						  tables += ", dt_date AS dt_date2";
+						  where_clause += " AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  for(int k=0; k<maxNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date2.YEAR <= "+maxNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  if(!crit_interv_medication_obj.getStartBeforeStartNested().isEmpty()) {
+					  String crit_max_nested = makeCriterionList(crit_interv_medication_obj.getStartBeforeStartNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
+					  ArrayList<Criterion> list_of_max_nested=null;
+					  list_of_max_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> maxNestedQueries = createNestedQueries(list_of_max_nested, false, true);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND interv_medication.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date1")) {
+						  tables += ", dt_date AS dt_date1";
+						  where_clause += " AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  for(int k=0; k<maxNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date1.YEAR <= "+maxNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
+				  if(!crit_interv_medication_obj.getStartAfterEndNested().isEmpty()) {
+					  String crit_min_nested = makeCriterionList(crit_interv_medication_obj.getStartAfterEndNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_min_nested);
+					  ArrayList<Criterion> list_of_min_nested=null;
+					  list_of_min_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> minNestedQueries = createNestedQueries(list_of_min_nested, false, false);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND interv_medication.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date1")) {
+						  tables += ", dt_date AS dt_date1";
+						  where_clause += " AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  for(int k=0; k<minNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date1.YEAR >= "+minNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  } 
+				  
+				  if(!crit_interv_medication_obj.getEndAfterEndNested().isEmpty()) {
+					  String crit_min_nested = makeCriterionList(crit_interv_medication_obj.getEndAfterEndNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_min_nested);
+					  ArrayList<Criterion> list_of_min_nested=null;
+					  list_of_min_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> minNestedQueries = createNestedQueries(list_of_min_nested, false, false);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND interv_medication.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date2")) {
+						  tables += ", dt_date AS dt_date2";
+						  where_clause += " AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  for(int k=0; k<minNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date2.YEAR >= "+minNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  } 
+				  
+				  if(!crit_interv_medication_obj.getEndAfterStartNested().isEmpty()) {
+					  String crit_start_period_nested = makeCriterionList(crit_interv_medication_obj.getEndAfterStartNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+					  ArrayList<Criterion> list_of_start_period_nested=null;
+					  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND interv_medication.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date2")) {
+						  tables += ", dt_date AS dt_date2";
+						  where_clause += " AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date2.YEAR >= "+startPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
+				  if(!crit_interv_medication_obj.getEndBeforeEndNested().isEmpty()) {
+					  String crit_end_period_nested = makeCriterionList(crit_interv_medication_obj.getEndBeforeEndNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+					  ArrayList<Criterion> list_of_end_period_nested=null;
+					  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND interv_medication.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date2")) {
+						  tables += ", dt_date AS dt_date2";
+						  where_clause += " AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date2.YEAR <= "+endPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
+				  if(!crit_interv_medication_obj.getStartBeforeEndNested().isEmpty()) {
+					  String crit_end_period_nested = makeCriterionList(crit_interv_medication_obj.getStartBeforeEndNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+					  ArrayList<Criterion> list_of_end_period_nested=null;
+					  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND interv_medication.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date1")) {
+						  tables += ", dt_date AS dt_date1";
+						  where_clause += " AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date1.YEAR <= "+endPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
+				  if(!crit_interv_medication_obj.getStartAfterStartNested().isEmpty()) {
+					  String crit_start_period_nested = makeCriterionList(crit_interv_medication_obj.getStartAfterStartNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+					  ArrayList<Criterion> list_of_start_period_nested=null;
+					  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND interv_medication.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date1")) {
+						  tables += ", dt_date AS dt_date1";
+						  where_clause += " AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date1.YEAR >= "+startPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
 			  } break;
 			  
 			  case "intervention_chemotherapy": { //Check if user provided the info of all the fields 
@@ -2227,6 +3103,165 @@ public class CriterionsTestServlet extends HttpServlet {
 				  }
 				  
 				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  
+				  if(!crit_interv_chemotherapy_obj.getEndBeforeStartNested().isEmpty()) {
+					  String crit_max_nested = makeCriterionList(crit_interv_chemotherapy_obj.getEndBeforeStartNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
+					  ArrayList<Criterion> list_of_max_nested=null;
+					  list_of_max_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> maxNestedQueries = createNestedQueries(list_of_max_nested, false, true);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND interv_chemotherapy.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date2")) {
+						  tables += ", dt_date AS dt_date2";
+						  where_clause += " AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  for(int k=0; k<maxNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date2.YEAR <= "+maxNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  if(!crit_interv_chemotherapy_obj.getStartBeforeStartNested().isEmpty()) {
+					  String crit_max_nested = makeCriterionList(crit_interv_chemotherapy_obj.getStartBeforeStartNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
+					  ArrayList<Criterion> list_of_max_nested=null;
+					  list_of_max_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> maxNestedQueries = createNestedQueries(list_of_max_nested, false, true);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND interv_chemotherapy.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date1")) {
+						  tables += ", dt_date AS dt_date1";
+						  where_clause += " AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  for(int k=0; k<maxNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date1.YEAR <= "+maxNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
+				  if(!crit_interv_chemotherapy_obj.getStartAfterEndNested().isEmpty()) {
+					  String crit_min_nested = makeCriterionList(crit_interv_chemotherapy_obj.getStartAfterEndNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_min_nested);
+					  ArrayList<Criterion> list_of_min_nested=null;
+					  list_of_min_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> minNestedQueries = createNestedQueries(list_of_min_nested, false, false);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND interv_chemotherapy.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date1")) {
+						  tables += ", dt_date AS dt_date1";
+						  where_clause += " AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  for(int k=0; k<minNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date1.YEAR >= "+minNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  } 
+				  
+				  if(!crit_interv_chemotherapy_obj.getEndAfterEndNested().isEmpty()) {
+					  String crit_min_nested = makeCriterionList(crit_interv_chemotherapy_obj.getEndAfterEndNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_min_nested);
+					  ArrayList<Criterion> list_of_min_nested=null;
+					  list_of_min_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> minNestedQueries = createNestedQueries(list_of_min_nested, false, false);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND interv_chemotherapy.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date2")) {
+						  tables += ", dt_date AS dt_date2";
+						  where_clause += " AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  for(int k=0; k<minNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date2.YEAR >= "+minNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  } 
+				  
+				  if(!crit_interv_chemotherapy_obj.getEndAfterStartNested().isEmpty()) {
+					  String crit_start_period_nested = makeCriterionList(crit_interv_chemotherapy_obj.getEndAfterStartNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+					  ArrayList<Criterion> list_of_start_period_nested=null;
+					  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND interv_chemotherapy.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date2")) {
+						  tables += ", dt_date AS dt_date2";
+						  where_clause += " AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date2.YEAR >= "+startPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
+				  if(!crit_interv_chemotherapy_obj.getEndBeforeEndNested().isEmpty()) {
+					  String crit_end_period_nested = makeCriterionList(crit_interv_chemotherapy_obj.getEndBeforeEndNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+					  ArrayList<Criterion> list_of_end_period_nested=null;
+					  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND interv_chemotherapy.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date2")) {
+						  tables += ", dt_date AS dt_date2";
+						  where_clause += " AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+					  }
+					  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date2.YEAR <= "+endPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
+				  if(!crit_interv_chemotherapy_obj.getStartBeforeEndNested().isEmpty()) {
+					  String crit_end_period_nested = makeCriterionList(crit_interv_chemotherapy_obj.getStartBeforeEndNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+					  ArrayList<Criterion> list_of_end_period_nested=null;
+					  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND interv_chemotherapy.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date1")) {
+						  tables += ", dt_date AS dt_date1";
+						  where_clause += " AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date1.YEAR <= "+endPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
+				  if(!crit_interv_chemotherapy_obj.getStartAfterStartNested().isEmpty()) {
+					  String crit_start_period_nested = makeCriterionList(crit_interv_chemotherapy_obj.getStartAfterStartNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+					  ArrayList<Criterion> list_of_start_period_nested=null;
+					  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+					  if(!tables.contains("dt_period_of_time")) {
+						  tables += ", dt_period_of_time";
+						  where_clause += " AND interv_chemotherapy.PERIOD_ID=dt_period_of_time.ID";
+					  }
+					  if(!tables.contains("dt_date1")) {
+						  tables += ", dt_date AS dt_date1";
+						  where_clause += " AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+					  }
+					  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date1.YEAR >= "+startPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
 					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
 					//System.out.println("We executed: "+crit_interv_chemotherapy_obj.criterion_name+"\nThe Query is: "+query); 
 			  } break;
@@ -2276,6 +3311,8 @@ public class CriterionsTestServlet extends HttpServlet {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+crit_interv_surgery_obj.getMaxCount();
 				  }
 				  
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  
 				  if(!crit_interv_surgery_obj.getMaxNested().isEmpty()) {
 					  String crit_max_nested = makeCriterionList(crit_interv_surgery_obj.getMaxNested());
 					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
@@ -2287,7 +3324,7 @@ public class CriterionsTestServlet extends HttpServlet {
 						  where_clause += " AND interv_surgery.SURGERY_DATE_ID=dt_date.ID";
 					  }
 					  for(int k=0; k<maxNestedQueries.size(); k++) {
-						  where_clause += " AND dt_date.YEAR <= "+maxNestedQueries.get(k);
+						  where_clause += " AND (dt_date.YEAR2 <= "+maxNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+maxNestedQueries.get(k)+"))";
 					  }  
 					  if(!crit_interv_surgery_obj.getMinNested().isEmpty()) {
 						  String crit_min_nested = makeCriterionList(crit_interv_surgery_obj.getMinNested());
@@ -2316,7 +3353,48 @@ public class CriterionsTestServlet extends HttpServlet {
 					  }  
 					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
 				  }  
-				  else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  
+				  if(!crit_interv_surgery_obj.getEndPeriodNested().isEmpty()) {
+					  String crit_end_period_nested = makeCriterionList(crit_interv_surgery_obj.getEndPeriodNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+					  ArrayList<Criterion> list_of_end_period_nested=null;
+					  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND interv_surgery.SURGERY_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND (dt_date.YEAR2 <= "+endPeriodNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+endPeriodNestedQueries.get(k)+"))";
+					  }  
+					  if(!crit_interv_surgery_obj.getStartPeriodNested().isEmpty()) {
+						  String crit_start_period_nested = makeCriterionList(crit_interv_surgery_obj.getStartPeriodNested());
+						  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+						  ArrayList<Criterion> list_of_start_period_nested=null;
+						  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+						  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+						  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+							  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+						  }  
+					  }
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  else if(!crit_interv_surgery_obj.getStartPeriodNested().isEmpty()) {
+					  String crit_start_period_nested = makeCriterionList(crit_interv_surgery_obj.getStartPeriodNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+					  ArrayList<Criterion> list_of_start_period_nested=null;
+					  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND interv_surgery.SURGERY_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
 			  } break;
 			  
 			  case "examination_lab_test": { //Check if user provided the info of all the fields 
@@ -2466,8 +3544,8 @@ public class CriterionsTestServlet extends HttpServlet {
 				  else if(!examination_lab_test_obj.getMaxCount().isEmpty()) {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+examination_lab_test_obj.getMaxCount();
 				  }
-					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
-					//System.out.println("We executed: "+crit_exam_lab_test_obj.criterion_name+"\nThe Query is: "+query);
+				
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
 				  
 				  if(!examination_lab_test_obj.getMaxNested().isEmpty()) {
 					  String crit_max_nested = makeCriterionList(examination_lab_test_obj.getMaxNested());
@@ -2480,7 +3558,7 @@ public class CriterionsTestServlet extends HttpServlet {
 						  where_clause += " AND exam_lab_test.SAMPLE_DATE_ID=dt_date.ID";
 					  }
 					  for(int k=0; k<maxNestedQueries.size(); k++) {
-						  where_clause += " AND dt_date.YEAR <= "+maxNestedQueries.get(k);
+						  where_clause += " AND (dt_date.YEAR2 <= "+maxNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+maxNestedQueries.get(k)+"))";
 					  }  
 					  if(!examination_lab_test_obj.getMinNested().isEmpty()) {
 						  String crit_min_nested = makeCriterionList(examination_lab_test_obj.getMinNested());
@@ -2508,8 +3586,49 @@ public class CriterionsTestServlet extends HttpServlet {
 						  where_clause += " AND dt_date.YEAR >= "+minNestedQueries.get(k);
 					  }  
 					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
-				  }   
-				  else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  }  
+				  
+				  if(!examination_lab_test_obj.getEndPeriodNested().isEmpty()) {
+					  String crit_end_period_nested = makeCriterionList(examination_lab_test_obj.getEndPeriodNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+					  ArrayList<Criterion> list_of_end_period_nested=null;
+					  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND exam_lab_test.SAMPLE_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND (dt_date.YEAR2 <= "+endPeriodNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+endPeriodNestedQueries.get(k)+"))";
+					  }  
+					  if(!examination_lab_test_obj.getStartPeriodNested().isEmpty()) {
+						  String crit_start_period_nested = makeCriterionList(examination_lab_test_obj.getStartPeriodNested());
+						  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+						  ArrayList<Criterion> list_of_start_period_nested=null;
+						  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+						  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+						  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+							  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+						  }  
+					  }
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  else if(!examination_lab_test_obj.getStartPeriodNested().isEmpty()) {
+					  String crit_start_period_nested = makeCriterionList(examination_lab_test_obj.getStartPeriodNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+					  ArrayList<Criterion> list_of_start_period_nested=null;
+					  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND exam_lab_test.SAMPLE_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
 			  } break; 
 			  
 			  case "examination_biopsy": { //Check if user provided the info of all the fields 
@@ -2630,6 +3749,8 @@ public class CriterionsTestServlet extends HttpServlet {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+examination_biopsy_obj.getMaxCount();
 				  }
 				  
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  
 				  if(!examination_biopsy_obj.getMaxNested().isEmpty()) {
 					  String crit_max_nested = makeCriterionList(examination_biopsy_obj.getMaxNested());
 					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
@@ -2641,7 +3762,7 @@ public class CriterionsTestServlet extends HttpServlet {
 						  where_clause += " AND exam_biopsy.BIOPSY_DATE_ID=dt_date.ID";
 					  }
 					  for(int k=0; k<maxNestedQueries.size(); k++) {
-						  where_clause += " AND dt_date.YEAR <= "+maxNestedQueries.get(k);
+						  where_clause += " AND (dt_date.YEAR2 <= "+maxNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+maxNestedQueries.get(k)+"))";
 					  }  
 					  if(!examination_biopsy_obj.getMinNested().isEmpty()) {
 						  String crit_min_nested = makeCriterionList(examination_biopsy_obj.getMinNested());
@@ -2669,8 +3790,48 @@ public class CriterionsTestServlet extends HttpServlet {
 						  where_clause += " AND dt_date.YEAR >= "+minNestedQueries.get(k);
 					  }  
 					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
-				  }   
-				  else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  }  
+				  
+				  if(!examination_biopsy_obj.getEndPeriodNested().isEmpty()) {
+					  String crit_end_period_nested = makeCriterionList(examination_biopsy_obj.getEndPeriodNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+					  ArrayList<Criterion> list_of_end_period_nested=null;
+					  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND exam_biopsy.BIOPSY_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND (dt_date.YEAR2 <= "+endPeriodNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+endPeriodNestedQueries.get(k)+"))";
+					  }  
+					  if(!examination_biopsy_obj.getStartPeriodNested().isEmpty()) {
+						  String crit_start_period_nested = makeCriterionList(examination_biopsy_obj.getStartPeriodNested());
+						  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+						  ArrayList<Criterion> list_of_start_period_nested=null;
+						  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+						  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+						  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+							  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+						  }  
+					  }
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  else if(!examination_biopsy_obj.getStartPeriodNested().isEmpty()) {
+					  String crit_start_period_nested = makeCriterionList(examination_biopsy_obj.getStartPeriodNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+					  ArrayList<Criterion> list_of_start_period_nested=null;
+					  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND exam_biopsy.BIOPSY_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
 
 					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
 					//System.out.println("We executed: "+crit_exam_lab_test_obj.criterion_name+"\nThe Query is: "+query); 
@@ -2738,6 +3899,8 @@ public class CriterionsTestServlet extends HttpServlet {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+examination_medical_imaging_test_obj.getMaxCount();
 				  }
 				  
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  
 				  if(!examination_medical_imaging_test_obj.getMaxNested().isEmpty()) {
 					  String crit_max_nested = makeCriterionList(examination_medical_imaging_test_obj.getMaxNested());
 					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
@@ -2749,7 +3912,7 @@ public class CriterionsTestServlet extends HttpServlet {
 						  where_clause += " AND exam_medical_imaging_test.TEST_DATE_ID=dt_date.ID";
 					  }
 					  for(int k=0; k<maxNestedQueries.size(); k++) {
-						  where_clause += " AND dt_date.YEAR <= "+maxNestedQueries.get(k);
+						  where_clause += " AND (dt_date.YEAR2 <= "+maxNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+maxNestedQueries.get(k)+"))";
 					  }  
 					  if(!examination_medical_imaging_test_obj.getMinNested().isEmpty()) {
 						  String crit_min_nested = makeCriterionList(examination_medical_imaging_test_obj.getMinNested());
@@ -2777,8 +3940,49 @@ public class CriterionsTestServlet extends HttpServlet {
 						  where_clause += " AND dt_date.YEAR >= "+minNestedQueries.get(k);
 					  }  
 					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
-				  }   
-				  else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  }
+				  
+				  if(!examination_medical_imaging_test_obj.getEndPeriodNested().isEmpty()) {
+					  String crit_end_period_nested = makeCriterionList(examination_medical_imaging_test_obj.getEndPeriodNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+					  ArrayList<Criterion> list_of_end_period_nested=null;
+					  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND exam_medical_imaging_test.TEST_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND (dt_date.YEAR2 <= "+endPeriodNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+endPeriodNestedQueries.get(k)+"))";
+					  }  
+					  if(!examination_medical_imaging_test_obj.getStartPeriodNested().isEmpty()) {
+						  String crit_start_period_nested = makeCriterionList(examination_medical_imaging_test_obj.getStartPeriodNested());
+						  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+						  ArrayList<Criterion> list_of_start_period_nested=null;
+						  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+						  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+						  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+							  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+						  }  
+					  }
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  else if(!examination_medical_imaging_test_obj.getStartPeriodNested().isEmpty()) {
+					  String crit_start_period_nested = makeCriterionList(examination_medical_imaging_test_obj.getStartPeriodNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+					  ArrayList<Criterion> list_of_start_period_nested=null;
+					  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND exam_medical_imaging_test.TEST_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  
 					//results_of_one_Criterion=DBServiceCRUD.getDataFromDB(query); 
 					//System.out.println("We executed: "+crit_exam_lab_test_obj.criterion_name+"\nThe Query is: "+query); 
 			  } break;
@@ -2876,6 +4080,8 @@ public class CriterionsTestServlet extends HttpServlet {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+examination_questionnaire_score_obj.getMaxCount();
 				  }
 				  
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  
 				  if(!examination_questionnaire_score_obj.getMaxNested().isEmpty()) {
 					  String crit_max_nested = makeCriterionList(examination_questionnaire_score_obj.getMaxNested());
 					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
@@ -2887,7 +4093,7 @@ public class CriterionsTestServlet extends HttpServlet {
 						  where_clause += " AND exam_questionnaire_score.QUESTIONNAIRE_DATE_ID=dt_date.ID";
 					  }
 					  for(int k=0; k<maxNestedQueries.size(); k++) {
-						  where_clause += " AND dt_date.YEAR <= "+maxNestedQueries.get(k);
+						  where_clause += " AND (dt_date.YEAR2 <= "+maxNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+maxNestedQueries.get(k)+"))";
 					  }  
 					  if(!examination_questionnaire_score_obj.getMinNested().isEmpty()) {
 						  String crit_min_nested = makeCriterionList(examination_questionnaire_score_obj.getMinNested());
@@ -2915,8 +4121,48 @@ public class CriterionsTestServlet extends HttpServlet {
 						  where_clause += " AND dt_date.YEAR >= "+minNestedQueries.get(k);
 					  }  
 					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
-				  }   
-				  else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  }  
+				  
+				  if(!examination_questionnaire_score_obj.getEndPeriodNested().isEmpty()) {
+					  String crit_end_period_nested = makeCriterionList(examination_questionnaire_score_obj.getEndPeriodNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+					  ArrayList<Criterion> list_of_end_period_nested=null;
+					  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND exam_questionnaire_score.QUESTIONNAIRE_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND (dt_date.YEAR2 <= "+endPeriodNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+endPeriodNestedQueries.get(k)+"))";
+					  }  
+					  if(!examination_questionnaire_score_obj.getStartPeriodNested().isEmpty()) {
+						  String crit_start_period_nested = makeCriterionList(examination_questionnaire_score_obj.getStartPeriodNested());
+						  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+						  ArrayList<Criterion> list_of_start_period_nested=null;
+						  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+						  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+						  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+							  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+						  }  
+					  }
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  else if(!examination_questionnaire_score_obj.getStartPeriodNested().isEmpty()) {
+					  String crit_start_period_nested = makeCriterionList(examination_questionnaire_score_obj.getStartPeriodNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+					  ArrayList<Criterion> list_of_start_period_nested=null;
+					  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND exam_questionnaire_score.QUESTIONNAIRE_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
 				  
 			  } break;  //examination_essdai_domain
 			  
@@ -2970,6 +4216,8 @@ public class CriterionsTestServlet extends HttpServlet {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+examination_essdai_domain_obj.getMaxCount();
 				  }
 				  
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;	
+				  
 				  if(!examination_essdai_domain_obj.getMaxNested().isEmpty()) {
 					  String crit_max_nested = makeCriterionList(examination_essdai_domain_obj.getMaxNested());
 					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
@@ -2981,7 +4229,7 @@ public class CriterionsTestServlet extends HttpServlet {
 						  where_clause += " AND exam_essdai_domain.QUESTIONNAIRE_DATE_ID=dt_date.ID";
 					  }
 					  for(int k=0; k<maxNestedQueries.size(); k++) {
-						  where_clause += " AND dt_date.YEAR <= "+maxNestedQueries.get(k);
+						  where_clause += " AND (dt_date.YEAR2 <= "+maxNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+maxNestedQueries.get(k)+"))";
 					  }  
 					  if(!examination_essdai_domain_obj.getMinNested().isEmpty()) {
 						  String crit_min_nested = makeCriterionList(examination_essdai_domain_obj.getMinNested());
@@ -3010,7 +4258,47 @@ public class CriterionsTestServlet extends HttpServlet {
 					  }  
 					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
 				  }   
-				  else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;			  
+				  
+				  if(!examination_essdai_domain_obj.getEndPeriodNested().isEmpty()) {
+					  String crit_end_period_nested = makeCriterionList(examination_essdai_domain_obj.getEndPeriodNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+					  ArrayList<Criterion> list_of_end_period_nested=null;
+					  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND exam_essdai_domain.QUESTIONNAIRE_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND (dt_date.YEAR2 <= "+endPeriodNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+endPeriodNestedQueries.get(k)+"))";
+					  }  
+					  if(!examination_essdai_domain_obj.getStartPeriodNested().isEmpty()) {
+						  String crit_start_period_nested = makeCriterionList(examination_essdai_domain_obj.getStartPeriodNested());
+						  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+						  ArrayList<Criterion> list_of_start_period_nested=null;
+						  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+						  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+						  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+							  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+						  }  
+					  }
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  else if(!examination_essdai_domain_obj.getStartPeriodNested().isEmpty()) {
+					  String crit_start_period_nested = makeCriterionList(examination_essdai_domain_obj.getStartPeriodNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+					  ArrayList<Criterion> list_of_start_period_nested=null;
+					  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND exam_essdai_domain.QUESTIONNAIRE_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }		  
 			  
 			  } break; //examination_caci_condition
 			  
@@ -3056,6 +4344,8 @@ public class CriterionsTestServlet extends HttpServlet {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+examination_caci_condition_obj.getMaxCount();
 				  }
 				  
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  
 				  if(!examination_caci_condition_obj.getMaxNested().isEmpty()) {
 					  String crit_max_nested = makeCriterionList(examination_caci_condition_obj.getMaxNested());
 					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
@@ -3067,7 +4357,7 @@ public class CriterionsTestServlet extends HttpServlet {
 						  where_clause += " AND exam_caci_condition.QUESTIONNAIRE_DATE_ID=dt_date.ID";
 					  }
 					  for(int k=0; k<maxNestedQueries.size(); k++) {
-						  where_clause += " AND dt_date.YEAR <= "+maxNestedQueries.get(k);
+						  where_clause += " AND (dt_date.YEAR2 <= "+maxNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+maxNestedQueries.get(k)+"))";
 					  }  
 					  if(!examination_caci_condition_obj.getMinNested().isEmpty()) {
 						  String crit_min_nested = makeCriterionList(examination_caci_condition_obj.getMinNested());
@@ -3096,7 +4386,48 @@ public class CriterionsTestServlet extends HttpServlet {
 					  }  
 					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
 				  }   
-				  else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  
+				  if(!examination_caci_condition_obj.getEndPeriodNested().isEmpty()) {
+					  String crit_end_period_nested = makeCriterionList(examination_caci_condition_obj.getEndPeriodNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+					  ArrayList<Criterion> list_of_end_period_nested=null;
+					  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND exam_caci_condition.QUESTIONNAIRE_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND (dt_date.YEAR2 <= "+endPeriodNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+endPeriodNestedQueries.get(k)+"))";
+					  }  
+					  if(!examination_caci_condition_obj.getStartPeriodNested().isEmpty()) {
+						  String crit_start_period_nested = makeCriterionList(examination_caci_condition_obj.getStartPeriodNested());
+						  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+						  ArrayList<Criterion> list_of_start_period_nested=null;
+						  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+						  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+						  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+							  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+						  }  
+					  }
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  else if(!examination_caci_condition_obj.getStartPeriodNested().isEmpty()) {
+					  String crit_start_period_nested = makeCriterionList(examination_caci_condition_obj.getStartPeriodNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+					  ArrayList<Criterion> list_of_start_period_nested=null;
+					  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND exam_caci_condition.QUESTIONNAIRE_DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }	
+				  
 			  } break; //other_healthcare_visit
 			  
 			  case "other_healthcare_visit": { //Check if user provided the info of all the fields 
@@ -3143,6 +4474,8 @@ public class CriterionsTestServlet extends HttpServlet {
 				  		where_clause += " GROUP BY patient.UID HAVING COUNT(*) <= "+other_healthcare_visit_obj.getMaxCount();
 				  }
 				  
+				  query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  
 				  if(!other_healthcare_visit_obj.getMaxNested().isEmpty()) {
 					  String crit_max_nested = makeCriterionList(other_healthcare_visit_obj.getMaxNested());
 					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
@@ -3154,7 +4487,7 @@ public class CriterionsTestServlet extends HttpServlet {
 						  where_clause += " AND other_healthcare_visit.DATE_ID=dt_date.ID";
 					  }
 					  for(int k=0; k<maxNestedQueries.size(); k++) {
-						  where_clause += " AND dt_date.YEAR <= "+maxNestedQueries.get(k);
+						  where_clause += " AND (dt_date.YEAR2 <= "+maxNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+maxNestedQueries.get(k)+"))";
 					  }  
 					  if(!other_healthcare_visit_obj.getMinNested().isEmpty()) {
 						  String crit_min_nested = makeCriterionList(other_healthcare_visit_obj.getMinNested());
@@ -3183,7 +4516,47 @@ public class CriterionsTestServlet extends HttpServlet {
 					  }  
 					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
 				  }   
-				  else query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+				  
+				  if(!other_healthcare_visit_obj.getEndPeriodNested().isEmpty()) {
+					  String crit_end_period_nested = makeCriterionList(other_healthcare_visit_obj.getEndPeriodNested());
+					  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+					  ArrayList<Criterion> list_of_end_period_nested=null;
+					  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+					  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND other_healthcare_visit.DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND (dt_date.YEAR2 <= "+endPeriodNestedQueries.get(k)+" OR (dt_date.YEAR2 IS NULL AND dt_date.YEAR <= "+endPeriodNestedQueries.get(k)+"))";
+					  }  
+					  if(!other_healthcare_visit_obj.getStartPeriodNested().isEmpty()) {
+						  String crit_start_period_nested = makeCriterionList(other_healthcare_visit_obj.getStartPeriodNested());
+						  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+						  ArrayList<Criterion> list_of_start_period_nested=null;
+						  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+						  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+						  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+							  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+						  }  
+					  }
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
+				  else if(!other_healthcare_visit_obj.getStartPeriodNested().isEmpty()) {
+					  String crit_start_period_nested = makeCriterionList(other_healthcare_visit_obj.getStartPeriodNested());
+					  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+					  ArrayList<Criterion> list_of_start_period_nested=null;
+					  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+					  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+					  if(!tables.contains("dt_date")) {
+						  tables += ", dt_date";
+						  where_clause += " AND other_healthcare_visit.DATE_ID=dt_date.ID";
+					  }
+					  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+						  where_clause += " AND dt_date.YEAR >= "+startPeriodNestedQueries.get(k);
+					  }  
+					  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+				  }
 				  
 			  } break;			
 			  
@@ -3274,6 +4647,165 @@ public class CriterionsTestServlet extends HttpServlet {
 		  }
 			
 			query = "SELECT DISTINCT patient.UID FROM " + tables + " WHERE " + where_clause;
+			  
+			  if(!other_clinical_trials_obj.getEndBeforeStartNested().isEmpty()) {
+				  String crit_max_nested = makeCriterionList(other_clinical_trials_obj.getEndBeforeStartNested());
+				  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
+				  ArrayList<Criterion> list_of_max_nested=null;
+				  list_of_max_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+				  ArrayList<String> maxNestedQueries = createNestedQueries(list_of_max_nested, false, true);
+				  if(!tables.contains("dt_period_of_time")) {
+					  tables += ", dt_period_of_time";
+					  where_clause += " AND other_clinical_trials.PERIOD_ID=dt_period_of_time.ID";
+				  }
+				  if(!tables.contains("dt_date2")) {
+					  tables += ", dt_date AS dt_date2";
+					  where_clause += " AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+				  }
+				  for(int k=0; k<maxNestedQueries.size(); k++) {
+					  where_clause += " AND dt_date2.YEAR <= "+maxNestedQueries.get(k);
+				  }  
+				  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+			  }
+			  if(!other_clinical_trials_obj.getStartBeforeStartNested().isEmpty()) {
+				  String crit_max_nested = makeCriterionList(other_clinical_trials_obj.getStartBeforeStartNested());
+				  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_max_nested);
+				  ArrayList<Criterion> list_of_max_nested=null;
+				  list_of_max_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+				  ArrayList<String> maxNestedQueries = createNestedQueries(list_of_max_nested, false, true);
+				  if(!tables.contains("dt_period_of_time")) {
+					  tables += ", dt_period_of_time";
+					  where_clause += " AND other_clinical_trials.PERIOD_ID=dt_period_of_time.ID";
+				  }
+				  if(!tables.contains("dt_date1")) {
+					  tables += ", dt_date AS dt_date1";
+					  where_clause += " AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+				  }
+				  for(int k=0; k<maxNestedQueries.size(); k++) {
+					  where_clause += " AND dt_date1.YEAR <= "+maxNestedQueries.get(k);
+				  }  
+				  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+			  }
+			  
+			  if(!other_clinical_trials_obj.getStartAfterEndNested().isEmpty()) {
+				  String crit_min_nested = makeCriterionList(other_clinical_trials_obj.getStartAfterEndNested());
+				  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_min_nested);
+				  ArrayList<Criterion> list_of_min_nested=null;
+				  list_of_min_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+				  ArrayList<String> minNestedQueries = createNestedQueries(list_of_min_nested, false, false);
+				  if(!tables.contains("dt_period_of_time")) {
+					  tables += ", dt_period_of_time";
+					  where_clause += " AND other_clinical_trials.PERIOD_ID=dt_period_of_time.ID";
+				  }
+				  if(!tables.contains("dt_date1")) {
+					  tables += ", dt_date AS dt_date1";
+					  where_clause += " AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+				  }
+				  for(int k=0; k<minNestedQueries.size(); k++) {
+					  where_clause += " AND dt_date1.YEAR >= "+minNestedQueries.get(k);
+				  }  
+				  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+			  } 
+			  
+			  if(!other_clinical_trials_obj.getEndAfterEndNested().isEmpty()) {
+				  String crit_min_nested = makeCriterionList(other_clinical_trials_obj.getEndAfterEndNested());
+				  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_min_nested);
+				  ArrayList<Criterion> list_of_min_nested=null;
+				  list_of_min_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+				  ArrayList<String> minNestedQueries = createNestedQueries(list_of_min_nested, false, false);
+				  if(!tables.contains("dt_period_of_time")) {
+					  tables += ", dt_period_of_time";
+					  where_clause += " AND other_clinical_trials.PERIOD_ID=dt_period_of_time.ID";
+				  }
+				  if(!tables.contains("dt_date2")) {
+					  tables += ", dt_date AS dt_date2";
+					  where_clause += " AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+				  }
+				  for(int k=0; k<minNestedQueries.size(); k++) {
+					  where_clause += " AND dt_date2.YEAR >= "+minNestedQueries.get(k);
+				  }  
+				  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+			  } 
+			  
+			  if(!other_clinical_trials_obj.getEndAfterStartNested().isEmpty()) {
+				  String crit_start_period_nested = makeCriterionList(other_clinical_trials_obj.getEndAfterStartNested());
+				  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+				  ArrayList<Criterion> list_of_start_period_nested=null;
+				  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+				  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+				  if(!tables.contains("dt_period_of_time")) {
+					  tables += ", dt_period_of_time";
+					  where_clause += " AND other_clinical_trials.PERIOD_ID=dt_period_of_time.ID";
+				  }
+				  if(!tables.contains("dt_date2")) {
+					  tables += ", dt_date AS dt_date2";
+					  where_clause += " AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+				  }
+				  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+					  where_clause += " AND dt_date2.YEAR >= "+startPeriodNestedQueries.get(k);
+				  }  
+				  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+			  }
+			  
+			  if(!other_clinical_trials_obj.getEndBeforeEndNested().isEmpty()) {
+				  String crit_end_period_nested = makeCriterionList(other_clinical_trials_obj.getEndBeforeEndNested());
+				  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+				  ArrayList<Criterion> list_of_end_period_nested=null;
+				  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+				  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+				  if(!tables.contains("dt_period_of_time")) {
+					  tables += ", dt_period_of_time";
+					  where_clause += " AND other_clinical_trials.PERIOD_ID=dt_period_of_time.ID";
+				  }
+				  if(!tables.contains("dt_date2")) {
+					  tables += ", dt_date AS dt_date2";
+					  where_clause += " AND dt_period_of_time.END_DATE_ID=dt_date2.ID";
+				  }
+				  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+					  where_clause += " AND dt_date2.YEAR <= "+endPeriodNestedQueries.get(k);
+				  }  
+				  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+			  }
+			  
+			  if(!other_clinical_trials_obj.getStartBeforeEndNested().isEmpty()) {
+				  String crit_end_period_nested = makeCriterionList(other_clinical_trials_obj.getStartBeforeEndNested());
+				  String criteria = Intermediate_Layer.preProcess_nestedJSON(crit_end_period_nested);
+				  ArrayList<Criterion> list_of_end_period_nested=null;
+				  list_of_end_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria).getList_of_criterions();
+				  ArrayList<String> endPeriodNestedQueries = createPeriodNestedQueries(list_of_end_period_nested, false, false);
+				  if(!tables.contains("dt_period_of_time")) {
+					  tables += ", dt_period_of_time";
+					  where_clause += " AND other_clinical_trials.PERIOD_ID=dt_period_of_time.ID";
+				  }
+				  if(!tables.contains("dt_date1")) {
+					  tables += ", dt_date AS dt_date1";
+					  where_clause += " AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+				  }
+				  for(int k=0; k<endPeriodNestedQueries.size(); k++) {
+					  where_clause += " AND dt_date1.YEAR <= "+endPeriodNestedQueries.get(k);
+				  }  
+				  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+			  }
+			  
+			  if(!other_clinical_trials_obj.getStartAfterStartNested().isEmpty()) {
+				  String crit_start_period_nested = makeCriterionList(other_clinical_trials_obj.getStartAfterStartNested());
+				  String criteria2 = Intermediate_Layer.preProcess_nestedJSON(crit_start_period_nested);
+				  ArrayList<Criterion> list_of_start_period_nested=null;
+				  list_of_start_period_nested = Criterions.From_JSON_String_to_Criterion_ArrayList(criteria2).getList_of_criterions();
+				  ArrayList<String> startPeriodNestedQueries = createPeriodNestedQueries(list_of_start_period_nested, false, true);
+				  if(!tables.contains("dt_period_of_time")) {
+					  tables += ", dt_period_of_time";
+					  where_clause += " AND other_clinical_trials.PERIOD_ID=dt_period_of_time.ID";
+				  }
+				  if(!tables.contains("dt_date1")) {
+					  tables += ", dt_date AS dt_date1";
+					  where_clause += " AND dt_period_of_time.START_DATE_ID=dt_date1.ID";
+				  }
+				  for(int k=0; k<startPeriodNestedQueries.size(); k++) {
+					  where_clause += " AND dt_date1.YEAR >= "+startPeriodNestedQueries.get(k);
+				  }  
+				  query = "SELECT DISTINCT outerr.UID FROM " + tables.replace("patient", "patient outerr") + " WHERE " + where_clause.replace("patient.ID", "outerr.ID");
+			  }
 
 			  } break;
 			  
@@ -3830,7 +5362,7 @@ public class CriterionsTestServlet extends HttpServlet {
 		else{
 			mycohort = "chdb0"+mycohortid;
 			JSONObject credentials = getCredentials(mycohortid);
-			obj = new ConfigureFile("jdbc:mysql://"+credentials.getString("dbserver")+":"+credentials.getString("dbport")+"/"+credentials.getString("dbarea")+"?autoReconnect=true&useSSL=false",credentials.getString("dbuname"),credentials.getString("dbupass"));
+			obj = new ConfigureFile("jdbc:mysql://"+credentials.getString("dbserver")+":"+credentials.getString("dbport")+"/"+credentials.getString("dbarea")+"?autoReconnect=true&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC",credentials.getString("dbuname"),credentials.getString("dbupass"));
 		}
     	
 		cohortResponse.put("cohort_name", mycohort);

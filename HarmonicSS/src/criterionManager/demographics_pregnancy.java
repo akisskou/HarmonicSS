@@ -38,6 +38,10 @@ public class demographics_pregnancy extends Criterion {
 	public String min_conception_year_nested = "";
 	public String years_conception_nested = "";
 	public String type_nested = "";
+	public String start_period_conception_year_nested = "";
+	public String end_period_conception_year_nested = "";
+	public String start_period_outcome_year_nested = "";
+	public String end_period_outcome_year_nested = "";
 	
 
 	public demographics_pregnancy(String criterion_name, String CONCEPTION_DATE_YEAR, String CONCEPTION_DATE_MONTH, String CONCEPTION_DATE_DAY,  
@@ -49,7 +53,7 @@ public class demographics_pregnancy extends Criterion {
 			
 			String OUTCOME_period_begin_year, String OUTCOME_period_begin_month, String OUTCOME_period_begin_day,
 			String OUTCOME_period_end_year, String OUTCOME_period_end_month, String OUTCOME_period_end_day,
-			String OUTCOME_until_year, String OUTCOME_until_month, String OUTCOME_until_day, String statement, String min_count, String max_count, String max_outcome_year_nested, String min_outcome_year_nested, String years_outcome_nested, String max_conception_year_nested, String min_conception_year_nested, String years_conception_nested, String type_nested) {
+			String OUTCOME_until_year, String OUTCOME_until_month, String OUTCOME_until_day, String statement, String min_count, String max_count, String max_outcome_year_nested, String min_outcome_year_nested, String years_outcome_nested, String max_conception_year_nested, String min_conception_year_nested, String years_conception_nested, String type_nested, String start_period_outcome_year_nested, String end_period_outcome_year_nested, String start_period_conception_year_nested, String end_period_conception_year_nested) {
 		super(criterion_name);
 		this.conception_exact_year = CONCEPTION_DATE_YEAR;						//Column: CONCEPTION_DATE_ID
 		this.conception_exact_month = CONCEPTION_DATE_MONTH;						//Column: CONCEPTION_DATE_ID
@@ -87,6 +91,10 @@ public class demographics_pregnancy extends Criterion {
 		this.min_conception_year_nested = min_conception_year_nested;
 		this.years_conception_nested = years_conception_nested;
 		this.type_nested = type_nested;
+		this.start_period_conception_year_nested = start_period_conception_year_nested;
+		this.end_period_conception_year_nested = end_period_conception_year_nested;
+		this.start_period_outcome_year_nested = start_period_outcome_year_nested;
+		this.end_period_outcome_year_nested = end_period_outcome_year_nested;
 	}
 
 	public demographics_pregnancy() {
@@ -126,6 +134,10 @@ public class demographics_pregnancy extends Criterion {
 		this.min_conception_year_nested = "";
 		this.years_conception_nested = "";
 		this.type_nested = "";
+		this.start_period_conception_year_nested = "";
+		this.end_period_conception_year_nested = "";
+		this.start_period_outcome_year_nested = "";
+		this.end_period_outcome_year_nested = "";
 	}
 	
 	public String getCONCEPTION_DATE_YEAR() {
@@ -412,5 +424,37 @@ public class demographics_pregnancy extends Criterion {
 	
 	public void setTypeNested(String type_nested) {
 		this.type_nested = type_nested;
+	}
+	
+	public void setOutcomeStartPeriodNested(String start_period_outcome_year_nested) {
+		this.start_period_outcome_year_nested = start_period_outcome_year_nested;
+	}
+	
+	public String getOutcomeStartPeriodNested() {
+		return start_period_outcome_year_nested;
+	}
+	
+	public void setOutcomeEndPeriodNested(String end_period_outcome_year_nested) {
+		this.end_period_outcome_year_nested = end_period_outcome_year_nested;
+	}
+	
+	public String getOutcomeEndPeriodNested() {
+		return end_period_outcome_year_nested;
+	}
+	
+	public void setConceptionStartPeriodNested(String start_period_conception_year_nested) {
+		this.start_period_conception_year_nested = start_period_conception_year_nested;
+	}
+	
+	public String getConceptionStartPeriodNested() {
+		return start_period_conception_year_nested;
+	}
+	
+	public void setConceptionEndPeriodNested(String end_period_conception_year_nested) {
+		this.end_period_conception_year_nested = end_period_conception_year_nested;
+	}
+	
+	public String getConceptionEndPeriodNested() {
+		return end_period_conception_year_nested;
 	}
 }

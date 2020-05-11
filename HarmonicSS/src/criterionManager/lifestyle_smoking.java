@@ -22,6 +22,15 @@ public class lifestyle_smoking extends Criterion {
 	public String statement = "";
 	public String min_count = "";
 	public String max_count = "";
+	public String end_before_start_year_nested = "";
+	public String end_before_end_year_nested = "";
+	public String end_after_start_year_nested = "";
+	public String end_after_end_year_nested = "";
+	public String start_before_start_year_nested = "";
+	public String start_before_end_year_nested = "";
+	public String start_after_start_year_nested = "";
+	public String start_after_end_year_nested = "";
+	public String years_nested = "";
 	
 	
 	public lifestyle_smoking(String criterion_name, String voc_smoking_status_CODE, String dt_amount_exact_value, String amount_range_min_value,
@@ -29,7 +38,7 @@ public class lifestyle_smoking extends Criterion {
 			String START_DATE_dt_date_YEAR, String START_DATE_dt_date_MONTH, String START_DATE_dt_date_DAY, 
 			String END_DATE_dt_date_YEAR, String END_DATE_dt_date_MONTH, String END_DATE_dt_date_DAY,
 			 String smoking_exact_date_year, String smoking_exact_date_month, String smoking_exact_date_day,
-			String smoking_until_date_year, String smoking_until_date_month, String smoking_until_date_day, String statement, String min_count, String max_count) {	
+			String smoking_until_date_year, String smoking_until_date_month, String smoking_until_date_day, String statement, String min_count, String max_count, String end_before_start_year_nested, String end_before_end_year_nested, String end_after_start_year_nested, String end_after_end_year_nested, String start_before_start_year_nested, String start_before_end_year_nested, String start_after_start_year_nested, String start_after_end_year_nested, String years_nested) {	
 		super(criterion_name);
 		this.status_coded_value = voc_smoking_status_CODE;							//Column: STATUS_ID
 		this.amount_exact_value = dt_amount_exact_value;							//Column: AMOUNT_ID
@@ -51,6 +60,15 @@ public class lifestyle_smoking extends Criterion {
 		this.statement = statement;	
 		this.min_count = min_count;
 		this.max_count = max_count;
+		this.end_before_start_year_nested = end_before_start_year_nested;
+		this.end_before_end_year_nested = end_before_end_year_nested;
+		this.end_after_start_year_nested = end_after_start_year_nested;
+		this.end_after_end_year_nested = end_after_end_year_nested;
+		this.start_before_start_year_nested = start_before_start_year_nested;
+		this.start_before_end_year_nested = start_before_end_year_nested;
+		this.start_after_start_year_nested = start_after_start_year_nested;
+		this.start_after_end_year_nested = start_after_end_year_nested;
+		this.years_nested = years_nested;
 	}
 
 	public lifestyle_smoking() {
@@ -75,6 +93,15 @@ public class lifestyle_smoking extends Criterion {
 		this.statement = "";
 		this.min_count = "";
 		this.max_count = "";
+		this.end_before_start_year_nested = "";
+		this.end_before_end_year_nested = "";
+		this.end_after_start_year_nested = "";
+		this.end_after_end_year_nested = "";
+		this.start_before_start_year_nested = "";
+		this.start_before_end_year_nested = "";
+		this.start_after_start_year_nested = "";
+		this.start_after_end_year_nested = "";
+		this.years_nested = "";
 	}
 	
 	public String getAmount_exact_value() {
@@ -235,5 +262,77 @@ public class lifestyle_smoking extends Criterion {
 	
 	public void setMaxCount(String max_count) {
 		this.max_count = max_count;
+	}
+	
+	public String getEndBeforeStartNested() {
+		return end_before_start_year_nested;
+	}
+	
+	public void setEndBeforeStartNested(String end_before_start_year_nested) {
+		this.end_before_start_year_nested = end_before_start_year_nested;
+	}
+	
+	public String getEndBeforeEndNested() {
+		return end_before_end_year_nested;
+	}
+	
+	public void setEndBeforeEndNested(String end_before_end_year_nested) {
+		this.end_before_end_year_nested = end_before_end_year_nested;
+	}
+	
+	public String getEndAfterStartNested() {
+		return end_after_start_year_nested;
+	}
+	
+	public void setEndAfterStartNested(String end_after_start_year_nested) {
+		this.end_after_start_year_nested = end_after_start_year_nested;
+	}
+	
+	public String getEndAfterEndNested() {
+		return end_after_end_year_nested;
+	}
+	
+	public void setEndAfterEndNested(String end_after_end_year_nested) {
+		this.end_after_end_year_nested = end_after_end_year_nested;
+	}
+	
+	public String getStartBeforeStartNested() {
+		return start_before_start_year_nested;
+	}
+	
+	public void setStartBeforeStartNested(String start_before_start_year_nested) {
+		this.start_before_start_year_nested = start_before_start_year_nested;
+	}
+	
+	public String getStartBeforeEndNested() {
+		return start_before_end_year_nested;
+	}
+	
+	public void setStartBeforeEndNested(String start_before_end_year_nested) {
+		this.start_before_end_year_nested = start_before_end_year_nested;
+	}
+	
+	public String getStartAfterStartNested() {
+		return start_after_start_year_nested;
+	}
+	
+	public void setStartAfterStartNested(String start_after_start_year_nested) {
+		this.start_after_start_year_nested = start_after_start_year_nested;
+	}
+	
+	public String getStartAfterEndNested() {
+		return start_after_end_year_nested;
+	}
+	
+	public void setStartAfterEndNested(String start_after_end_year_nested) {
+		this.start_after_end_year_nested = start_after_end_year_nested;
+	}
+	
+	public String getYearsNested() {
+		return years_nested;
+	}
+	
+	public void setYearsNested(String years_nested) {
+		this.years_nested = years_nested;
 	}
 }

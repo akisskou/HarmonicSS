@@ -21,12 +21,14 @@ public class intervention_surgery extends Criterion {
 	public String max_year_nested = "";
 	public String min_year_nested = "";
 	public String years_nested = "";
+	public String start_period_year_nested = "";
+	public String end_period_year_nested = "";
 	
 	
 	public intervention_surgery(String criterion_name, String DUE_TO_PSS_ID_voc_confirmation_CODE, String surgery_exact_date_year, String surgery_exact_date_month,
 			String surgery_exact_date_day, String surgery_period_begin_year, String surgery_period_begin_month, String surgery_period_begin_day, String surgery_period_end_year,
 			String surgery_period_end_month, String surgery_period_end_day, String surgery_until_date_year, String surgery_until_date_month, String surgery_until_date_day,
-			String statement, String min_count, String max_count, String max_year_nested, String min_year_nested, String years_nested) {
+			String statement, String min_count, String max_count, String max_year_nested, String min_year_nested, String years_nested, String start_period_year_nested, String end_period_year_nested) {
 		super(criterion_name);
 		this.reason = DUE_TO_PSS_ID_voc_confirmation_CODE;		
 		this.procedure_date_exact_year = surgery_exact_date_year;						
@@ -47,6 +49,8 @@ public class intervention_surgery extends Criterion {
 		this.max_year_nested = max_year_nested;
 		this.min_year_nested = min_year_nested;
 		this.years_nested = years_nested;
+		this.start_period_year_nested = start_period_year_nested;
+		this.end_period_year_nested = end_period_year_nested;
 	}
 
 	public intervention_surgery() {
@@ -70,6 +74,8 @@ public class intervention_surgery extends Criterion {
 		this.max_year_nested = "";
 		this.min_year_nested = "";
 		this.years_nested = "";
+		this.start_period_year_nested = "";
+		this.end_period_year_nested = "";
 	}
 
 	public String getReason() {
@@ -221,5 +227,21 @@ public class intervention_surgery extends Criterion {
 	
 	public void setYearsNested(String years_nested) {
 		this.years_nested = years_nested;
+	}
+	
+	public void setStartPeriodNested(String start_period_year_nested) {
+		this.start_period_year_nested = start_period_year_nested;
+	}
+	
+	public String getStartPeriodNested() {
+		return start_period_year_nested;
+	}
+	
+	public void setEndPeriodNested(String end_period_year_nested) {
+		this.end_period_year_nested = end_period_year_nested;
+	}
+	
+	public String getEndPeriodNested() {
+		return end_period_year_nested;
 	}
 }

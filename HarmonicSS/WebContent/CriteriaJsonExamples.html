@@ -46,6 +46,7 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
 <p>Abortions that took place at least one year before Urine Specific Gravity lab test conducted: {"criterion":"demographics_pregnancy","outcome_coded_value":"PREG-OUT-300","max_conception_year_nested":"{\"nested_criterion\":\"examination_lab_test\",\"test_id\":\"URINE-130\",\"years_nested\":\"-1\"}"}</p-->
 <h4>Smoking Status</h4>
 <p>Active Smoker with more than or equal to 200 cigarettes each year, between 2005 and 2012: {"criterion":"lifestyle_smoking", "status_coded_value":"SMOK-STAT-01", "amount_unit":"UNITEXP-18", "amount_range_min_value":"200", "interval_start_year":"2005", "interval_end_year":"2012"}</p>
+<!--p>Being an active smoker before and after diagnosed with Digestive System Disease: {"criterion":"lifestyle_smoking","status_coded_value":"SMOK-STAT-01","start_before_start_year_nested":"{\"nested_criterion\":\"condition_diagnosis\",\"condition\":\"COND-020000\"}","end_after_end_year_nested":"{\"nested_criterion\":\"condition_diagnosis\",\"condition\":\"COND-020000\"}"}</p-->
 <br>
 <h3>Examination</h3>
 <h4>Lab Tests</h4>
@@ -73,7 +74,8 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
 <h4>Symptoms/Signs</h4>
 <p>Dry mouth observed: {"criterion":"condition_symptom","sign_coded":"SYMPT-020"}</p>
 <p>Dry eyes observed between 2000 and 2008: {"criterion":"condition_symptom","sign_coded":"SYMPT-030","sign_date_interval_start_year":"2000", "sign_date_interval_end_year":"2008"}</p>
-<!--p>Fatigue observed at least 2 years before diagnosed with Arthritis: {"criterion":"condition_symptom","sign_coded":"SYMPT-160","max_year_nested":"{\"nested_criterion\":\"condition_diagnosis\",\"condition\":\"COND-101000\",\"years_nested\":\"-2\"}"}</p-->
+<!--p>Fatigue observed at least 2 years before diagnosed with Arthritis: {"criterion":"condition_symptom","sign_coded":"SYMPT-160","max_year_nested":"{\"nested_criterion\":\"condition_diagnosis\",\"condition\":\"COND-101000\",\"years_nested\":\"-2\"}"}</p>
+<p>Dry mouth observed while receiving Hydroxychloroquine (HCQ, aka Plaquenil): {"criterion":"condition_symptom","sign_coded":"SYMPT-020","start_period_year_nested":"{\"nested_criterion\":\"intervention_medication\",\"pharmacological_drug\":\"CHEM-21040\"}","end_period_year_nested":"{\"nested_criterion\":\"intervention_medication\",\"pharmacological_drug\":\"CHEM-21040\"}"}</p-->
 <h4>Diseases</h4>
 <p>Diagnosed with cancer: {"criterion":"condition_diagnosis","condition":"COND-140000"}</p>
 <p>Diagnosed with cancer before 2015 (inclusive): {"criterion":"condition_diagnosis","condition":"COND-140000","date_until_year":"2015"}</p>
@@ -89,6 +91,7 @@ body { padding: 0px; margin: 0px; font-family: Arial, Helvetica, sans-serif; }
 <p>Received Glucocorticoids: {"criterion":"intervention_medication","pharmacological_drug":"CHEM-10000"}</p>
 <p>Received Glucocorticoids in the past (before now): {"criterion":"intervention_medication","pharmacological_drug":"CHEM-10000","period_of_time_until_year":"2020"}</p>
 <p>Received Conventional Disease-modifying Antirheumatic Drug (cDMARD), minimum 10 mg/day, between 2005 and 2010: {"criterion":"intervention_medication","pharmacological_drug":"CHEM-21000", "dosage_amount_range_min_value":"10", "dosage_amount_unit":"UNITEXP-21", "period_of_time_interval_start_year":"2005", "period_of_time_interval_end_year":"2010"}</p>
+<!--p>Started receiving Leflunomide (aka Arava) after having started chemotherapies: {"criterion":"intervention_medication","pharmacological_drug":"CHEM-21020","start_after_start_year_nested":"{\"nested_criterion\":\"intervention_chemotherapy\"}"}<p-->
 <h4>Chemotherapies</h4>
 <p>Chemotherapy between 2010 and 2015: {"criterion":"intervention_chemotherapy", "period_of_time_interval_start_year":"2010", "period_of_time_interval_end_year":"2015"}</p>
 <h4>Surgeries</h4>

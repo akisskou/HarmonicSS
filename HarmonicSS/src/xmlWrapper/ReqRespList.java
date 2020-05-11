@@ -68,7 +68,7 @@ public class ReqRespList extends HttpServlet {
 		
 		try {
 			//System.out.println("URL: "+configureFile_obj.getDbURL()+" username: "+configureFile_obj.getUsername()+" password: "+configureFile_obj.getPassword());
-			db_con_obj = DriverManager.getConnection("jdbc:mysql://"+prop.getProperty("dbdomain").trim()+":"+prop.getProperty("dbport").trim()+"/"+prop.getProperty("dbname").trim()+"?autoReconnect=true&useSSL=false", prop.getProperty("dbusername").trim(), prop.getProperty("dbpassword").trim());
+			db_con_obj = DriverManager.getConnection("jdbc:mysql://"+prop.getProperty("dbdomain").trim()+":"+prop.getProperty("dbport").trim()+"/"+prop.getProperty("dbname").trim()+"?autoReconnect=true&useSSL=false&useLegacyDatetimeCode=false&serverTimezone=UTC", prop.getProperty("dbusername").trim(), prop.getProperty("dbpassword").trim());
 			//db_con_obj = DriverManager.getConnection("jdbc:mysql://192.168.50.6:3306/seltool", "iccs", "11iccs22!!");
 			//db_con_obj = DriverManager.getConnection("jdbc:mysql://ponte.grid.ece.ntua.gr:3306/HarmonicSS-Patient-Selection-DB", "emps", "emps");
 			if (db_con_obj != null) {

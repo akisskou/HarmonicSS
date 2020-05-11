@@ -27,6 +27,8 @@ public class examination_essdai_domain extends Criterion{
 	public String max_year_nested = "";
 	public String min_year_nested = "";
 	public String years_nested = "";
+	public String start_period_year_nested = "";
+	public String end_period_year_nested = "";
 	
 	
 	public examination_essdai_domain(String domain, String activity_level,
@@ -37,7 +39,7 @@ public class examination_essdai_domain extends Criterion{
 			String questionnaire_period_of_time_interval_end_year,
 			String questionnaire_period_of_time_interval_end_month,
 			String questionnaire_period_of_time_interval_end_day, String questionnaire_period_of_time_until_year,
-			String questionnaire_period_of_time_until_month, String questionnaire_period_of_time_until_day, String min_count, String max_count, String max_year_nested, String min_year_nested, String years_nested) {
+			String questionnaire_period_of_time_until_month, String questionnaire_period_of_time_until_day, String min_count, String max_count, String max_year_nested, String min_year_nested, String years_nested, String start_period_year_nested, String end_period_year_nested) {
 		super();
 		this.domain = domain;
 		this.activity_level = activity_level;
@@ -58,6 +60,8 @@ public class examination_essdai_domain extends Criterion{
 		this.max_year_nested = max_year_nested;
 		this.min_year_nested = min_year_nested;
 		this.years_nested = years_nested;
+		this.start_period_year_nested = start_period_year_nested;
+		this.end_period_year_nested = end_period_year_nested;
 	}
 	
 	public examination_essdai_domain() {
@@ -81,6 +85,8 @@ public class examination_essdai_domain extends Criterion{
 		this.max_year_nested = "";
 		this.min_year_nested = "";
 		this.years_nested = "";
+		this.start_period_year_nested = "";
+		this.end_period_year_nested = "";
 	}
 	
 	public String getDomain() {
@@ -207,6 +213,22 @@ public class examination_essdai_domain extends Criterion{
 	
 	public void setYearsNested(String years_nested) {
 		this.years_nested = years_nested;
+	}
+	
+	public void setStartPeriodNested(String start_period_year_nested) {
+		this.start_period_year_nested = start_period_year_nested;
+	}
+	
+	public String getStartPeriodNested() {
+		return start_period_year_nested;
+	}
+	
+	public void setEndPeriodNested(String end_period_year_nested) {
+		this.end_period_year_nested = end_period_year_nested;
+	}
+	
+	public String getEndPeriodNested() {
+		return end_period_year_nested;
 	}
 
 }
