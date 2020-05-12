@@ -85,6 +85,24 @@ public class patient extends Criterion{
 	public String cohort_inclusion_period_of_time_until_month = "";				//dt_date
 	public String cohort_inclusion_period_of_time_until_day = "";				//dt_date
 	
+	public String max_birth_year_nested = "";
+	public String years_birth_nested = "";
+	public String max_symptoms_onset_year_nested = "";
+	public String min_symptoms_onset_year_nested = "";
+	public String years_symptoms_onset_nested = "";
+	public String max_diagnosis_year_nested = "";
+	public String min_diagnosis_year_nested = "";
+	public String years_diagnosis_nested = "";
+	public String max_cohort_inclusion_year_nested = "";
+	public String min_cohort_inclusion_year_nested = "";
+	public String years_cohort_inclusion_nested = "";
+	public String type_nested = "";
+	public String start_period_symptoms_onset_year_nested = "";
+	public String end_period_symptoms_onset_year_nested = "";
+	public String start_period_diagnosis_year_nested = "";
+	public String end_period_diagnosis_year_nested = "";
+	public String start_period_cohort_inclusion_year_nested = "";
+	public String end_period_cohort_inclusion_year_nested = "";
 	
 	
 	
@@ -119,7 +137,7 @@ public class patient extends Criterion{
 			String cohort_inclusion_period_of_time_interval_end_year,
 			String cohort_inclusion_period_of_time_interval_end_month,
 			String cohort_inclusion_period_of_time_interval_end_day, String cohort_inclusion_period_of_time_until_year,
-			String cohort_inclusion_period_of_time_until_month, String cohort_inclusion_period_of_time_until_day) {
+			String cohort_inclusion_period_of_time_until_month, String cohort_inclusion_period_of_time_until_day, String max_birth_year_nested, String years_birth_nested, String max_symptoms_onset_year_nested, String min_symptoms_onset_year_nested, String years_symptoms_onset_nested, String max_diagnosis_year_nested, String min_diagnosis_year_nested, String years_diagnosis_nested, String max_cohort_inclusion_year_nested, String min_cohort_inclusion_year_nested, String years_cohort_inclusion_nested, String type_nested, String start_period_symptoms_onset_year_nested, String end_period_symptoms_onset_year_nested, String start_period_diagnosis_year_nested, String end_period_diagnosis_year_nested, String start_period_cohort_inclusion_year_nested, String end_period_cohort_inclusion_year_nested) {
 		super(criterion_name);
 		this.exact_age = exact_age;
 		this.min_age = min_age;
@@ -181,6 +199,24 @@ public class patient extends Criterion{
 		this.cohort_inclusion_period_of_time_until_year = cohort_inclusion_period_of_time_until_year;
 		this.cohort_inclusion_period_of_time_until_month = cohort_inclusion_period_of_time_until_month;
 		this.cohort_inclusion_period_of_time_until_day = cohort_inclusion_period_of_time_until_day;
+		this.max_birth_year_nested = max_birth_year_nested;
+		this.years_birth_nested = years_birth_nested;
+		this.max_symptoms_onset_year_nested = max_symptoms_onset_year_nested;
+		this.min_symptoms_onset_year_nested = min_symptoms_onset_year_nested;
+		this.years_symptoms_onset_nested = years_symptoms_onset_nested;
+		this.max_diagnosis_year_nested = max_diagnosis_year_nested;
+		this.min_diagnosis_year_nested = min_diagnosis_year_nested;
+		this.years_diagnosis_nested = years_diagnosis_nested;
+		this.max_cohort_inclusion_year_nested = max_cohort_inclusion_year_nested;
+		this.min_cohort_inclusion_year_nested = min_cohort_inclusion_year_nested;
+		this.years_cohort_inclusion_nested = years_cohort_inclusion_nested;
+		this.type_nested = type_nested;
+		this.start_period_symptoms_onset_year_nested = start_period_symptoms_onset_year_nested;
+		this.end_period_symptoms_onset_year_nested = end_period_symptoms_onset_year_nested;
+		this.start_period_diagnosis_year_nested = start_period_diagnosis_year_nested;
+		this.end_period_diagnosis_year_nested = end_period_diagnosis_year_nested;
+		this.start_period_cohort_inclusion_year_nested = start_period_cohort_inclusion_year_nested;
+		this.end_period_cohort_inclusion_year_nested = end_period_cohort_inclusion_year_nested;
 	}
 	
 	
@@ -246,6 +282,24 @@ public class patient extends Criterion{
 		this.cohort_inclusion_period_of_time_until_year = "";
 		this.cohort_inclusion_period_of_time_until_month = "";
 		this.cohort_inclusion_period_of_time_until_day = "";
+		this.max_birth_year_nested = "";
+		this.years_birth_nested = "";
+		this.max_symptoms_onset_year_nested = "";
+		this.min_symptoms_onset_year_nested = "";
+		this.years_symptoms_onset_nested = "";
+		this.max_diagnosis_year_nested = "";
+		this.min_diagnosis_year_nested = "";
+		this.years_diagnosis_nested = "";
+		this.max_cohort_inclusion_year_nested = "";
+		this.min_cohort_inclusion_year_nested = "";
+		this.years_cohort_inclusion_nested = "";
+		this.type_nested = "";
+		this.start_period_symptoms_onset_year_nested = "";
+		this.end_period_symptoms_onset_year_nested = "";
+		this.start_period_diagnosis_year_nested = "";
+		this.end_period_diagnosis_year_nested = "";
+		this.start_period_cohort_inclusion_year_nested = "";
+		this.end_period_cohort_inclusion_year_nested = "";
 	}
 	
 	public String get_exact_age_of_diagnosis() {
@@ -582,6 +636,130 @@ public class patient extends Criterion{
 	public void setCohort_inclusion_period_of_time_until_day(String cohort_inclusion_period_of_time_until_day) {
 		this.cohort_inclusion_period_of_time_until_day = cohort_inclusion_period_of_time_until_day;
 	}
-
 	
+	public String get_max_birth_year_nested() {
+		return max_birth_year_nested;
+	}
+	public void set_max_birth_year_nested(String max_birth_year_nested) {
+		this.max_birth_year_nested = max_birth_year_nested;
+	}
+	
+	public String get_years_birth_nested() {
+		return years_birth_nested;
+	}
+	public void set_years_birth_nested(String years_birth_nested) {
+		this.years_birth_nested = years_birth_nested;
+	}
+	
+	public String get_max_symptoms_onset_year_nested() {
+		return max_symptoms_onset_year_nested;
+	}
+	public void set_max_symptoms_onset_year_nested(String max_symptoms_onset_year_nested) {
+		this.max_symptoms_onset_year_nested = max_symptoms_onset_year_nested;
+	}
+	
+	public String get_min_symptoms_onset_year_nested() {
+		return min_symptoms_onset_year_nested;
+	}
+	public void set_min_symptoms_onset_year_nested(String min_symptoms_onset_year_nested) {
+		this.min_symptoms_onset_year_nested = min_symptoms_onset_year_nested;
+	}
+	
+	public String get_years_symptoms_onset_nested() {
+		return years_symptoms_onset_nested;
+	}
+	public void set_years_symptoms_onset_nested(String years_symptoms_onset_nested) {
+		this.years_symptoms_onset_nested = years_symptoms_onset_nested;
+	}
+
+	public String get_max_diagnosis_year_nested() {
+		return max_diagnosis_year_nested;
+	}
+	public void set_max_diagnosis_year_nested(String max_diagnosis_year_nested) {
+		this.max_diagnosis_year_nested = max_diagnosis_year_nested;
+	}
+	
+	public String get_min_diagnosis_year_nested() {
+		return min_diagnosis_year_nested;
+	}
+	public void set_min_diagnosis_year_nested(String min_diagnosis_year_nested) {
+		this.min_diagnosis_year_nested = min_diagnosis_year_nested;
+	}
+	
+	public String get_years_diagnosis_nested() {
+		return years_diagnosis_nested;
+	}
+	public void set_years_diagnosis_nested(String years_diagnosis_nested) {
+		this.years_diagnosis_nested = years_diagnosis_nested;
+	}
+	
+	public String get_max_cohort_inclusion_year_nested() {
+		return max_cohort_inclusion_year_nested;
+	}
+	public void set_max_cohort_inclusion_year_nested(String max_cohort_inclusion_year_nested) {
+		this.max_cohort_inclusion_year_nested = max_cohort_inclusion_year_nested;
+	}
+	
+	public String get_min_cohort_inclusion_year_nested() {
+		return min_cohort_inclusion_year_nested;
+	}
+	public void set_min_cohort_inclusion_year_nested(String min_cohort_inclusion_year_nested) {
+		this.min_cohort_inclusion_year_nested = min_cohort_inclusion_year_nested;
+	}
+	
+	public String get_years_cohort_inclusion_nested() {
+		return years_cohort_inclusion_nested;
+	}
+	public void set_years_cohort_inclusion_nested(String years_cohort_inclusion_nested) {
+		this.years_cohort_inclusion_nested = years_cohort_inclusion_nested;
+	}
+	
+	public String get_type_nested() {
+		return type_nested;
+	}
+	public void set_type_nested(String type_nested) {
+		this.type_nested = type_nested;
+	}
+	
+	public String get_start_period_symptoms_onset_year_nested() {
+		return start_period_symptoms_onset_year_nested;
+	}
+	public void set_start_period_symptoms_onset_year_nested(String start_period_symptoms_onset_year_nested) {
+		this.start_period_symptoms_onset_year_nested = start_period_symptoms_onset_year_nested;
+	}
+	
+	public String get_end_period_symptoms_onset_year_nested() {
+		return end_period_symptoms_onset_year_nested;
+	}
+	public void set_end_period_symptoms_onset_year_nested(String end_period_symptoms_onset_year_nested) {
+		this.end_period_symptoms_onset_year_nested = end_period_symptoms_onset_year_nested;
+	}
+	
+	public String get_start_period_diagnosis_year_nested() {
+		return start_period_diagnosis_year_nested;
+	}
+	public void set_start_period_diagnosis_year_nested(String start_period_diagnosis_year_nested) {
+		this.start_period_diagnosis_year_nested = start_period_diagnosis_year_nested;
+	}
+	
+	public String get_end_period_diagnosis_year_nested() {
+		return end_period_diagnosis_year_nested;
+	}
+	public void set_end_period_diagnosis_year_nested(String end_period_diagnosist_year_nested) {
+		this.end_period_diagnosis_year_nested = end_period_diagnosis_year_nested;
+	}
+	
+	public String get_start_period_cohort_inclusion_year_nested() {
+		return start_period_cohort_inclusion_year_nested;
+	}
+	public void set_start_period_cohort_inclusion_year_nested(String start_period_cohort_inclusion_year_nested) {
+		this.start_period_cohort_inclusion_year_nested = start_period_cohort_inclusion_year_nested;
+	}
+	
+	public String get_end_period_cohort_inclusion_year_nested() {
+		return end_period_cohort_inclusion_year_nested;
+	}
+	public void set_end_period_cohort_inclusion_year_nested(String end_period_cohort_inclusion_year_nested) {
+		this.end_period_cohort_inclusion_year_nested = end_period_cohort_inclusion_year_nested;
+	}
 }
