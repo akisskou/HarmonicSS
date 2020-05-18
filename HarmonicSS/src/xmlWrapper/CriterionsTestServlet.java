@@ -1936,8 +1936,8 @@ public class CriterionsTestServlet extends HttpServlet {
 				  			tables += ", dt_date as dt_date1";
 				  			where_clause += " AND patient.DATE_OF_BIRTH_ID=dt_date1.ID";
 				  		}	
-				  		if(isMax) query = "(SELECT MAX(dt_date1.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
-						else query = "(SELECT MIN(dt_date1.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  		if(isMax) query = "(SELECT MAX(dt_date1.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID " + where_clause +")";
+						else query = "(SELECT MIN(dt_date1.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID " + where_clause +")";
 				  		if(!patient_obj.get_years_birth_nested().isEmpty()) {
 							query += " + ("+patient_obj.get_years_birth_nested()+")";
 						}  
@@ -1948,8 +1948,8 @@ public class CriterionsTestServlet extends HttpServlet {
 				  			tables += ", dt_date as dt_date2";
 				  			where_clause += " AND patient.PSS_SYMPTOMS_ONSET_DATE_ID=dt_date2.ID";
 				  		}
-				  		if(isMax) query = "(SELECT MAX(dt_date2.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
-						else query = "(SELECT MIN(dt_date2.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  		if(isMax) query = "(SELECT MAX(dt_date2.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID " + where_clause +")";
+						else query = "(SELECT MIN(dt_date2.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID " + where_clause +")";
 				  		if(!patient_obj.get_years_symptoms_onset_nested().isEmpty()) {
 							query += " + ("+patient_obj.get_years_symptoms_onset_nested()+")";
 						} 
@@ -1960,8 +1960,8 @@ public class CriterionsTestServlet extends HttpServlet {
 				  			tables += ", dt_date as dt_date3";
 				  			where_clause += " AND patient.PSS_DIAGNOSIS_DATE_ID=dt_date3.ID";
 				  		}	
-				  		if(isMax) query = "(SELECT MAX(dt_date3.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
-						else query = "(SELECT MIN(dt_date3.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  		if(isMax) query = "(SELECT MAX(dt_date3.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID " + where_clause +")";
+						else query = "(SELECT MIN(dt_date3.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID " + where_clause +")";
 				  		if(!patient_obj.get_years_diagnosis_nested().isEmpty()) {
 							query += " + ("+patient_obj.get_years_diagnosis_nested()+")";
 						}  
@@ -1972,8 +1972,8 @@ public class CriterionsTestServlet extends HttpServlet {
 				  			tables += ", dt_date as dt_date4";
 				  			where_clause += " AND patient.COHORT_INCLUSION_DATE_ID=dt_date4.ID";
 				  		}
-				  		if(isMax) query = "(SELECT MAX(dt_date4.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
-						else query = "(SELECT MIN(dt_date4.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID AND " + where_clause +")";
+				  		if(isMax) query = "(SELECT MAX(dt_date4.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID " + where_clause +")";
+						else query = "(SELECT MIN(dt_date4.YEAR) FROM " + tables + " WHERE patient.UID=outerr.UID " + where_clause +")";
 				  		if(!patient_obj.get_years_cohort_inclusion_nested().isEmpty()) {
 							query += " + ("+patient_obj.get_years_cohort_inclusion_nested()+")";
 						} 
