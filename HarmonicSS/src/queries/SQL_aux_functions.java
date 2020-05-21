@@ -40,17 +40,16 @@ public class SQL_aux_functions {
 		return query;
 	}
 	
-	public static String Make_specific_date_query(Boolean incl, Boolean mode, String obj_name_DATE_ID, String dt_date, String specific_year, String specific_month, String specific_day) {
-		String query=""; 
+	public static String Make_specific_date_query(Boolean incl, Boolean mode, String obj_name_DATE_ID, String dt_date, String specific_year, String specific_month, String specific_day) { 
 		String assistance_where = "";
 		if(mode) { //UNdefined some Elements.   cond_symptom.OBSERVE_DATE_ID
-			query += " AND (" +
+			assistance_where += " AND (" +
 					"("+obj_name_DATE_ID+"='' OR "+obj_name_DATE_ID+" IS NULL)"+
 					" OR ("+obj_name_DATE_ID+"="+dt_date+".ID"+
 					" AND( ("+dt_date+".YEAR='' OR "+dt_date+".YEAR IS NULL)";
-			if(!specific_month.isEmpty()) query+=" OR ("+dt_date+".YEAR="+specific_year+" AND ("+dt_date+".MONTH='' OR "+dt_date+".MONTH IS NULL) ) ";
-			if(!specific_day.isEmpty()) query+=" OR ("+dt_date+".YEAR="+specific_year+" AND "+dt_date+".MONTH="+specific_month+" AND("+dt_date+".DAY='' OR "+dt_date+".DAY IS NULL) ) ";
-			query+=")))";	
+			if(!specific_month.isEmpty()) assistance_where+=" OR ("+dt_date+".YEAR="+specific_year+" AND ("+dt_date+".MONTH='' OR "+dt_date+".MONTH IS NULL) ) ";
+			if(!specific_day.isEmpty()) assistance_where+=" OR ("+dt_date+".YEAR="+specific_year+" AND "+dt_date+".MONTH="+specific_month+" AND("+dt_date+".DAY='' OR "+dt_date+".DAY IS NULL) ) ";
+			assistance_where+=")))";	
 		
 		}
 		else {  //Defined all elements mode==false
@@ -222,16 +221,37 @@ public class SQL_aux_functions {
 	
 	public static String Make_begin_end_date_query(Boolean incl, Boolean mode, String obj_name_DATE_ID, String dt_date, String begin_year, String begin_month, String begin_day, String end_year, String end_month,
 			String end_day) { 
-		String query="";
 		String assistance_where = "";
 		if(mode) { //UNdefined some Elements.
-			query += "(("+obj_name_DATE_ID+" IS NULL) OR " +
-		"("+obj_name_DATE_ID+" = "+dt_date+".ID " + 
-		"AND (" + 
-			"("+dt_date+".YEAR ='' OR "+dt_date+".YEAR IS NULL) OR  "+
-		    "("+dt_date+".YEAR = "+begin_year+" AND  ("+dt_date+".MONTH='' OR "+dt_date+".MONTH IS NULL) )  OR "+
-		    "("+dt_date+".YEAR = "+end_year+" AND ("+dt_date+".MONTH='' OR "+dt_date+".MONTH IS NULL) ) " +
-		")))";
+			assistance_where += " AND (("+obj_name_DATE_ID+" IS NULL) OR " +
+					"("+obj_name_DATE_ID+" = "+dt_date+".ID ";
+			
+			if(!begin_day.isEmpty()) assistance_where += " AND (("+begin_year+" = "+dt_date+".YEAR AND "+dt_date+".MONTH = "+begin_month+" AND ("+dt_date+".DAY = '' OR "+dt_date+".DAY IS NULL))"+
+											  " OR ("+dt_date+".YEAR = "+begin_year+" AND  ("+dt_date+".MONTH='' OR "+dt_date+".MONTH IS NULL))"+
+											  " OR ("+dt_date+".YEAR ='' OR "+dt_date+".YEAR IS NULL))";
+			
+			else if(!begin_month.isEmpty()) assistance_where += " AND (("+dt_date+".YEAR = "+begin_year+" AND  ("+dt_date+".MONTH='' OR "+dt_date+".MONTH IS NULL))"+
+													 " OR ("+dt_date+".YEAR ='' OR "+dt_date+".YEAR IS NULL))";
+			
+			else if(!begin_year.isEmpty()) assistance_where += "AND ("+dt_date+".YEAR ='' OR "+dt_date+".YEAR IS NULL)";
+			
+			if(!end_day.isEmpty()) assistance_where += " AND (("+end_year+" = "+dt_date+".YEAR2 AND "+dt_date+".MONTH2 = "+end_month+" AND ("+dt_date+".DAY2 = '' OR "+dt_date+".DAY2 IS NULL))"+
+					  " OR ("+dt_date+".YEAR2 = "+end_year+" AND  ("+dt_date+".MONTH2='' OR "+dt_date+".MONTH2 IS NULL))"+
+					  " OR (("+dt_date+".YEAR2 ='' OR "+dt_date+".YEAR2 IS NULL)"+
+					  " AND (("+end_year+" = "+dt_date+".YEAR AND "+dt_date+".MONTH = "+end_month+" AND ("+dt_date+".DAY = '' OR "+dt_date+".DAY IS NULL))"+
+					  " OR ("+dt_date+".YEAR = "+end_year+" AND  ("+dt_date+".MONTH='' OR "+dt_date+".MONTH IS NULL))"+ 
+					  "	OR ("+dt_date+".YEAR ='' OR "+dt_date+".YEAR IS NULL))))";
+
+			else if(!end_month.isEmpty()) assistance_where += " AND (("+dt_date+".YEAR2 = "+end_year+" AND  ("+dt_date+".MONTH2='' OR "+dt_date+".MONTH2 IS NULL))"+
+					  " OR (("+dt_date+".YEAR2 ='' OR "+dt_date+".YEAR2 IS NULL)"+
+					  " AND (("+dt_date+".YEAR = "+end_year+" AND  ("+dt_date+".MONTH='' OR "+dt_date+".MONTH IS NULL))"+ 
+					  "	OR ("+dt_date+".YEAR ='' OR "+dt_date+".YEAR IS NULL))))";
+			
+			else if(!end_year.isEmpty()) assistance_where += " AND (("+dt_date+".YEAR2 ='' OR "+dt_date+".YEAR2 IS NULL)"+
+					  " AND ("+dt_date+".YEAR ='' OR "+dt_date+".YEAR IS NULL))";
+
+			assistance_where+="))";
+
 
 /*			query += " AND (("+obj_name_DATE_ID+" IS NULL) OR " +
 					"("+obj_name_DATE_ID+" = "+dt_date+".ID " + 
@@ -300,18 +320,18 @@ public class SQL_aux_functions {
 									//" OR ("+begin_year+" = "+dt_date+".YEAR2 AND "+dt_date+".MONTH2 = "+begin_month+" AND "+dt_date+".DAY2 >= "+begin_day+")"+
 									" OR ("+begin_year+" = "+dt_date+".YEAR AND "+dt_date+".MONTH > "+begin_month+")" +
 									//" OR ("+begin_year+" = "+dt_date+".YEAR2 AND "+dt_date+".MONTH2 > "+begin_month+")" +
-									" OR ("+begin_year+" < "+dt_date+".YEAR)";
+									" OR ("+begin_year+" < "+dt_date+".YEAR))";
 									//" OR ("+begin_year+" < "+dt_date+".YEAR2))";
 			
 			}
 			else if(!begin_month.isEmpty()) {
 				assistance_where += " AND (("+begin_year+" = "+dt_date+".YEAR AND "+dt_date+".MONTH >= "+begin_month+")" +
 									//" OR ("+begin_year+" = "+dt_date+".YEAR2 AND "+dt_date+".MONTH2 >= "+begin_month+")" +
-									" OR ("+begin_year+" < "+dt_date+".YEAR)";
+									" OR ("+begin_year+" < "+dt_date+".YEAR))";
 									//" OR ("+begin_year+" < "+dt_date+".YEAR2))";
 			}
 			else if(!begin_year.isEmpty()) {
-				assistance_where += " AND (("+begin_year+" <= "+dt_date+".YEAR)";
+				assistance_where += " AND ("+begin_year+" <= "+dt_date+".YEAR)";
 									//" OR ("+begin_year+" <= "+dt_date+".YEAR2))";
 			}
 			
