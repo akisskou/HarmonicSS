@@ -5377,16 +5377,16 @@ public class PatientSelectionImpl extends HttpServlet implements XMLFileManager,
     public void criterionDBmatching(ArrayList<Criterion> list_of_inclusive_criterions, ArrayList<Criterion> list_of_exclusive_criterions) throws JSONException{
     	results = new Result_UIDs();
     	Boolean mode;
-    	//for (int j=0;j<2;j++) {
+    	for (int j=0;j<2;j++) {
 			
-    		/*if(j==0)*/ mode = false; //LOGGER.log(Level.INFO,"======** UIDs_defined_ALL_elements **======\n",true);}
-    		//else mode = true; //LOGGER.log(Level.INFO,"======** UIDs_UNdefined_some_elements **======\n",true);}
+    		if(j==0) mode = false; //LOGGER.log(Level.INFO,"======** UIDs_defined_ALL_elements **======\n",true);}
+    		else mode = true; //LOGGER.log(Level.INFO,"======** UIDs_UNdefined_some_elements **======\n",true);}
     		String results_of_all_Criterions="";
     		results_of_all_Criterions = executeQuery(list_of_inclusive_criterions, true, results_of_all_Criterions);
     		results_of_all_Criterions = executeQuery(list_of_exclusive_criterions, false, results_of_all_Criterions);
     		results.Input_UIDs(mode,results_of_all_Criterions);
-    		results.Input_UIDs(true,"");
-    	//}
+    		//results.Input_UIDs(true,"");
+    	}
     	UIDsDefined.add(results.UIDs_defined_ALL_elements );
     	UIDsUndefined.add(results.UIDs_UNdefined_some_elements);
     	System.out.println(results.Output_JSON_UIDs());

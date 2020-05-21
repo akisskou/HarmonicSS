@@ -5352,17 +5352,19 @@ public class CriterionsTestServlet extends HttpServlet {
     public void criterionDBmatching(ArrayList<Criterion> list_of_criterions) throws JSONException, JsonParseException, JsonMappingException, IOException{
     	results = new Result_UIDs();
     	Boolean mode = true;
-    	/*for (int j=0;j<2;j++) {
+    	long startTime = 0;
+    	long endTime = 0;
+    	for (int j=0;j<2;j++) {
 			
     		if(j==0) mode = false; //LOGGER.log(Level.INFO,"======** UIDs_defined_ALL_elements **======\n",true);}
-    		else*/ mode = false; //LOGGER.log(Level.INFO,"======** UIDs_UNdefined_some_elements **======\n",true);}
+    		else mode = true; //LOGGER.log(Level.INFO,"======** UIDs_UNdefined_some_elements **======\n",true);}
     		String results_of_all_Criterions="";
-    		long startTime = System.nanoTime();
+    		startTime = System.nanoTime();
     		results_of_all_Criterions = createQuery(list_of_criterions, mode, results_of_all_Criterions);
-    		long endTime = System.nanoTime();
+    		endTime = System.nanoTime();
     		results.Input_UIDs(mode,results_of_all_Criterions);
-    		results.Input_UIDs(true,"");
-    	//}
+    		//results.Input_UIDs(true,"");
+    	}
     	UIDsDefined.add(results.UIDs_defined_ALL_elements );
     	UIDsUndefined.add(results.UIDs_UNdefined_some_elements);
     	//System.out.println(results.Output_JSON_UIDs());
