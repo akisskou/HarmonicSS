@@ -40,7 +40,7 @@ public class SQL_aux_functions {
 		return query;
 	}
 	
-	public static String Make_specific_date_query(Boolean incl, Boolean mode, String obj_name_DATE_ID, String dt_date, String specific_year, String specific_month, String specific_day) { 
+	public static String Make_specific_date_query(Boolean mode, String obj_name_DATE_ID, String dt_date, String specific_year, String specific_month, String specific_day) { 
 		String assistance_where = "";
 		if(mode) { //UNdefined some Elements.   cond_symptom.OBSERVE_DATE_ID
 			assistance_where += " AND (" +
@@ -203,7 +203,7 @@ public class SQL_aux_functions {
 		return query;
 	}
 	
-	public static String Make_begin_end_age_query(Boolean incl, Boolean mode, String obj_name_BIRTH_DATE_ID, String obj_name_DATE_ID, String dt_date1, String dt_date2, String start_age, String end_age) {
+	public static String Make_begin_end_age_query(Boolean mode, String obj_name_BIRTH_DATE_ID, String obj_name_DATE_ID, String dt_date1, String dt_date2, String start_age, String end_age) {
 		String 	query="";
 		if(mode) { //UNdefined some Elements.
 			query += " AND (("+obj_name_BIRTH_DATE_ID+" IS NULL) OR ("+obj_name_DATE_ID+" IS NULL) OR ("
@@ -213,13 +213,12 @@ public class SQL_aux_functions {
 			query += " AND "+obj_name_BIRTH_DATE_ID+" = "+ dt_date1+".ID AND "+obj_name_DATE_ID+" = "+ dt_date2+".ID AND ";
 			String assistance_where = dt_date2+".YEAR - "+start_age+" >= "+dt_date1+".YEAR AND "+dt_date2+".YEAR - "+end_age+" <= "+dt_date1+".YEAR";
 			//query += assistance_where;
-			if(incl) query += assistance_where;
-			else query += "NOT ("+assistance_where+")";
+			query += assistance_where;
 		}
 		return query;
 	}
 	
-	public static String Make_begin_end_date_query(Boolean incl, Boolean mode, String obj_name_DATE_ID, String dt_date, String begin_year, String begin_month, String begin_day, String end_year, String end_month,
+	public static String Make_begin_end_date_query(Boolean mode, String obj_name_DATE_ID, String dt_date, String begin_year, String begin_month, String begin_day, String end_year, String end_month,
 			String end_day) { 
 		String assistance_where = "";
 		if(mode) { //UNdefined some Elements.
