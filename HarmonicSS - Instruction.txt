@@ -1,0 +1,18 @@
+Οδηγίες για το ανέβασμα της εφαρμογής στον Tomcat Server
+
+- Εγκαθιστούμε την τελευταία έκδοση του Tomcat (9.0.36), κατεβάζοντας και εκτελώντας το αρχείο 32-bit/64-bit Windows Service Installer. Στο setup, στην ενότητα Choose Components επιλέγουμε Full και διατηρούμε τις προεπιλεγμένες ρυθμίσεις για το JRE και το Path του Tomcat.
+- Κατεβάζουμε από το github (https://github.com/akisskou/HarmonicSS) τα αρχεία HarmonicSS.war και HarmonicSS final jars.zip
+- Από το HarmonicSS final jars.zip κάνουμε extract ΟΛΑ τα αρχεία jar στον φάκελο lib του Tomcat.
+- Δημιουργούμε έναν φάκελο XML-Requests, στον οποίο τοποθετούμε τα xml αρχεία για τη δημιουργία των requests. Μπορούμε να δημιουργήσουμε αυτό τον φάκελο είτε μέσα στο directory του Tomcat είτε σε οποιοδήποτε άλλο σημείο θέλουμε. 
+- Στο αρχείο HarmonicSS.war τροποποιούμε τις παραμέτρους στο WEB-INF/infos.properties ως εξής:
+1. Στην παράμετρο pathToXML γράφουμε το Path για τον φάκελο XML-Requests που μόλις δημιουργήσαμε. ΠΡΟΣΟΧΗ! Οι κάθετοι πρέπει υποχρεωτικά να είναι / και όχι \ και δεν ξεχνάμε την τελευταία κάθετο μετά το όνομα του φακέλου.
+2. Ορίζουμε τις παραμέτρους domain και port του server. Αν δεν έχουμε κάνει κάποια αλλαγή στις προεπιλογές, θα έχουμε domain=localhost και port=8080.
+- Αφού αποθηκεύσουμε τις αλλαγές στο infos.properties, κάνουμε deploy την εφαρμογή μας αντιγράφοντας το αρχείο HarmonicSS.war στον φάκελο webapps του Tomcat.
+- Εκκινούμε τον server εκτελώντας το αρχείο Tomcat9.exe που βρίσκεται στον φάκελο bin του Tomcat. Έτσι θα μπορούμε να βλέπουμε τα logs.
+- Βρίσκουμε την αρχική σελίδα της εφαρμογής στη διεύθυνση http://localhost:8080/HarmonicSS/index.html
+
+Δημιουργία war αρχείου μέσω eclipse
+- Στο eclipse δημιουργούμε νέο dynamic web project
+- Τοποθετούμε τον φάκελο source, που περιέχει όλα τα java αρχεία μας, μέσα στον φάκελο Java Resources του νέου project.
+- Τοποθετούμε όλα τα html αρχεία, καθώς και τους φακέλους WEB-INF και IMG μέσα στον φάκελο WebContent.
+- Κάνουμε δεξί κλικ στον φάκελο του project, πατάμε export->WAR File, επιλέγουμε τον προορισμό όπου θα αποθηκευτεί το war αρχείο μας και πατάμε finish.
