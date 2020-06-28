@@ -36,7 +36,7 @@ public class Result_UIDs {
 			if (mode) {
 				this.UIDs_UNdefined_some_elements=(UIDs.substring(1)).split(" ");		
 			} else {
-				this.UIDs_defined_ALL_elements=(UIDs.substring(1)).split(" ");
+				this.UIDs_defined_ALL_elements=UIDs.split(",");
 			}
 		} else {
 			if (mode) {

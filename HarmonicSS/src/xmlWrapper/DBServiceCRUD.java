@@ -129,12 +129,46 @@ public class DBServiceCRUD {
 			//System.out.println("Stage-3 The query is executed.");
 			// Let's iterate through the java ResultSet
 			if (rs == null) return "";
+			boolean mycount = false;
+			while (rs.next()) {
+				//System.out.println("Stage-4 We retrieve the IDs one by one.");
+				String id = rs.getString("ID");//.getInt("ID");
+				//Float value = rs.getFloat("VALUE");//  .getString("Address");
+				if(!mycount) {
+					query_results=id;
+					mycount=true;
+				}
+				else query_results+=","+id;//Integer.toString(id) + " ";//+Float.toString(value)+". ";
+				
+			}//System.out.println("Stage-5 Finished.");
+			return query_results;
+	}
+	
+	public static String getUIDDataFromDB(String getQueryStatement) throws SQLException {
+		String query_results=""; 
+		
+			//System.out.println("Stage-1 Prepare statement.");
+			db_prep_obj = db_con_obj.prepareStatement(getQueryStatement);
+			
+			//System.out.println("Stage-2 Ready to execute the query.");
+			// Execute the Query, and get a java ResultSet
+			
+			ResultSet rs = db_prep_obj.executeQuery();
+			//System.out.println("We are ready to retrieve data from DB.");
+			
+			//System.out.println("Stage-3 The query is executed.");
+			// Let's iterate through the java ResultSet
+			if (rs == null) return "";
+			boolean mycount = false;
 			while (rs.next()) {
 				//System.out.println("Stage-4 We retrieve the IDs one by one.");
 				String id = rs.getString("UID");//.getInt("ID");
 				//Float value = rs.getFloat("VALUE");//  .getString("Address");
-				
-				query_results+=" "+id;//Integer.toString(id) + " ";//+Float.toString(value)+". ";
+				if(!mycount) {
+					query_results=id;
+					mycount=true;
+				}
+				else query_results+=","+id;//Integer.toString(id) + " ";//+Float.toString(value)+". ";
 				
 			}//System.out.println("Stage-5 Finished.");
 			return query_results;
