@@ -33,6 +33,10 @@ public class W2V {
 	
 	private static Logger log = LoggerFactory.getLogger(W2V.class);
 	
+	private static String stopwords1 = "<=,>=,_,=,<,>,+,%, -,- , - ,—,•,…,/,#,$,&,*,\\,^,{,},~,£,§,®,°,±,³,·,½,™";
+
+	private static String stopwords2 = "i,me,my,myself,we,our,ours,ourselves,you,your,yours,yourself,yourselves,he,him,his,himself,she,her,hers,herself,it,its,itself,they,them,their,theirs,themselves,what,which,who,whom,never,this,that,these,those,am,is,are,was,were,be,been,being,have,has,had,having,do,does,did,doing,a,an,the,and,but,if,kung,or,because,as,until,while,of,at,by,for,with,about,against,between,into,through,during,before,after,above,below,to,from,up,down,in,out,on,off,over,under,again,further,then,once,here,there,when,where,why,how,long,all,any,both,each,few,more,delivering,most,other,some,such,no,nor,not,only,own,same,so,than,too,cry,very,s,t,can,lite,will,just,don,should,now";
+	
 	public static void main(String[] args) throws Exception {
 		try {
 			InputStream input = new FileInputStream("infos.properties");
@@ -42,6 +46,7 @@ public class W2V {
 			//System.out.println(prop.getProperty("pathToXML"));
 			File folder;
 			folder = new File(new URI("file:///"+prop.getProperty("pathToXML")));
+			log.info("Checking for files...");
 			File[] files = folder.listFiles(new FileFilter() {
 				@Override
 				public boolean accept(File f) {
@@ -53,7 +58,7 @@ public class W2V {
 			String data = "";
 			
 				String field="";
-				
+				log.info("Reading all files...");
 				for (int i = 0; i < files.length; i++) {
 					Document doc = dBuilder.parse(files[i]);
 					doc.getDocumentElement().normalize();
@@ -70,17 +75,27 @@ public class W2V {
 								data += eElement
 										.getElementsByTagName("textblock")
 										.item(0)
-										.getTextContent();
+										.getTextContent().toLowerCase();
 							}
 						}
 					}
 				}
 
+			String[] sw1 = stopwords1.split(",");	
+			String[] sw2 = stopwords2.split(",");
+			
+			log.info("Replacing stop words...");
+			
+			for(int i=0; i<sw1.length; i++) data = data.replace(sw1[i], " ");
+			for(int i=0; i<sw2.length; i++) data = data.replace(" "+sw2[i]+" ", " ");
+			//if(stopwords.contains(","+myKeywordString.toLowerCase()+","))	
+				
+			log.info("Writing data in new file...");
 			PrintWriter out = new PrintWriter("raw_text.txt");
 			out.println(data);
 		
 
-			log.info("Load & Vectorize Sentences....");
+			/*log.info("Load & Vectorize Sentences....");
 			// Strip white space before and after for each line
 			SentenceIterator iter = new BasicLineIterator("raw_text.txt");
 			// Split on white spaces in the line to get words
@@ -103,9 +118,7 @@ public class W2V {
 			
 			log.info("Writing word vectors to text file....");
 			WordVectorSerializer.writeWordVectors(vec, "word_vectors.txt");
-			/*log.info("Closest Words:");
-	        Collection<String> lst = vec.wordsNearestSum(prop.getProperty("word"), 10);
-	        log.info("10 Words closest to '"+prop.getProperty("word")+"': {}", lst);*/
+			*/
 	        
 		} catch (URISyntaxException e) {
 			// TODO Auto-generated catch block
