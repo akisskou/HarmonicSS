@@ -1,16 +1,25 @@
 import java.io.File;
+import java.io.FileFilter;
 import java.io.FileInputStream;
 import java.io.InputStream;
 import java.io.PrintWriter;
+import java.nio.charset.StandardCharsets;
+import java.nio.file.Files;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardOpenOption;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collection;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Properties;
+import java.util.Scanner;
 import java.util.Set;
 
 import org.deeplearning4j.models.embeddings.loader.WordVectorSerializer;
+import org.deeplearning4j.models.embeddings.wordvectors.WordVectors;
 import org.deeplearning4j.models.word2vec.Word2Vec;
 import org.nd4j.shade.guava.collect.Iterables;
 import org.nd4j.shade.guava.collect.Lists;
@@ -119,7 +128,82 @@ public class W2VLoadVectors {
 		Properties prop = new Properties();
 		// load a properties file
 		prop.load(input);
-		manager = OWLManager.createOWLOntologyManager();
+		//String[] criteria = prop.getProperty("criteria").split(" ");
+		File dbDir = new File("chdb0"+prop.getProperty("dbid"));
+		log.info("Checking for files...");
+		File[] files = dbDir.listFiles(new FileFilter() {
+			@Override
+			public boolean accept(File f) {
+				return f.isFile();
+			}
+		});
+		File newDir = new File("chdb0"+prop.getProperty("dbid")+"/Closest_words");
+		newDir.mkdir();
+		log.info("Loading word vectors from zip file...");
+		File vectors = new File("word_vectors.zip");
+		Word2Vec vec = WordVectorSerializer.readWord2VecModel(vectors);
+		for(int i=0; i<files.length; i++) {	
+			log.info("Patient "+files[i].getName().split("\\.")[0]);
+			File myObj = new File("chdb0"+prop.getProperty("dbid")+"/"+files[i].getName());
+		    Scanner myReader = new Scanner(myObj);
+		    String data = "";
+		    while (myReader.hasNextLine()) {
+		        data += myReader.nextLine();
+		    }
+		    myReader.close();
+		    String[] words = data.trim().replaceAll(" +", " ").split(" ");
+		    List<String> myWords = new ArrayList<String>();
+		    for(int j=0; j<words.length; j++) {
+		    	myWords.add(words[j]);
+		    }
+		    Set<String> set = new HashSet<>(myWords);
+		    myWords.clear();
+		    myWords.addAll(set);
+			Collection<String> wordList = null;
+			String results = "";
+			for(int j=0; j<myWords.size(); j++) {
+				try {
+					wordList = vec.wordsNearestSum(myWords.get(j), Integer.valueOf(prop.getProperty("count")));
+					results += myWords.get(j)+": "+wordList.toString()+"\n";
+					/*if(j==0) wordList = vec.wordsNearestSum(criteria[j], Integer.valueOf(prop.getProperty("count")));
+					else {
+						Collection<String> myList = vec.wordsNearestSum(criteria[j], Integer.valueOf(prop.getProperty("count")));
+						Iterable<String> combinedIterables = Iterables.unmodifiableIterable(
+								Iterables.concat(wordList, myList));
+						wordList = Lists.newArrayList(combinedIterables);
+					}
+					flag=true;*/
+				}
+				catch(Exception e) {
+					results += myWords.get(j)+": has no close words\n";
+				}
+				/*if(!flag) {
+					log.info(criteria[j]+" has no close words");
+				}
+				else {
+					log.info("Words closest to '"+criteria[j]+"': {}", wordList);
+				}*/
+				
+			}
+			/*if(flag) {
+				Set<String> set = new HashSet<>(wordList);
+				wordList.clear();
+				wordList.addAll(set);
+				log.info("Words closest to '"+prop.getProperty("criteria")+"': {}", wordList);
+			       
+		        data = prop.getProperty("criteria")+": "+wordList.toString()+"\n";
+			}
+			else {
+				log.info(prop.getProperty("criteria")+" has no close words");
+			       
+		        data = prop.getProperty("criteria")+" has no close words\n";
+			}*/
+			log.info("Writing results in file...");
+			final Path path = Paths.get("chdb0"+prop.getProperty("dbid")+"/Closest_words/closest_words_"+files[i].getName());
+		    Files.write(path, Arrays.asList(results), StandardCharsets.UTF_8,
+		        Files.exists(path) ? StandardOpenOption.APPEND : StandardOpenOption.CREATE);
+		}
+		/*manager = OWLManager.createOWLOntologyManager();
 		//documentIRI = IRI.create(prop.getProperty("pathToOWLFile"));
 		documentIRI = IRI.create("file:///C:/", prop.getProperty("owlFile"));
 		try{
@@ -140,7 +224,7 @@ public class W2VLoadVectors {
 		String data = "";
 		String[] sw1 = stopwords1.split(",");	
 		String[] sw2 = stopwords2.split(",");
-		PrintWriter out = new PrintWriter("reference model closest words.txt");
+		PrintWriter out = new PrintWriter("reference model closest words W2V.txt");
 		for(int j=0; j<targetWords.length; j++) {
 			System.out.println(targetWords[j]);
 			String tempTerms = getTermsWithNarrowMeaning(targetWords[j].trim()).toLowerCase();
@@ -188,11 +272,11 @@ public class W2VLoadVectors {
 				
 				
 			}
-		}
+		}*/
 		
 		//Collection<String>[] lst = new Collection<String>[targetWords.length];
         //Collection<String> lst = vec.wordsNearestSum(prop.getProperty("word"), Integer.valueOf(prop.getProperty("count")));
-		out.println(data);
-		out.close();
+		//out.println(data);
+		//out.close();
 	}
 }
